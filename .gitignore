@@ -1,0 +1,44 @@
+# Secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+secrets/
+credentials/
+
+# Local data and artifacts
+.data/
+artifacts/
+.tmp/
+.cache/
+.tools/
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Node
+node_modules/
+.next/
+out/
+.npm/
+
+# Android/Gradle
+.gradle/
+.gradle-home/
+local.properties
+**/build/
+.externalNativeBuild/
+.cxx/
+
+# Editors/OS
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
