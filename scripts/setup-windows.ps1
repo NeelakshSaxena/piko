@@ -33,7 +33,7 @@ $ErrorActionPreference = "Stop"
 $InformationPreference = "Continue"
 $ProgressPreference = "SilentlyContinue"
 
-$repoRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
+$repoRoot = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
 
 Write-Host "========================================" -ForegroundColor Cyan
 Write-Host "Piko - Windows Setup" -ForegroundColor Cyan
