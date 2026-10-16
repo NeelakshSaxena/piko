@@ -42,3 +42,10 @@ local.properties
 .vscode/
 .DS_Store
 Thumbs.db
+
+# Project-local Android user home (AVDs, adb keys, sdkmanager cache)
+.android-home/
+.android/
+
+# Dashboard build output
+web/dist/

@@ -34,3 +34,6 @@ PASS only when the inventory report exists, path policy is verified, user change
 
 ## Stop conditions
 Stop if root path is unclear, free space is insufficient, a required tool would install outside the root, `screens/` includes sensitive real family data, or the repository contains unexpected work that could be overwritten.
+
+## History
+create and always maintain a file `logs.md' in root where you store in a very short version what phase is runnning, what's being worked on, what's queued and any errors faced.

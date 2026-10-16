@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "supabase": {
+      "transport": "http",
+      "url": "https://mcp.supabase.com/mcp?project_ref=wktsqtydgfmmmugngzxo&features=docs%2Caccount%2Cdatabase%2Cdebugging%2Cdevelopment%2Cfunctions%2Cbranching",
+      "description": "Supabase MCP for Piko development (project: wktsqtydgfmmmugngzxo)"
+    }
+  }
+}

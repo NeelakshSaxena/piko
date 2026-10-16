@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Piko</string>
+    <string name="notification_channel_name">Location sharing</string>
+    <string name="notification_channel_description">Shown whenever this phone is sharing its location with your family.</string>
+    <string name="notification_title">Piko is sharing this phone\'s location</string>
+    <string name="notification_stop">Stop sharing</string>
+</resources>

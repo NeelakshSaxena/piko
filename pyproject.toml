@@ -2,8 +2,15 @@
 name = "piko"
 version = "0.1.0"
 description = "Self-hostable family safety platform"
-requires-python = ">=3.12"
+requires-python = ">=3.11"
 dependencies = []
+
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["backend"]
 
 [project.optional-dependencies]
 dev = [
@@ -20,24 +27,32 @@ api = [
   "sqlalchemy>=2.0,<3",
   "alembic>=1.14,<2",
   "psycopg[binary]>=3.2,<4",
+  "PyJWT[crypto]>=2.9,<3",
+  "bcrypt>=4.2,<5",
+  "email-validator>=2.2,<3",
 ]
 test = [
   "httpx>=0.28,<1",
-  "aiosqlite>=0.20,<1",
 ]
 mcp = [
   "mcp>=1.0,<2",
 ]
 
 [tool.pytest.ini_options]
-testpaths = ["tests"]
+testpaths = ["backend/tests"]
+pythonpath = ["backend"]
 addopts = "-ra"
 
 [tool.ruff]
 line-length = 100
-target-version = "py312"
+target-version = "py311"
+src = ["backend"]
+extend-exclude = [".claude", ".tools", ".venv"]
 
 [tool.mypy]
-python_version = "3.12"
+python_version = "3.11"
 strict = true
 warn_unused_configs = true
+mypy_path = "backend"
+explicit_package_bases = true
+plugins = ["pydantic.mypy"]

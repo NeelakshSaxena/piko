@@ -1,26 +1,38 @@
 # Piko Project State
 
-Status: **Phase 0 — not yet verified**
-Current phase owner: human operator + coding agent
-Implementation status: not started by this starter pack
-Last verified commit: none
-Open blockers: choose/confirm supported OS/toolchain versions; review architecture and threat model; approve Phase 0.
+Status: **Phases 2-5 IMPLEMENTED and tested; NO formal gate passed (see `docs/PHASE_02_03_GATE_BACKLOG.md` and `docs/verification/phase-04-05-android-and-web.md`)**
+Current phase owner: human operator (decisions below) + independent auditor
+Implementation status: backend (Phases 2-3 plus history endpoint, invitations/guardian, refresh rotation), Android node (Phase 4) and parent dashboard (Phase 5) exist and were run end to end on the project-local emulator. No gate is passed. Phase 6 has NOT been started.
+Last verified commit: none (working tree not committed)
+Open blockers: see "Gate blockers"
 
 ## Phase ledger
 
 | Phase | Name | Status | Evidence |
 |---|---|---|---|
-| 0 | Inventory and project-local environment | NOT STARTED | `docs/verification/` |
-| 1 | Contracts and threat model | BLOCKED on Phase 0 | `docs/verification/` |
-| 2 | Backend foundation and auth | BLOCKED | `docs/verification/` |
-| 3 | Telemetry ingestion and offline reconciliation | BLOCKED | `docs/verification/` |
-| 4 | Android durable node and modes | BLOCKED | `docs/verification/` |
-| 5 | Parent web dashboard | BLOCKED | `docs/verification/` |
-| 6 | SOS and messaging | BLOCKED | `docs/verification/` |
-| 7 | Read-only MCP integration | BLOCKED | `docs/verification/` |
-| 8 | Self-hosting and operations | BLOCKED | `docs/verification/` |
-| 9 | Security, privacy, reliability, battery validation | BLOCKED | `docs/verification/` |
-| 10 | Release candidate and independent audit | BLOCKED | `docs/verification/` |
+| 0 | Inventory and project-local environment | ✅ PASS | `artifacts/initialization/` |
+| 1 | Contracts and threat model | ✅ PASS (human operator approved the contracts in-session, 2026-10-16) | `docs/API_CONTRACTS.md`, `docs/DATA_MODEL.md`, `docs/verification/phase-01-contracts.md` |
+| 2 | Backend foundation and auth | 🟡 IMPLEMENTED, GATE PENDING | `docs/verification/phase-02-03-backend.md`, `docs/verification/phase-02-03-security-findings.md` |
+| 3 | Telemetry ingestion and offline reconciliation | 🟡 IMPLEMENTED, GATE PENDING | same as Phase 2 |
+| 4 | Android durable node and modes | 🟡 IMPLEMENTED, GATE PENDING, **development paused by the operator 2026-10-16** | `docs/verification/phase-04-05-android-and-web.md` (48 JVM + 30 emulator tests pass; no physical device) |
+| 5 | Parent web dashboard | 🟡 IMPLEMENTED (all four web designs; SOS/Messages/Alerts are honest "not available" pages), GATE PENDING | `docs/verification/phase-05-web.md` (72 tests pass; production CSP checked in a browser; no screen-reader pass) |
+| 6 | SOS and messaging | ⏳ BLOCKED | Gates on Phase 2 & 3 |
+| 7 | Read-only MCP integration | ⏳ BLOCKED | Gates on Phase 2 & Phase 1 security approval |
+| 8 | Self-hosting and operations | ⏳ BLOCKED | Gates on Phase 5+ |
+| 9 | Security, privacy, reliability, battery validation | ⏳ BLOCKED | Gates on Phase 4–7 |
+| 10 | Release candidate and independent audit | ⏳ BLOCKED | Gates on all prior phases |
+
+## Gate blockers for Phases 2-3 (why they are not marked PASS)
+
+AGENTS.md section 10 requires, in addition to passing tests: no unresolved critical/high finding, documentation updated, evidence saved, and **an independent audit run for security-critical phases**.
+
+1. **Independent audit RUN (2026-10-16)**: `docs/verification/phase-02-03-independent-audit.md` (0 Critical, 1 High, 4 Medium, 6 Low). H-1, M-1, M-2, M-4 are fixed with regression tests (`docs/verification/phase-02-03-fixes.md`, ADR-018). **Not yet re-reviewed independently.** M-3 (refresh-token rotation) awaits an operator decision; Low items are open.
+2. ADR-008 and ADR-011 **approved** by the operator (2026-10-16).
+3. Invite endpoint and `guardian` role **implemented** (ADR-017, migration 0003). Multi-family is out of scope.
+4. **Not exercised**: nothing on a physical device; no persistent (non-test) schema has been migrated on the remote database; the retention/cleanup job is not included in Phase 3 (the Phase 3 prompt marks it optional).
+5. **Dev/build tooling advisories** (`pytest 8.4.2`, venv `setuptools 65.5.0`): bumps need operator approval (ADR-016).
+
+**Deferred by the operator (2026-10-16):** the Phase 2-3 gate is intentionally left open and tracked in `docs/PHASE_02_03_GATE_BACKLOG.md` (no re-audit of the fixes; Low findings; migration on the persistent schema; final clean suite run). M-3 is resolved by ADR-019 (rotation with reuse detection). Phases 4-5 proceed on the operator's explicit instruction and are NOT gated-complete while that backlog is open.
 
 ## Rules
 

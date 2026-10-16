@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Edit(/.claude/skills/piko-android-adb/**)",
+      "Bash(git check-ignore *)"
+    ]
+  }
+}

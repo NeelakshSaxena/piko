@@ -1,0 +1,274 @@
+﻿============================= test session starts =============================
+platform win32 -- Python 3.11.0, pytest-8.4.2, pluggy-1.7.0 -- G:\Projects\piko\.venv\Scripts\python.exe
+rootdir: G:\Projects\piko
+configfile: pyproject.toml
+testpaths: backend/tests
+plugins: anyio-4.15.1, platformdirs-4.13.0, cov-6.3.0
+collecting ... collected 219 items
+
+backend/tests/test_api_auth.py::test_login_success_returns_contract_shape PASSED [  0%]
+backend/tests/test_api_auth.py::test_wrong_password_and_unknown_email_are_indistinguishable PASSED [  0%]
+backend/tests/test_api_auth.py::test_login_validation_errors_do_not_echo_input PASSED [  1%]
+backend/tests/test_api_auth.py::test_overlong_password_rejected_without_hashing PASSED [  1%]
+backend/tests/test_api_auth.py::test_per_ip_login_rate_limit PASSED      [  2%]
+backend/tests/test_api_auth.py::test_account_locks_after_ten_failures_even_for_correct_password PASSED [  2%]
+backend/tests/test_api_auth.py::test_lockout_also_applies_to_unknown_emails_so_existence_is_not_leaked PASSED [  3%]
+backend/tests/test_api_auth.py::test_failed_logins_are_audited_without_the_password PASSED [  3%]
+backend/tests/test_api_auth.py::test_user_without_family_cannot_log_in PASSED [  4%]
+backend/tests/test_api_auth.py::test_suspended_user_cannot_log_in_and_existing_tokens_die PASSED [  4%]
+backend/tests/test_api_auth.py::test_refresh_issues_a_working_access_token PASSED [  5%]
+backend/tests/test_api_auth.py::test_refresh_requires_a_token PASSED     [  5%]
+backend/tests/test_api_auth.py::test_access_token_cannot_refresh_and_refresh_token_cannot_access PASSED [  5%]
+backend/tests/test_api_auth.py::test_expired_refresh_token_rejected PASSED [  6%]
+backend/tests/test_api_auth.py::test_session_expired_in_database_rejected_even_with_valid_jwt PASSED [  6%]
+backend/tests/test_api_auth.py::test_expired_access_token_rejected PASSED [  7%]
+backend/tests/test_api_auth.py::test_refresh_rate_limit_per_user PASSED  [  7%]
+backend/tests/test_api_auth.py::test_revoke_is_immediate_for_access_and_refresh_tokens PASSED [  8%]
+backend/tests/test_api_auth.py::test_revoking_one_session_leaves_other_sessions_alone PASSED [  8%]
+backend/tests/test_api_auth.py::test_revoke_requires_authentication PASSED [  9%]
+backend/tests/test_api_auth.py::test_device_credential_is_rejected_on_parent_endpoints PASSED [  9%]
+backend/tests/test_api_auth.py::test_user_token_is_rejected_on_device_endpoint PASSED [ 10%]
+backend/tests/test_api_auth.py::test_malformed_authorization_headers PASSED [ 10%]
+backend/tests/test_api_authorization.py::test_every_route_denies_unauthenticated_requests_by_default FAILED [ 10%]
+backend/tests/test_api_authorization.py::test_parent_cannot_read_another_familys_data PASSED [ 11%]
+backend/tests/test_api_authorization.py::test_cross_family_member_location_is_not_visible PASSED [ 11%]
+backend/tests/test_api_authorization.py::test_failed_cross_family_delete_leaves_device_intact PASSED [ 12%]
+backend/tests/test_api_authorization.py::test_pairing_code_binds_the_device_to_the_issuers_family_only PASSED [ 12%]
+backend/tests/test_api_authorization.py::test_family_listing_only_contains_own_families PASSED [ 13%]
+backend/tests/test_api_authorization.py::test_family_detail_contract_shape_and_hides_child_email PASSED [ 13%]
+backend/tests/test_api_authorization.py::test_revoked_membership_loses_access_immediately PASSED [ 14%]
+backend/tests/test_api_authorization.py::test_archived_family_is_not_visible PASSED [ 14%]
+backend/tests/test_api_authorization.py::test_child_role_cannot_use_parent_operations PASSED [ 15%]
+backend/tests/test_api_authorization.py::test_device_sees_only_itself PASSED [ 15%]
+backend/tests/test_api_authorization.py::test_revoking_a_device_kills_its_credential_and_keeps_the_record PASSED [ 15%]
+backend/tests/test_api_authorization.py::test_unknown_device_token_rejected PASSED [ 16%]
+backend/tests/test_api_invitations.py::test_invite_contract_and_code_format PASSED [ 16%]
+backend/tests/test_api_invitations.py::test_accepted_invitation_creates_an_active_member_who_can_log_in[parent] PASSED [ 17%]
+backend/tests/test_api_invitations.py::test_accepted_invitation_creates_an_active_member_who_can_log_in[family_admin] PASSED [ 17%]
+backend/tests/test_api_invitations.py::test_accepted_invitation_creates_an_active_member_who_can_log_in[guardian] PASSED [ 18%]
+backend/tests/test_api_invitations.py::test_only_the_keyed_hash_is_stored_never_the_code_or_the_email_in_audit PASSED [ 18%]
+backend/tests/test_api_invitations.py::test_code_is_single_use PASSED    [ 19%]
+backend/tests/test_api_invitations.py::test_every_refusal_looks_identical PASSED [ 19%]
+backend/tests/test_api_invitations.py::test_weak_or_oversized_passwords_are_rejected PASSED [ 20%]
+backend/tests/test_api_invitations.py::test_code_dies_with_its_issuer PASSED [ 20%]
+backend/tests/test_api_invitations.py::test_accept_is_rate_limited_per_ip PASSED [ 21%]
+backend/tests/test_api_invitations.py::test_invite_validation PASSED     [ 21%]
+backend/tests/test_api_invitations.py::test_inviting_requires_authentication_and_membership PASSED [ 21%]
+backend/tests/test_api_invitations.py::test_invitations_are_rate_limited_per_user PASSED [ 22%]
+backend/tests/test_api_invitations.py::test_guardian_can_view_but_not_manage PASSED [ 22%]
+backend/tests/test_api_invitations.py::test_guardian_cannot_reach_another_family PASSED [ 23%]
+backend/tests/test_api_invitations.py::test_invited_parent_has_full_management PASSED [ 23%]
+backend/tests/test_api_invitations.py::test_invited_member_cannot_log_in_with_the_inviters_password PASSED [ 24%]
+backend/tests/test_api_invitations.py::test_invitation_audit_trail PASSED [ 24%]
+backend/tests/test_api_location.py::test_fresh_location_includes_coordinates_accuracy_and_both_timestamps PASSED [ 25%]
+backend/tests/test_api_location.py::test_older_location_is_labelled_stale_not_live PASSED [ 25%]
+backend/tests/test_api_location.py::test_location_older_than_24h_is_withheld_as_unknown PASSED [ 26%]
+backend/tests/test_api_location.py::test_no_data_reports_unknown_not_an_error_or_null_coordinates PASSED [ 26%]
+backend/tests/test_api_location.py::test_silent_device_is_reported_offline_and_old_data_stays_stale PASSED [ 26%]
+backend/tests/test_api_location.py::test_delayed_older_event_does_not_make_location_look_older PASSED [ 27%]
+backend/tests/test_api_location.py::test_other_family_cannot_see_the_location_and_gets_no_hint_it_exists PASSED [ 27%]
+backend/tests/test_api_location.py::test_device_credential_cannot_read_locations PASSED [ 28%]
+backend/tests/test_api_location.py::test_location_reads_are_audited_without_coordinates PASSED [ 28%]
+backend/tests/test_api_location.py::test_location_endpoint_is_rate_limited_per_user PASSED [ 29%]
+backend/tests/test_api_pairing.py::test_pairing_code_contract PASSED     [ 29%]
+backend/tests/test_api_pairing.py::test_pair_success_contract_and_credential_works PASSED [ 30%]
+backend/tests/test_api_pairing.py::test_code_is_accepted_case_and_separator_insensitively PASSED [ 30%]
+backend/tests/test_api_pairing.py::test_only_hashes_are_stored_never_the_code_or_the_token PASSED [ 31%]
+backend/tests/test_api_pairing.py::test_code_is_single_use PASSED        [ 31%]
+backend/tests/test_api_pairing.py::test_expired_code_rejected_and_marked_expired PASSED [ 31%]
+backend/tests/test_api_pairing.py::test_code_dies_with_its_issuers_membership_or_family PASSED [ 32%]
+backend/tests/test_api_pairing.py::test_wrong_expired_malformed_and_superseded_codes_look_identical PASSED [ 32%]
+backend/tests/test_api_pairing.py::test_pairing_attempts_are_rate_limited_per_ip PASSED [ 33%]
+backend/tests/test_api_pairing.py::test_requesting_codes_is_rate_limited_per_user PASSED [ 33%]
+backend/tests/test_api_pairing.py::test_pairing_requires_a_parent_session PASSED [ 34%]
+backend/tests/test_api_pairing.py::test_pair_validation_rejects_unknown_fields_and_overlong_names PASSED [ 34%]
+backend/tests/test_api_pairing.py::test_concurrent_pairing_with_one_code_yields_exactly_one_device PASSED [ 35%]
+backend/tests/test_api_pairing.py::test_paired_child_identity_cannot_log_in PASSED [ 35%]
+backend/tests/test_api_pairing.py::test_pairing_is_audited_without_secrets PASSED [ 36%]
+backend/tests/test_api_telemetry.py::test_new_event_is_accepted_and_stored_with_both_timestamps PASSED [ 36%]
+backend/tests/test_api_telemetry.py::test_same_event_in_another_batch_is_a_duplicate_not_new_history PASSED [ 36%]
+backend/tests/test_api_telemetry.py::test_event_repeated_inside_one_batch_is_reported_exactly_once PASSED [ 37%]
+backend/tests/test_api_telemetry.py::test_replaying_the_same_batch_returns_the_same_acknowledgement PASSED [ 37%]
+backend/tests/test_api_telemetry.py::test_replay_after_partial_success_is_stable PASSED [ 38%]
+backend/tests/test_api_telemetry.py::test_older_delayed_event_is_stored_but_never_overwrites_newer_latest_state PASSED [ 38%]
+backend/tests/test_api_telemetry.py::test_newer_event_after_older_does_advance_latest_state PASSED [ 39%]
+backend/tests/test_api_telemetry.py::test_equal_timestamps_keep_the_first_writer PASSED [ 39%]
+backend/tests/test_api_telemetry.py::test_state_groups_advance_independently PASSED [ 40%]
+backend/tests/test_api_telemetry.py::test_shuffled_offline_backlog_converges_to_the_newest_state PASSED [ 40%]
+backend/tests/test_api_telemetry.py::test_partial_batch_has_an_unambiguous_per_event_result PASSED [ 41%]
+backend/tests/test_api_telemetry.py::test_invalid_events_are_rejected_without_echoing_values[future-<lambda>] PASSED [ 41%]
+backend/tests/test_api_telemetry.py::test_invalid_events_are_rejected_without_echoing_values[naive-<lambda>] PASSED [ 42%]
+backend/tests/test_api_telemetry.py::test_invalid_events_are_rejected_without_echoing_values[beyond retention-<lambda>] PASSED [ 42%]
+backend/tests/test_api_telemetry.py::test_invalid_events_are_rejected_without_echoing_values[garbage time-<lambda>] PASSED [ 42%]
+backend/tests/test_api_telemetry.py::test_invalid_events_are_rejected_without_echoing_values[lat out of range-<lambda>] PASSED [ 43%]
+backend/tests/test_api_telemetry.py::test_invalid_events_are_rejected_without_echoing_values[lon out of range-<lambda>] PASSED [ 43%]
+backend/tests/test_api_telemetry.py::test_invalid_events_are_rejected_without_echoing_values[accuracy too big-<lambda>] PASSED [ 44%]
+backend/tests/test_api_telemetry.py::test_invalid_events_are_rejected_without_echoing_values[accuracy negative-<lambda>] PASSED [ 44%]
+backend/tests/test_api_telemetry.py::test_invalid_events_are_rejected_without_echoing_values[string coordinate-<lambda>] PASSED [ 45%]
+backend/tests/test_api_telemetry.py::test_invalid_events_are_rejected_without_echoing_values[unknown field-<lambda>] PASSED [ 45%]
+backend/tests/test_api_telemetry.py::test_invalid_events_are_rejected_without_echoing_values[nested payload-<lambda>] PASSED [ 46%]
+backend/tests/test_api_telemetry.py::test_invalid_events_are_rejected_without_echoing_values[negative sequence-<lambda>] PASSED [ 46%]
+backend/tests/test_api_telemetry.py::test_invalid_events_are_rejected_without_echoing_values[year 1 with positive offset-<lambda>] PASSED [ 47%]
+backend/tests/test_api_telemetry.py::test_invalid_events_are_rejected_without_echoing_values[year 9999 with negative offset-<lambda>] PASSED [ 47%]
+backend/tests/test_api_telemetry.py::test_invalid_events_are_rejected_without_echoing_values[integer beyond float range-<lambda>] PASSED [ 47%]
+backend/tests/test_api_telemetry.py::test_invalid_events_are_rejected_without_echoing_values[huge accuracy integer-<lambda>] PASSED [ 48%]
+backend/tests/test_api_telemetry.py::test_request_level_schema_errors_reject_the_whole_batch PASSED [ 48%]
+backend/tests/test_api_telemetry.py::test_unenrolled_and_revoked_devices_are_rejected PASSED [ 49%]
+backend/tests/test_api_telemetry.py::test_a_device_cannot_submit_as_another_device PASSED [ 49%]
+backend/tests/test_api_telemetry.py::test_event_ids_are_scoped_per_device_and_leak_nothing PASSED [ 50%]
+backend/tests/test_api_telemetry.py::test_batch_of_exactly_500_is_accepted_and_501_rejected_entirely PASSED [ 50%]
+backend/tests/test_api_telemetry.py::test_oversized_and_compressed_bodies_are_bounded PASSED [ 51%]
+backend/tests/test_api_telemetry.py::test_gzip_requests_are_accepted_and_large_responses_compressed PASSED [ 51%]
+backend/tests/test_api_telemetry.py::test_telemetry_is_rate_limited_per_device PASSED [ 52%]
+backend/tests/test_api_telemetry.py::test_rate_limit_is_per_device_not_shared PASSED [ 52%]
+backend/tests/test_api_telemetry.py::test_ack_is_never_returned_unless_the_commit_succeeded PASSED [ 52%]
+backend/tests/test_api_telemetry.py::test_contact_updates_device_activity_and_status_endpoint PASSED [ 53%]
+backend/tests/test_api_telemetry.py::test_rejected_only_batch_still_counts_as_device_contact PASSED [ 53%]
+backend/tests/test_api_telemetry.py::test_concurrent_batches_cannot_regress_latest_state PASSED [ 54%]
+backend/tests/test_api_telemetry.py::test_concurrent_duplicate_submission_stores_one_row PASSED [ 54%]
+backend/tests/test_cli.py::test_generate_keys_creates_files_and_never_overwrites PASSED [ 55%]
+backend/tests/test_cli.py::test_create_family_makes_a_parent_who_can_log_in PASSED [ 55%]
+backend/tests/test_cli.py::test_create_family_rejects_weak_overlong_or_mismatched_passwords[short-short] PASSED [ 56%]
+backend/tests/test_cli.py::test_create_family_rejects_weak_overlong_or_mismatched_passwords[xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx] PASSED [ 56%]
+backend/tests/test_cli.py::test_create_family_rejects_weak_overlong_or_mismatched_passwords[a long enough password-a different password!!] PASSED [ 57%]
+backend/tests/test_cli.py::test_bootstrap_rejects_invalid_and_duplicate_emails PASSED [ 57%]
+backend/tests/test_migrations.py::test_head_creates_all_tables_in_the_isolated_schema PASSED [ 57%]
+backend/tests/test_migrations.py::test_models_and_migrations_agree PASSED [ 58%]
+backend/tests/test_migrations.py::test_upgrade_from_previous_schema_preserves_data PASSED [ 58%]
+backend/tests/test_migrations.py::test_upgrade_is_idempotent_and_downgrades_cleanly PASSED [ 59%]
+backend/tests/test_migrations.py::test_check_constraints_reject_invalid_states PASSED [ 59%]
+backend/tests/test_migrations.py::test_supabase_api_roles_cannot_use_the_piko_schema PASSED [ 60%]
+backend/tests/test_platform.py::test_liveness_needs_no_auth PASSED       [ 60%]
+backend/tests/test_platform.py::test_readiness_reports_database_ok_without_details PASSED [ 61%]
+backend/tests/test_platform.py::test_readiness_degrades_to_503_and_leaks_nothing PASSED [ 61%]
+backend/tests/test_platform.py::test_unknown_route_and_wrong_method_return_the_standard_error_shape PASSED [ 62%]
+backend/tests/test_platform.py::test_request_ids_are_server_generated_and_unique PASSED [ 62%]
+backend/tests/test_platform.py::test_validation_errors_never_echo_submitted_values PASSED [ 63%]
+backend/tests/test_platform.py::test_internal_errors_are_generic PASSED  [ 63%]
+backend/tests/test_platform.py::test_disallowed_origin_is_rejected_allowed_origin_gets_cors_headers PASSED [ 63%]
+backend/tests/test_platform.py::test_cors_preflight PASSED               [ 64%]
+backend/tests/test_platform.py::test_native_clients_without_an_origin_header_are_unaffected PASSED [ 64%]
+backend/tests/test_platform.py::test_invalid_content_length_and_oversized_declared_length_rejected PASSED [ 65%]
+backend/tests/test_platform.py::test_docs_are_disabled_in_production PASSED [ 65%]
+backend/tests/test_platform.py::test_launcher_refuses_public_bind_unless_explicitly_allowed PASSED [ 66%]
+backend/tests/test_platform.py::test_default_bind_is_loopback_and_secrets_are_not_in_repr PASSED [ 66%]
+backend/tests/test_platform.py::test_logs_contain_no_credentials_tokens_codes_or_coordinates PASSED [ 67%]
+backend/tests/test_platform.py::test_request_log_line_omits_query_strings[/api/v1/health/live] PASSED [ 67%]
+backend/tests/test_platform.py::test_global_rate_limit_applies_before_authentication PASSED [ 68%]
+backend/tests/test_platform.py::test_rate_limit_headers_are_reported_on_successful_responses PASSED [ 68%]
+backend/tests/test_platform.py::test_unexpected_host_headers_are_rejected PASSED [ 68%]
+backend/tests/test_platform.py::test_deeply_nested_json_is_a_client_error_never_a_500 PASSED [ 69%]
+backend/tests/test_unit_domain.py::test_valid_location_normalised_to_utc PASSED [ 69%]
+backend/tests/test_unit_domain.py::test_accuracy_is_optional_and_null_allowed PASSED [ 70%]
+backend/tests/test_unit_domain.py::test_invalid_location_payloads_rejected[data0] PASSED [ 70%]
+backend/tests/test_unit_domain.py::test_invalid_location_payloads_rejected[data1] PASSED [ 71%]
+backend/tests/test_unit_domain.py::test_invalid_location_payloads_rejected[data2] PASSED [ 71%]
+backend/tests/test_unit_domain.py::test_invalid_location_payloads_rejected[data3] PASSED [ 72%]
+backend/tests/test_unit_domain.py::test_invalid_location_payloads_rejected[data4] PASSED [ 72%]
+backend/tests/test_unit_domain.py::test_invalid_location_payloads_rejected[data5] PASSED [ 73%]
+backend/tests/test_unit_domain.py::test_invalid_location_payloads_rejected[data6] PASSED [ 73%]
+backend/tests/test_unit_domain.py::test_invalid_location_payloads_rejected[data7] PASSED [ 73%]
+backend/tests/test_unit_domain.py::test_invalid_location_payloads_rejected[data8] PASSED [ 74%]
+backend/tests/test_unit_domain.py::test_invalid_location_payloads_rejected[data9] PASSED [ 74%]
+backend/tests/test_unit_domain.py::test_invalid_location_payloads_rejected[data10] PASSED [ 75%]
+backend/tests/test_unit_domain.py::test_invalid_location_payloads_rejected[data11] PASSED [ 75%]
+backend/tests/test_unit_domain.py::test_invalid_location_payloads_rejected[data12] PASSED [ 76%]
+backend/tests/test_unit_domain.py::test_invalid_location_payloads_rejected[data13] PASSED [ 76%]
+backend/tests/test_unit_domain.py::test_invalid_location_payloads_rejected[data14] PASSED [ 77%]
+backend/tests/test_unit_domain.py::test_invalid_location_payloads_rejected[data15] PASSED [ 77%]
+backend/tests/test_unit_domain.py::test_rejection_reasons_never_echo_values PASSED [ 78%]
+backend/tests/test_unit_domain.py::test_invalid_or_naive_timestamps_rejected[] PASSED [ 78%]
+backend/tests/test_unit_domain.py::test_invalid_or_naive_timestamps_rejected[yesterday] PASSED [ 78%]
+backend/tests/test_unit_domain.py::test_invalid_or_naive_timestamps_rejected[2026-10-16T11:59:00] PASSED [ 79%]
+backend/tests/test_unit_domain.py::test_invalid_or_naive_timestamps_rejected[2026-10-16] PASSED [ 79%]
+backend/tests/test_unit_domain.py::test_invalid_or_naive_timestamps_rejected[1760000000] PASSED [ 80%]
+backend/tests/test_unit_domain.py::test_invalid_or_naive_timestamps_rejected[2026-13-01T00:00:00Z] PASSED [ 80%]
+backend/tests/test_unit_domain.py::test_future_beyond_skew_rejected_but_small_skew_tolerated PASSED [ 81%]
+backend/tests/test_unit_domain.py::test_age_limit_is_the_retention_window_not_24_hours PASSED [ 81%]
+backend/tests/test_unit_domain.py::test_sequence_bounds[-1] PASSED       [ 82%]
+backend/tests/test_unit_domain.py::test_sequence_bounds[9223372036854775808] PASSED [ 82%]
+backend/tests/test_unit_domain.py::test_battery_and_connectivity PASSED  [ 83%]
+backend/tests/test_unit_domain.py::test_unknown_event_type_rejected PASSED [ 83%]
+backend/tests/test_unit_domain.py::test_freshness_thresholds PASSED      [ 84%]
+backend/tests/test_unit_domain.py::test_device_status_is_inferred_from_silence PASSED [ 84%]
+backend/tests/test_unit_security.py::test_password_roundtrip_and_wrong_password PASSED [ 84%]
+backend/tests/test_unit_security.py::test_password_over_72_bytes_rejected_not_truncated PASSED [ 85%]
+backend/tests/test_unit_security.py::test_unusable_and_malformed_hashes_fail_closed PASSED [ 85%]
+backend/tests/test_unit_security.py::test_access_token_roundtrip PASSED  [ 86%]
+backend/tests/test_unit_security.py::test_expired_token_rejected PASSED  [ 86%]
+backend/tests/test_unit_security.py::test_refresh_token_cannot_be_used_as_access_and_vice_versa PASSED [ 87%]
+backend/tests/test_unit_security.py::test_wrong_audience_rejected PASSED [ 87%]
+backend/tests/test_unit_security.py::test_wrong_issuer_rejected PASSED   [ 88%]
+backend/tests/test_unit_security.py::test_token_signed_by_another_key_rejected PASSED [ 88%]
+backend/tests/test_unit_security.py::test_alg_none_and_hs256_confusion_rejected PASSED [ 89%]
+backend/tests/test_unit_security.py::test_garbage_tokens_rejected[] PASSED [ 89%]
+backend/tests/test_unit_security.py::test_garbage_tokens_rejected[abc] PASSED [ 89%]
+backend/tests/test_unit_security.py::test_garbage_tokens_rejected[a.b.c] PASSED [ 90%]
+backend/tests/test_unit_security.py::test_garbage_tokens_rejected[pkd_x] PASSED [ 90%]
+backend/tests/test_unit_security.py::test_garbage_tokens_rejected[Bearer x] PASSED [ 91%]
+backend/tests/test_unit_security.py::test_device_tokens_are_prefixed_unique_and_high_entropy PASSED [ 91%]
+backend/tests/test_unit_security.py::test_pairing_code_shape_and_normalization PASSED [ 92%]
+backend/tests/test_unit_security.py::test_malformed_pairing_codes_rejected[] PASSED [ 92%]
+backend/tests/test_unit_security.py::test_malformed_pairing_codes_rejected[ABC] PASSED [ 93%]
+backend/tests/test_unit_security.py::test_malformed_pairing_codes_rejected[ABC-DEF-GH1] PASSED [ 93%]
+backend/tests/test_unit_security.py::test_malformed_pairing_codes_rejected[ABC-DEF-GHIJ] PASSED [ 94%]
+backend/tests/test_unit_security.py::test_malformed_pairing_codes_rejected[ILO-ILO-ILO] PASSED [ 94%]
+backend/tests/test_unit_security.py::test_malformed_pairing_codes_rejected['; DROP--] PASSED [ 94%]
+backend/tests/test_unit_security.py::test_keyed_digest_is_keyed_and_domain_separated PASSED [ 95%]
+backend/tests/test_unit_security.py::test_weak_bcrypt_rounds_rejected_outside_tests PASSED [ 95%]
+backend/tests/test_unit_security.py::test_reserved_or_unsafe_schema_names_rejected[public] PASSED [ 96%]
+backend/tests/test_unit_security.py::test_reserved_or_unsafe_schema_names_rejected[auth] PASSED [ 96%]
+backend/tests/test_unit_security.py::test_reserved_or_unsafe_schema_names_rejected[storage] PASSED [ 97%]
+backend/tests/test_unit_security.py::test_reserved_or_unsafe_schema_names_rejected[pg_catalog] PASSED [ 97%]
+backend/tests/test_unit_security.py::test_reserved_or_unsafe_schema_names_rejected[Bad-Name] PASSED [ 98%]
+backend/tests/test_unit_security.py::test_reserved_or_unsafe_schema_names_rejected[a;drop] PASSED [ 98%]
+backend/tests/test_unit_security.py::test_reserved_or_unsafe_schema_names_rejected[] PASSED [ 99%]
+backend/tests/test_unit_security.py::test_production_requires_https PASSED [ 99%]
+backend/tests/test_unit_security.py::test_rate_limiter_blocks_then_recovers PASSED [100%]
+
+================================== FAILURES ===================================
+_________ test_every_route_denies_unauthenticated_requests_by_default _________
+
+client = <starlette.testclient.TestClient object at 0x00000231F0E2FA90>
+
+    def test_every_route_denies_unauthenticated_requests_by_default(client: TestClient) -> None:
+        """New routes are private unless deliberately added to PUBLIC above."""
+        checked = 0
+        for route in router.routes:
+            if not isinstance(route, APIRoute):
+                continue
+            path = route.path.replace("{device_id}", str(uuid.uuid4()))
+            path = path.replace("{family_id}", str(uuid.uuid4())).replace(
+                "{member_id}", str(uuid.uuid4())
+            )
+            for method in route.methods - {"HEAD", "OPTIONS"}:
+                if (method, route.path) in PUBLIC:
+                    continue
+                resp = client.request(method, path)
+>               assert resp.status_code == 401, f"{method} {route.path} -> {resp.status_code}"
+E               AssertionError: POST /api/v1/invitations/accept -> 400
+E               assert 400 == 401
+E                +  where 400 = <Response [400 Bad Request]>.status_code
+
+backend\tests\test_api_authorization.py:53: AssertionError
+============================== warnings summary ===============================
+.venv\Lib\site-packages\fastapi\testclient.py:1
+  G:\Projects\piko\.venv\Lib\site-packages\fastapi\testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+============================ slowest 10 durations =============================
+114.99s call     backend/tests/test_migrations.py::test_upgrade_is_idempotent_and_downgrades_cleanly
+57.68s call     backend/tests/test_api_location.py::test_location_endpoint_is_rate_limited_per_user
+54.44s call     backend/tests/test_api_pairing.py::test_pairing_is_audited_without_secrets
+49.95s call     backend/tests/test_api_pairing.py::test_paired_child_identity_cannot_log_in
+32.87s call     backend/tests/test_api_telemetry.py::test_rate_limit_is_per_device_not_shared
+26.27s call     backend/tests/test_api_pairing.py::test_concurrent_pairing_with_one_code_yields_exactly_one_device
+24.69s call     backend/tests/test_api_invitations.py::test_guardian_can_view_but_not_manage
+24.65s call     backend/tests/test_api_invitations.py::test_invitations_are_rate_limited_per_user
+22.53s call     backend/tests/test_migrations.py::test_upgrade_from_previous_schema_preserves_data
+22.52s call     backend/tests/test_api_invitations.py::test_every_refusal_looks_identical
+=========================== short test summary info ===========================
+FAILED backend/tests/test_api_authorization.py::test_every_route_denies_unauthenticated_requests_by_default
+============ 1 failed, 218 passed, 1 warning in 1597.27s (0:26:37) ============
+pytest exit 1

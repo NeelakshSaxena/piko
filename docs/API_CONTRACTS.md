@@ -1,58 +1,717 @@
-# API Contracts — Draft for Phase 1
+# API Contracts — Finalized for Phase 1
 
-This file defines initial contract intentions, not implemented endpoints. Finalize schemas and error codes in Phase 1 before backend coding.
+**Status:** Phase 1 — Ready for implementation  
+**Last Updated:** 2026-10-16
+
+---
 
 ## Conventions
 
-- Version API paths (for example `/api/v1/...`).
-- UTC timestamps in ISO 8601.
-- Explicit request/response schemas.
-- Stable error codes; no stack traces or sensitive data in client errors.
-- Authentication and authorization are mandatory for family data.
-- Pagination and bounded limits for history/events.
-- Never accept client-supplied family ownership as authority.
+- **Versioning:** All endpoints use `/api/v1/...` prefix
+- **Timestamps:** UTC ISO 8601 format (e.g., `2026-10-16T12:34:56Z`)
+- **IDs:** UUIDs for resources; stable, non-enumerable
+- **Authentication:** Bearer token in `Authorization: Bearer <token>` header
+- **Errors:** Structured JSON with stable error codes; no stack traces or coordinates in client responses
+- **Pagination:** `limit` (default 50, max 500) and `offset` (default 0)
+- **Resource scope:** All family-scoped endpoints require authenticated family membership and role authorization
 
-## Candidate route groups
+---
 
-- `/api/v1/auth/*`
-- `/api/v1/families/*`
-- `/api/v1/devices/*`
-- `/api/v1/telemetry/batches`
-- `/api/v1/members/{member_id}/location`
-- `/api/v1/members/{member_id}/status`
-- `/api/v1/members/{member_id}/history`
-- `/api/v1/sos/*`
-- `/api/v1/messages/*`
-- `/api/v1/health/live`
-- `/api/v1/health/ready`
+## Authentication & Sessions
 
-## Telemetry batch
+### `POST /api/v1/auth/session`
 
-A batch includes schema version, stable batch ID, and bounded event list. Each event includes stable event ID, sequence number if supported, event type, occurred-at timestamp, and minimal validated payload. Device identity must be derived from its authenticated credential.
+**Purpose:** Authenticate parent/operator and create session.
 
-Response identifies accepted and duplicate event IDs and any rejected event with a safe error code. Acknowledgement means durable acceptance, not merely request receipt.
+**Request:**
+```json
+{
+  "email": "parent@example.com",
+  "password": "password_hash",
+  "device_fingerprint": "optional_device_id"
+}
+```
 
-## Location response
+**Response:** `200 OK`
+```json
+{
+  "access_token": "jwt_token",
+  "refresh_token": "jwt_token",
+  "expires_in": 3600,
+  "user_id": "uuid",
+  "family_id": "uuid",
+  "role": "parent|family_admin|operator",
+  "families": [{"id": "uuid", "name": "...", "role": "..."}]
+}
+```
 
-Must include:
-- coordinates only if caller is authorized;
-- observed/occurred timestamp;
-- server received timestamp when useful;
-- accuracy in metres when available;
-- freshness classification;
-- device connectivity/source state;
-- explicit unknown/unavailable state.
+**Error codes:** `AUTH_INVALID`, `FORBIDDEN` (user not in family), `RATE_LIMIT`  
+**Requirements:**
+- Rate limit: 5 attempts per IP per minute
+- Reject after 10 failed attempts within 15 minutes (exponential backoff)
+- Validate email/password against bcrypt hash
+- Token expiry: 1 hour access, 7 days refresh
+- HTTPS only
 
-## Error categories
+---
 
-- `AUTH_REQUIRED`
-- `AUTH_INVALID`
-- `FORBIDDEN`
-- `NOT_FOUND_OR_NOT_VISIBLE`
-- `VALIDATION_ERROR`
-- `RATE_LIMITED`
-- `CONFLICT`
-- `SERVICE_UNAVAILABLE`
-- `INTERNAL_ERROR`
+### `POST /api/v1/auth/session/refresh`
 
-Use a non-enumerating response for resources the caller is not allowed to discover.
+**Purpose:** Refresh access token using valid refresh token.
+
+**Request:** `Authorization: Bearer <refresh_token>`
+
+**Response:** `200 OK`
+```json
+{
+  "access_token": "jwt_token",
+  "refresh_token": "jwt_token",
+  "expires_in": 3600
+}
+```
+
+**Error codes:** `AUTH_INVALID`, `AUTH_REQUIRED`, `RATE_LIMIT`  
+**Requirements:**
+- Validate refresh token issuer, audience, expiry
+- Check revocation status in database
+- Rate limit: 10 per minute per user (applied before rotation)
+- **Rotation (ADR-019):** every refresh returns a new refresh token and voids the old one. The client
+  must store the new token before using it. Presenting a superseded token revokes the whole session
+  (the client must log in again); this is also what a lost refresh response looks like, so clients
+  should retry a refresh only if they know the request never reached the server.
+
+---
+
+### `POST /api/v1/auth/session/revoke`
+
+**Purpose:** Revoke current session immediately.
+
+**Request:** `Authorization: Bearer <access_token>`
+
+**Response:** `204 No Content`
+
+**Requirements:**
+- Mark token as revoked in database
+- Immediate effect (no caching)
+
+---
+
+## Families & Membership
+
+### `GET /api/v1/families`
+
+**Purpose:** List families user is member of.
+
+**Response:** `200 OK`
+```json
+{
+  "families": [
+    {
+      "id": "uuid",
+      "name": "Smith Family",
+      "created_at": "2026-01-01T00:00:00Z",
+      "member_count": 4,
+      "device_count": 2,
+      "my_role": "parent|family_admin|child",
+      "status": "active"
+    }
+  ]
+}
+```
+
+**Requirements:**
+- Return only families where user is active member
+- No child families listed (children see nothing)
+
+---
+
+### `GET /api/v1/families/{family_id}`
+
+**Purpose:** Get family summary and member list.
+
+**Response:** `200 OK`
+```json
+{
+  "id": "uuid",
+  "name": "...",
+  "created_at": "...",
+  "my_role": "parent|family_admin|child",
+  "members": [
+    {
+      "id": "uuid",
+      "email": "parent@example.com",
+      "name": "Parent Name",
+      "role": "parent|family_admin|child",
+      "joined_at": "...",
+      "status": "active|pending|revoked"
+    }
+  ],
+  "devices": [
+    {
+      "id": "uuid",
+      "name": "Child Phone",
+      "device_type": "android",
+      "owner_member_id": "uuid",
+      "paired_at": "...",
+      "last_seen": "...",
+      "status": "active|inactive|revoked"
+    }
+  ]
+}
+```
+
+**Error codes:** `AUTH_REQUIRED`, `FORBIDDEN`, `NOT_FOUND_OR_NOT_VISIBLE`
+
+**Requirements:**
+- Verify caller is family member (prevent enumeration of unrelated families)
+- Parents see all members and devices
+- Children see only their own device
+- Return `NOT_FOUND_OR_NOT_VISIBLE` for non-existent or unauthorized families
+
+---
+
+### `POST /api/v1/families/{family_id}/members`
+
+**Purpose:** Invite a new adult family member (parent/family_admin only). Revised by ADR-017: no
+email is sent; the inviter receives a single-use invite code and gives it to the invitee.
+
+**Request:**
+```json
+{
+  "email": "new_member@example.com",
+  "role": "parent|family_admin|guardian"
+}
+```
+
+**Response:** `201 Created`
+```json
+{
+  "invitation_id": "uuid",
+  "email": "new_member@example.com",
+  "role": "parent|family_admin|guardian",
+  "status": "pending",
+  "invite_code": "ABC-DEF-GHI",
+  "expires_at": "2026-10-23T12:34:56Z"
+}
+```
+
+**Error codes:** `AUTH_REQUIRED`, `FORBIDDEN`, `NOT_FOUND_OR_NOT_VISIBLE`, `VALIDATION_ERROR`
+(invalid role or email), `RATE_LIMIT` (10 invitations per hour per user)
+
+**Requirements:**
+- Only parent/family_admin can invite; a `guardian` cannot
+- Invitation expires in 7 days; a new invitation for the same email supersedes the old one
+- The code is shown once and stored only as a keyed HMAC; it dies with its issuer's membership
+- Cannot invite child users via API (separate pairing flow)
+
+**Roles:** `guardian` (for example an elder sibling) may view the family, its devices and members'
+locations (each location read is audited). A guardian cannot create pairing codes, revoke devices,
+or invite anyone. A user belongs to exactly one family through invitations.
+
+### `POST /api/v1/invitations/accept`
+
+**Purpose:** Redeem an invite code and create the invitee's account (no authentication).
+
+**Request:**
+```json
+{
+  "invite_code": "ABC-DEF-GHI",
+  "email": "new_member@example.com",
+  "password": "at least 12 characters, at most 72 bytes",
+  "full_name": "optional"
+}
+```
+
+**Response:** `201 Created` - `{ "user_id", "family_id", "membership_id", "role" }`. The invitee then
+logs in through `POST /api/v1/auth/session`.
+
+**Error codes:** `AUTH_INVALID` (every refusal is identical: unknown, malformed, used, expired,
+superseded, wrong email, email already registered, issuer no longer authorised),
+`VALIDATION_ERROR`, `RATE_LIMIT` (5/minute per IP)
+
+---
+
+## Devices & Pairing
+
+### `POST /api/v1/devices/pairing-code`
+
+**Purpose:** Request a pairing code (parent initiates).
+
+**Response:** `201 Created`
+```json
+{
+  "pairing_code": "ABC-DEF-GHI",
+  "expires_at": "2026-10-16T12:49:56Z",
+  "expires_in_seconds": 900
+}
+```
+
+**Requirements:**
+- Code expires in 15 minutes
+- 6 alphanumeric characters, user-friendly format
+- One code per user per family at a time (invalidate previous)
+- Parent must be authenticated
+- Code returned only on creation (not retrievable later)
+
+---
+
+### `POST /api/v1/devices/pair`
+
+**Purpose:** Enroll device using pairing code (Android device calls).
+
+**Request:**
+```json
+{
+  "pairing_code": "ABC-DEF-GHI",
+  "device_name": "Child Phone",
+  "device_model": "Pixel 7",
+  "android_version": "14",
+  "app_version": "1.0.0"
+}
+```
+
+**Response:** `201 Created`
+```json
+{
+  "device_id": "uuid",
+  "device_credential": "signed_jwt_or_encrypted_secret",
+  "api_endpoint": "https://piko.example.com/api/v1",
+  "polling_interval_seconds": 60,
+  "family_id": "uuid"
+}
+```
+
+**Error codes:** `VALIDATION_ERROR`, `CONFLICT` (code already used), `AUTH_INVALID` (expired/invalid code), `RATE_LIMIT`
+
+**Requirements:**
+- Validate pairing code: exists, not expired, not used
+- Code is single-use; reject after first successful pairing
+- Rate limit: 3 attempts per code
+- Generate device credential (JWT with RS256, includes device_id, family_id, can be rotated)
+- Store device publicly visible metadata
+- Mark pairing invitation as used
+- Return credential securely (TLS only)
+
+---
+
+### `GET /api/v1/devices/{device_id}`
+
+**Purpose:** Get device status (parent/device).
+
+**Response:** `200 OK`
+```json
+{
+  "id": "uuid",
+  "family_id": "uuid",
+  "name": "Child Phone",
+  "owner_member_id": "uuid",
+  "device_model": "Pixel 7",
+  "android_version": "14",
+  "app_version": "1.0.0",
+  "paired_at": "2026-10-01T00:00:00Z",
+  "last_activity": "2026-10-16T12:30:00Z",
+  "connectivity_status": "online|offline|unknown",
+  "battery_percent": 45,
+  "battery_updated_at": "2026-10-16T12:32:00Z",
+  "battery_is_charging": true,
+  "network_type": "wifi|cellular|ethernet|vpn|other|none",
+  "network_updated_at": "2026-10-16T12:32:00Z",
+  "status": "active|revoked"
+}
+```
+
+**Error codes:** `AUTH_REQUIRED`, `FORBIDDEN`, `NOT_FOUND_OR_NOT_VISIBLE`
+
+**Requirements:**
+- Parents see all family devices
+- Child app sees only own device
+- Never enumerate unrelated families' devices
+
+---
+
+### `DELETE /api/v1/devices/{device_id}`
+
+**Purpose:** Revoke device credential (parent only).
+
+**Response:** `204 No Content`
+
+**Error codes:** `AUTH_REQUIRED`, `FORBIDDEN`, `NOT_FOUND_OR_NOT_VISIBLE`
+
+**Requirements:**
+- Parent/family_admin only
+- Mark device as revoked (do not delete; keep audit trail)
+- Invalidate any refresh tokens for this device
+- Notify device if online (next sync will fail, app should re-pair)
+
+---
+
+## Location & Status
+
+### `GET /api/v1/members/{member_id}/location`
+
+**Purpose:** Get current or latest known location of family member.
+
+**Response:** `200 OK`
+```json
+{
+  "member_id": "uuid",
+  "device_id": "uuid",
+  "coordinates": {
+    "latitude": 40.7128,
+    "longitude": -74.0060
+  },
+  "accuracy_meters": 15,
+  "occurred_at": "2026-10-16T12:34:00Z",
+  "received_at": "2026-10-16T12:34:05Z",
+  "freshness": "fresh|stale|unknown",
+  "freshness_seconds": 180,
+  "device_status": "online|offline|unknown",
+  "available": true
+}
+```
+
+**Freshness rules:**
+- `fresh`: within last 5 minutes of current time
+- `stale`: older than 5 minutes, within last 24 hours
+- `unknown`: no location data available or device never paired
+
+**Error codes:** `AUTH_REQUIRED`, `FORBIDDEN`, `NOT_FOUND_OR_NOT_VISIBLE`
+
+**Requirements:**
+- Parents/family_admin can see children's location
+- Children cannot request other members' locations
+- Return `available: false` if no data; do not return null coordinates
+- Include exact accuracy and timestamps for interpretation
+- Coordinates only returned to authorized callers
+- Rate limit: 30 requests per minute per user
+
+---
+
+### `GET /api/v1/members/{member_id}/history`
+
+**Purpose:** Get location/status history with pagination.
+
+**Query params:** `limit` (default 50, max 500), `offset` (default 0, max 100000), `start_time` and
+`end_time` (ISO 8601 **with** a timezone offset), `event_type` (`location|battery|connectivity`)
+
+**Response:** `200 OK` (as built; `device_status` is per member, `custom` events do not exist yet,
+`freshness` is also `unknown` for events older than 24h)
+```json
+{
+  "member_id": "uuid",
+  "device_status": "online|offline|unknown",
+  "history": [
+    {
+      "event_id": "uuid",
+      "occurred_at": "2026-10-16T12:34:00Z",
+      "received_at": "2026-10-16T12:34:05Z",
+      "event_type": "location|battery|connectivity",
+      "freshness": "fresh|stale|unknown",
+      "data": {
+        "latitude": 40.7128,
+        "longitude": -74.0060,
+        "accuracy_meters": 15
+      }
+    }
+  ],
+  "total_count": 10000,
+  "has_more": true
+}
+```
+
+**Requirements:**
+- Default time range: last 30 days
+- Enforce retention policy: delete events older than configured period
+- Return events in reverse chronological order (newest first)
+- Rate limit: 10 requests per minute per user
+
+---
+
+## Telemetry Ingestion
+
+### `POST /api/v1/telemetry/batches`
+
+**Purpose:** Submit batch of telemetry events (Android device).
+
+**Request:**
+```json
+{
+  "batch_id": "uuid",
+  "schema_version": 1,
+  "device_id": "uuid",
+  "events": [
+    {
+      "event_id": "uuid",
+      "event_type": "location|battery|connectivity",
+      "sequence_number": 123,
+      "occurred_at": "2026-10-16T12:34:00Z",
+      "data": {
+        "latitude": 40.7128,
+        "longitude": -74.0060,
+        "accuracy_meters": 15,
+        "battery_percent": 85
+      }
+    }
+  ]
+}
+```
+
+**Response:** `202 Accepted`
+```json
+{
+  "batch_id": "uuid",
+  "status": "accepted",
+  "accepted_event_ids": ["uuid", "uuid", ...],
+  "duplicate_event_ids": ["uuid"],
+  "rejected_events": [
+    {
+      "event_id": "uuid",
+      "error_code": "VALIDATION_ERROR|DUPLICATE",
+      "reason": "..."
+    }
+  ]
+}
+```
+
+**Error codes:** `AUTH_REQUIRED`, `VALIDATION_ERROR`, `RATE_LIMIT`, `CONFLICT` (batch_id used before)
+
+**Requirements:**
+- Device authenticated via JWT token (includes device_id, family_id)
+- Batch ID is stable; identical batch sent twice returns same result (idempotent)
+- Accept/reject events individually; partial success allowed
+- Validate batch size: max 500 events per batch
+- Validate event timestamp: occurred_at ≤ current server time, not > 24 hours in past
+- Validate accuracy: 0–10000 meters or null
+- Store events durably before responding (202 Accepted means persisted)
+- Update device's latest state only if event is newer (by sequence or occurred_at)
+- Rate limit: 10 batches per device per minute
+- Response must list accepted and rejected separately; acknowledge only accepted
+- Deduplicate by event_id: an event_id already stored (this or an earlier batch) is listed in
+  `duplicate_event_ids`; an event_id repeated *inside one batch* is reported once, by its first copy
+  (ADR-018 / audit M-4; each id appears in exactly one result list)
+- Age limit is the family retention window, not 24 hours (ADR-011); future skew up to 60 s
+- If batch_id was seen before, return same response (cached or re-derive)
+
+---
+
+## SOS & Messaging
+
+### `POST /api/v1/sos/incidents`
+
+**Purpose:** Create SOS incident (device or parent).
+
+**Request:**
+```json
+{
+  "device_id": "uuid",
+  "message": "Help needed at home",
+  "location": {
+    "latitude": 40.7128,
+    "longitude": -74.0060,
+    "accuracy_meters": 25
+  }
+}
+```
+
+**Response:** `201 Created`
+```json
+{
+  "incident_id": "uuid",
+  "device_id": "uuid",
+  "family_id": "uuid",
+  "created_at": "2026-10-16T12:34:00Z",
+  "status": "open|acknowledged|resolved",
+  "message": "Help needed at home",
+  "location": {...},
+  "delivery_status": "pending|delivered|acknowledged"
+}
+```
+
+**Error codes:** `AUTH_REQUIRED`, `FORBIDDEN`, `VALIDATION_ERROR`
+
+**Requirements:**
+- Device can create SOS only for itself
+- Parents can create SOS for child's device
+- Location is optional; if omitted, use latest known location
+- Mark as `open` initially; only parent/family_admin can `acknowledge` or `resolve`
+- SOS never auto-resolves; requires explicit parent action
+- Notify all family parents immediately (push/email/SMS if configured)
+- Log incident with actor, timestamp, and resolution
+
+---
+
+### `GET /api/v1/sos/incidents`
+
+**Purpose:** List SOS incidents for family (paginated).
+
+**Query params:** `status` (open|acknowledged|resolved), `limit`, `offset`
+
+**Response:** `200 OK`
+```json
+{
+  "incidents": [
+    {
+      "incident_id": "uuid",
+      "device_id": "uuid",
+      "created_at": "...",
+      "status": "open",
+      "message": "...",
+      "acknowledged_at": null,
+      "resolved_at": null,
+      "parent_notes": "..."
+    }
+  ],
+  "total_count": 5,
+  "has_more": false
+}
+```
+
+---
+
+### `PUT /api/v1/sos/incidents/{incident_id}`
+
+**Purpose:** Update SOS status (parent only).
+
+**Request:**
+```json
+{
+  "status": "acknowledged|resolved",
+  "notes": "All safe, false alarm"
+}
+```
+
+**Response:** `200 OK`
+```json
+{
+  "incident_id": "uuid",
+  "status": "resolved",
+  "resolved_at": "2026-10-16T12:45:00Z",
+  "parent_notes": "All safe, false alarm"
+}
+```
+
+**Requirements:**
+- Parent/family_admin only
+- Status transitions: `open` → `acknowledged`, `open/acknowledged` → `resolved`
+- Record timestamp and parent identity
+- Cannot re-open resolved incidents
+
+---
+
+## Health & System
+
+### `GET /api/v1/health/live`
+
+**Purpose:** Liveness check (no auth required).
+
+**Response:** `200 OK`
+```json
+{
+  "status": "ok"
+}
+```
+
+---
+
+### `GET /api/v1/health/ready`
+
+**Purpose:** Readiness check (database connectivity, etc.).
+
+**Response:** `200 OK` or `503 Service Unavailable`
+```json
+{
+  "status": "ready|degraded",
+  "database": "ok|degraded",
+  "checks": {"database": {...}}
+}
+```
+
+---
+
+## Error Response Format
+
+All errors return JSON:
+
+```json
+{
+  "error": {
+    "code": "ERROR_CODE",
+    "message": "Human-readable message",
+    "request_id": "uuid",
+    "timestamp": "2026-10-16T12:34:56Z"
+  }
+}
+```
+
+**Never include:**
+- Stack traces
+- SQL queries
+- File paths
+- Exact coordinates or location details
+- API keys or secrets
+- User passwords or tokens
+
+**Error codes with status codes:**
+- `AUTH_REQUIRED` → 401 Unauthorized
+- `AUTH_INVALID` → 401 Unauthorized
+- `FORBIDDEN` → 403 Forbidden
+- `NOT_FOUND_OR_NOT_VISIBLE` → 404 Not Found
+- `VALIDATION_ERROR` → 400 Bad Request
+- `RATE_LIMIT` → 429 Too Many Requests
+- `CONFLICT` → 409 Conflict
+- `SERVICE_UNAVAILABLE` → 503 Service Unavailable
+- `INTERNAL_ERROR` → 500 Internal Server Error
+
+---
+
+## Rate Limiting
+
+**Strategy:** Token bucket per user/IP per endpoint
+
+- 100 requests per minute (global fallback)
+- Endpoint-specific overrides documented above
+- Response headers: `X-RateLimit-Limit`, `X-RateLimit-Remaining`, `X-RateLimit-Reset`
+- Reject with 429 and `Retry-After: <seconds>` header
+
+---
+
+## CORS & Host Validation
+
+- **Web origin:** HTTPS only, validate `Origin` header against allowlist
+- **Device:** Accept requests from any origin (devices don't have origin concept)
+- **Self-hosted:** Allow configurable origin list (default: localhost)
+
+---
+
+## Summary Table
+
+| Endpoint | Auth | Method | Purpose |
+|----------|------|--------|---------|
+| `/api/v1/auth/session` | None | POST | Create session |
+| `/api/v1/auth/session/refresh` | Token | POST | Refresh token |
+| `/api/v1/auth/session/revoke` | Token | POST | Revoke session |
+| `/api/v1/families` | Token | GET | List my families |
+| `/api/v1/families/{id}` | Token | GET | Family summary |
+| `/api/v1/families/{id}/members` | Token | POST | Invite member |
+| `/api/v1/devices/pairing-code` | Token | POST | Request code |
+| `/api/v1/devices/pair` | None | POST | Enroll device |
+| `/api/v1/devices/{id}` | Token | GET | Device status |
+| `/api/v1/devices/{id}` | Token | DELETE | Revoke device |
+| `/api/v1/members/{id}/location` | Token | GET | Current location |
+| `/api/v1/members/{id}/history` | Token | GET | Location history |
+| `/api/v1/telemetry/batches` | Token | POST | Ingest events |
+| `/api/v1/sos/incidents` | Token | POST/GET | Create/list SOS |
+| `/api/v1/sos/incidents/{id}` | Token | PUT | Update SOS |
+| `/api/v1/health/live` | None | GET | Liveness |
+| `/api/v1/health/ready` | None | GET | Readiness |
+
+---
+
+## Open Questions for Phase 1 Review
+
+1. Should device credential be a JWT or encrypted blob? (JWT assumed; rotate strategy TBD)
+2. Should messaging be synchronous or queued? (Queued + polling assumed)
+3. MCP caller identity model: OAuth or service account? (OAuth assumed for phase 2)
+4. Self-hosting: TLS required or optional? (Required for remote, optional for localhost)
+
+These are finalized once security review approves threat mitigations.

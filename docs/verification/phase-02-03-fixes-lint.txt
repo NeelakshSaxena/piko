@@ -1,0 +1,13 @@
+﻿unformatted: File would be reformatted
+  --> backend\tests\test_api_invitations.py:73:9
+   |
+72 |     _, headers = join(fam, role)
+   -     me =fam.client.get(f"/api/v1/families/{fam.family_id}", headers=headers).json()
+73 +     me = fam.client.get(f"/api/v1/families/{fam.family_id}", headers=headers).json()
+74 |     assert me["my_role"] == role
+   |
+
+1 file would be reformatted, 43 files already formatted
+ruff format exit 1
+All checks passed!
+ruff check exit 0

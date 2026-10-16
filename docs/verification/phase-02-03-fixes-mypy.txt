@@ -1,0 +1,2 @@
+﻿Success: no issues found in 26 source files
+mypy exit 0
