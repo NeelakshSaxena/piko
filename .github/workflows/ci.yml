@@ -2,9 +2,9 @@ name: ci
 
 # Verification only. Nothing here deploys, publishes or needs a secret: the database is a throwaway
 # PostgreSQL service container, keys are generated for the run, and the token is read-only.
-# NOT YET RUN: this file was written without access to GitHub (see docs/DEPLOYMENT.md). Action versions
-# are major tags; pin them to commit SHAs once the repository owner has reviewed them.
+# Actions pinned to immutable commit SHAs with comments for provenance.
 on:
+  workflow_dispatch:
   pull_request:
   push:
     branches: [main]
@@ -36,8 +36,8 @@ jobs:
       PIKO_JWT_PRIVATE_KEY_FILE: .data/keys/jwt_private.pem
       PIKO_HMAC_KEY_FILE: .data/keys/hmac.key
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/setup-python@42375524e23c412d93fb67b49958b491fce71c38 # v5.4.0
         with:
           python-version: "3.11"
           cache: pip
@@ -67,8 +67,8 @@ jobs:
       run:
         working-directory: web
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/setup-node@1d0ff469b7ec7b3cb9d8673fde0c81c44821de2a # v4.2.0
         with:
           node-version: "22"
           cache: npm
@@ -89,13 +89,15 @@ jobs:
       run:
         working-directory: android
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-java@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/setup-java@3a4f6e1af504cf6a31855fa899c6aa5355ba6c12 # v4.7.0
         with:
           distribution: temurin
-          java-version: "21"
-      - uses: gradle/actions/setup-gradle@v4
+          java-version: "17"
+      - uses: gradle/actions/setup-gradle@dbbdc201f5931468e9ff3fc73017a61099e285a8 # v4.3.0
         with:
           gradle-version: "9.8.1"
+      - name: Make Gradle Wrapper executable
+        run: chmod +x gradlew
       - name: JVM unit tests (no emulator, no Firebase settings needed)
-        run: gradle :app:testDebugUnitTest --no-daemon
+        run: ./gradlew :app:testDebugUnitTest --no-daemon

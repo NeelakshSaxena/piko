@@ -100,7 +100,21 @@ class HostMiddleware:
             raw = dict(scope["headers"]).get(b"host", b"").decode("latin-1").lower()
             # Strip an optional :port without breaking bracketed IPv6 literals like [::1]:8000.
             host = raw.rsplit(":", 1)[0] if ":" in raw and not raw.endswith("]") else raw
-            if host not in self.allowed:
+            matched = False
+            for pattern in self.allowed:
+                if pattern.startswith("*."):
+                    suffix = pattern[1:]
+                    if host.endswith(suffix) or host == pattern[2:]:
+                        matched = True
+                        break
+                elif pattern.startswith("."):
+                    if host.endswith(pattern) or host == pattern[1:]:
+                        matched = True
+                        break
+                elif host == pattern:
+                    matched = True
+                    break
+            if not matched:
                 await error_response(Request(scope), "VALIDATION_ERROR", "Invalid host.")(
                     scope, receive, send
                 )
@@ -119,11 +133,35 @@ class OriginMiddleware:
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
         if scope["type"] == "http":
             origin = dict(scope["headers"]).get(b"origin")
-            if origin is not None and origin.decode("latin-1").rstrip("/") not in self.allowed:
-                await error_response(Request(scope), "FORBIDDEN", "Origin not allowed.")(
-                    scope, receive, send
-                )
-                return
+            if origin is not None:
+                norm_origin = origin.decode("latin-1").rstrip("/").lower()
+                matched = False
+                for pattern in self.allowed:
+                    p = pattern.rstrip("/").lower()
+                    if p.startswith("https://*."):
+                        suffix = p[len("https://*") :]
+                        if norm_origin.startswith("https://") and (
+                            norm_origin[len("https://") :].endswith(suffix)
+                            or norm_origin[len("https://") :] == suffix[1:]
+                        ):
+                            matched = True
+                            break
+                    elif p.startswith("http://*."):
+                        suffix = p[len("http://*") :]
+                        if norm_origin.startswith("http://") and (
+                            norm_origin[len("http://") :].endswith(suffix)
+                            or norm_origin[len("http://") :] == suffix[1:]
+                        ):
+                            matched = True
+                            break
+                    elif norm_origin == p:
+                        matched = True
+                        break
+                if not matched:
+                    await error_response(Request(scope), "FORBIDDEN", "Origin not allowed.")(
+                        scope, receive, send
+                    )
+                    return
         await self.app(scope, receive, send)
 
 

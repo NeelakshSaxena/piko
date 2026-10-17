@@ -97,9 +97,16 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(router)
     # Added last = outermost. Order outermost-first: no-store, context, host, origin, body limit, CORS, gzip.
     app.add_middleware(GZipMiddleware, minimum_size=1024)
+    cors_origins = [o for o in sorted(settings.allowed_origin_set) if "*" not in o]
+    cors_regex = (
+        r"^https://.*\.vercel\.app$"
+        if any("*.vercel.app" in o for o in settings.allowed_origins)
+        else None
+    )
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=sorted(settings.allowed_origin_set),
+        allow_origins=cors_origins,
+        allow_origin_regex=cors_regex,
         allow_methods=["GET", "POST", "PUT", "DELETE"],
         allow_headers=["Authorization", "Content-Type"],
         max_age=600,
