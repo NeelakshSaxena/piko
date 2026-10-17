@@ -45,3 +45,16 @@ AGENTS.md section 10 requires, in addition to passing tests: no unresolved criti
 
 ## Update 2026-10-17: push, security closure, deployment prep (gate OPEN)
 Implemented and tested: durable notification outbox, FCM + Web Push, Android messaging service, F-04/F-06/F-10/L-4/L-5, retention job, serverless entrypoint, CI/scheduler workflows (not run). Final suites: backend 378 passed, web 135 passed, Android JVM 102 / instrumented 67 (0 failures). NOT done: live FCM, live browser push, DB backup, migrations 0004/0005 on the persistent schema, schema drops, MCP auth, any deployment. See `docs/verification/push-deployment-gate-report.md`, `docs/PUSH_NOTIFICATIONS.md`, `docs/DEPLOYMENT.md`, ADR-023. Phases 7-8 not started.
+
+## Update 2026-10-17: Deployment, Database Migration, and APK Release Automation (gate OPEN)
+- **Branch Scope**: All deployment work executed on branch `deployment` (`abdf669`). Pushed to `origin/deployment`.
+- **Database Backup Snapshot**: Verified pre-migration snapshot schema `piko_backup_0003` created in Supabase project `wktsqtydgfmmmugngzxo` with all 12 tables and rows preserved.
+- **Database Migrations**: Operator-approved Alembic migrations 0004 & 0005 applied to persistent schema `piko` (now at head `0005`). Hard schema separation maintained (`public` contains 0 tables).
+- **Vercel Backend (`piko-api`)**: Deployed to `https://piko-api-ten.vercel.app`. Live health check verified: `GET /api/v1/health/ready` -> `{"status":"ready","database":"ok"}`.
+- **Vercel Frontend (`piko-web`)**: Deployed to `https://piko-web-jade.vercel.app`. Strict CSP verified with connect-src to `piko-api-ten.vercel.app`.
+- **CI / CD Pipelines**:
+  - `.github/workflows/ci.yml`: Backend (378 tests), Web (135 tests), Android JVM (102 tests) 100% green.
+  - `.github/workflows/android-apk.yml`: Automated debug APK assembly and test report upload.
+- **Documentation**: Root deliverable `initial_deployment.md` created with architecture Mermaid diagram, API table, database details, Vercel config, APK automation, and DR runbook.
+- **Phase Gate**: Remains OPEN per Piko constitution (awaiting physical device baseline, live FCM credentials, and independent audit re-review). Next phase not started.
+
