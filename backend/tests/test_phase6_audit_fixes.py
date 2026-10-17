@@ -130,7 +130,8 @@ def test_newlines_tabs_and_unicode_text_are_fine(make_family) -> None:  # type: 
 def test_incident_detail_reads_are_rate_limited(make_family) -> None:  # type: ignore[no-untyped-def]
     fam, device_id, token = make(make_family)
     iid = post_sos(fam, token, sos_body(device_id)).json()["incident_id"]
-    reset(fam)
+    now = 1000.0
+    fam.client.app.state.limiter = RateLimiter(clock=lambda: now)
     codes = [fam.client.get(f"{SOS}/{iid}", headers=fam.headers).status_code for _ in range(61)]
     assert codes[:60] == [200] * 60
     assert codes[60] == 429
