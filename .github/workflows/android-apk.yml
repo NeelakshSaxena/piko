@@ -7,10 +7,10 @@ name: Android APK & CI
 on:
   workflow_dispatch:
   push:
-    branches: [main]
+    branches: [main, deployment]
     tags: ['v*']
   pull_request:
-    branches: [main]
+    branches: [main, deployment]
 
 permissions:
   contents: read
