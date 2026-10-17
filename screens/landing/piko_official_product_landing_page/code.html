@@ -1,0 +1,801 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Piko — Family Safety & Location Sharing</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+          },
+          colors: {
+            piko: {
+              ivory: '#F9F7F2',
+              cream: '#FFFDF9',
+              blue: '#2B72EE',
+              deepblue: '#194BB5',
+              softblue: '#E7F0FD',
+              lavender: '#8273C8',
+              lavenderlight: '#F1EEFA',
+              mint: '#E4F5EB',
+              mintdark: '#2A8C5B',
+              peach: '#FDEEE6',
+              peachdark: '#D96938',
+              dark: '#1E2235',
+              muted: '#636A84',
+              border: '#E8E4DA',
+            }
+          },
+          boxShadow: {
+            'clay-card': '0 20px 35px -10px rgba(43, 114, 238, 0.08), 0 1px 3px rgba(0,0,0,0.03), inset 0 2px 4px rgba(255, 255, 255, 0.95), inset 0 -3px 6px rgba(0, 0, 0, 0.04)',
+            'clay-button-blue': '0 10px 20px -4px rgba(43, 114, 238, 0.4), inset 0 2px 2px rgba(255,255,255,0.6), inset 0 -3px 4px rgba(18, 64, 163, 0.5)',
+            'clay-button-white': '0 8px 18px -4px rgba(30, 34, 53, 0.08), inset 0 2px 3px rgba(255,255,255,1), inset 0 -2px 3px rgba(0,0,0,0.05)',
+            'clay-button-lavender': '0 10px 20px -4px rgba(130, 115, 200, 0.35), inset 0 2px 2px rgba(255,255,255,0.7), inset 0 -3px 4px rgba(92, 77, 161, 0.5)',
+            'clay-inset': 'inset 0 3px 6px rgba(0, 0, 0, 0.06), inset 0 1px 2px rgba(0,0,0,0.04), 0 1px 1px rgba(255,255,255,0.8)',
+            'clay-float': '0 25px 45px -12px rgba(25, 75, 181, 0.16), 0 2px 8px rgba(0,0,0,0.04), inset 0 2px 4px rgba(255,255,255,0.9)',
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    @keyframes floatSlow {
+      0%, 100% { transform: translateY(0px) rotate(0deg); }
+      50% { transform: translateY(-10px) rotate(1deg); }
+    }
+    @keyframes floatOpposite {
+      0%, 100% { transform: translateY(0px) rotate(0deg); }
+      50% { transform: translateY(8px) rotate(-1.5deg); }
+    }
+    @keyframes gentlePulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.03); }
+    }
+    .animate-float-slow {
+      animation: floatSlow 6s ease-in-out infinite;
+    }
+    .animate-float-opposite {
+      animation: floatOpposite 5s ease-in-out infinite;
+    }
+    .animate-pulse-subtle {
+      animation: gentlePulse 4s ease-in-out infinite;
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .animate-float-slow, .animate-float-opposite, .animate-pulse-subtle {
+        animation: none !important;
+      }
+    }
+  </style>
+</head>
+<body class="bg-piko-ivory text-piko-dark antialiased font-sans selection:bg-piko-softblue selection:text-piko-deepblue">
+
+  <!-- A. FLOATING NAVIGATION -->
+  <header class="fixed top-4 left-0 right-0 z-50 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-6xl mx-auto bg-piko-cream/90 backdrop-blur-md border border-white/80 rounded-3xl px-5 py-3.5 shadow-clay-card flex items-center justify-between transition-all">
+      <!-- Brand & Mascot Mark -->
+      <a href="#hero" class="flex items-center gap-3 group focus:outline-none focus:ring-2 focus:ring-piko-blue/40 rounded-2xl p-1">
+        <div class="w-10 h-10 rounded-2xl bg-gradient-to-b from-piko-softblue to-white p-1 shadow-sm flex items-center justify-center border border-white relative overflow-hidden transition-transform group-hover:scale-105">
+          <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuAvTLgr06odlkhjcwjrlTm32o2x3_HhOWwhx5CbnhQ9qacmglcc5hn3TztBFFxcGWCLkDKmPbzNVxZG2U5EuhNofxwukDeoL9v57fdVYL0lPFtcK10pU5klSXEqvR_vw5Shb2drUZ-p6A2H0MI9WE9kWQD46R6RvJ1weZKvjIGzcigFbRZ4XUUOwKrJzbzRfZLmZ8RMtnHraqOrkudjiNiIXoIXWYDret7E9U9d9qGMKKD_MDO9PAo3E6vb73qp2TrCS18" alt="Piko Mascot Logo" class="w-9 h-9 object-contain" />
+        </div>
+        <div class="flex flex-col">
+          <span class="text-xl font-extrabold tracking-tight text-piko-dark flex items-center gap-1.5">
+            Piko
+            <span class="inline-block w-2 h-2 rounded-full bg-piko-blue animate-pulse"></span>
+          </span>
+          <span class="text-[10px] uppercase tracking-wider font-semibold text-piko-muted -mt-1">Family Safety</span>
+        </div>
+      </a>
+
+      <!-- Desktop Links -->
+      <nav class="hidden md:flex items-center gap-8 text-sm font-semibold text-piko-muted">
+        <a href="#features" class="hover:text-piko-blue transition-colors focus:outline-none focus:ring-2 focus:ring-piko-blue/30 rounded-lg px-2 py-1">Features</a>
+        <a href="#how-it-works" class="hover:text-piko-blue transition-colors focus:outline-none focus:ring-2 focus:ring-piko-blue/30 rounded-lg px-2 py-1">How it works</a>
+        <a href="#hosting-options" class="hover:text-piko-blue transition-colors focus:outline-none focus:ring-2 focus:ring-piko-blue/30 rounded-lg px-2 py-1">Hosting options</a>
+        <a href="#privacy" class="hover:text-piko-blue transition-colors focus:outline-none focus:ring-2 focus:ring-piko-blue/30 rounded-lg px-2 py-1">Privacy</a>
+        <a href="#faq" class="hover:text-piko-blue transition-colors focus:outline-none focus:ring-2 focus:ring-piko-blue/30 rounded-lg px-2 py-1">FAQ</a>
+      </nav>
+
+      <!-- Action Button & Mobile Toggle -->
+      <div class="flex items-center gap-3">
+        <a href="#hosting-options" class="hidden sm:inline-flex items-center justify-center px-5 py-2.5 rounded-2xl bg-piko-blue hover:bg-piko-deepblue text-white font-bold text-sm shadow-clay-button-blue transition-all transform active:scale-95 focus:outline-none focus:ring-2 focus:ring-piko-blue/50">
+          Get started
+        </a>
+        <button id="mobileMenuBtn" aria-label="Toggle mobile menu" class="md:hidden p-2.5 rounded-2xl bg-piko-cream border border-piko-border text-piko-dark shadow-sm focus:outline-none focus:ring-2 focus:ring-piko-blue/40">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 6h16M4 12h16m-7 6h7"></path>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Mobile Dropdown Menu -->
+    <div id="mobileMenu" class="hidden md:hidden max-w-6xl mx-auto mt-2 bg-piko-cream/95 backdrop-blur-lg border border-white rounded-3xl p-5 shadow-clay-card flex flex-col gap-3">
+      <a href="#features" class="px-4 py-2.5 rounded-xl font-semibold text-piko-dark hover:bg-piko-softblue transition-colors">Features</a>
+      <a href="#how-it-works" class="px-4 py-2.5 rounded-xl font-semibold text-piko-dark hover:bg-piko-softblue transition-colors">How it works</a>
+      <a href="#hosting-options" class="px-4 py-2.5 rounded-xl font-semibold text-piko-dark hover:bg-piko-softblue transition-colors">Hosting options</a>
+      <a href="#privacy" class="px-4 py-2.5 rounded-xl font-semibold text-piko-dark hover:bg-piko-softblue transition-colors">Privacy</a>
+      <a href="#faq" class="px-4 py-2.5 rounded-xl font-semibold text-piko-dark hover:bg-piko-softblue transition-colors">FAQ</a>
+      <div class="pt-2 border-t border-piko-border flex flex-col gap-2">
+        <a href="#hosting-options" class="w-full text-center py-3 rounded-2xl bg-piko-blue text-white font-bold text-sm shadow-clay-button-blue">Get started</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- B. HERO SECTION -->
+  <section id="hero" class="relative pt-32 pb-20 md:pt-40 md:pb-32 overflow-hidden">
+    <!-- Tactile background blobs -->
+    <div class="absolute -top-24 left-1/2 -translate-x-1/2 w-[700px] h-[500px] bg-gradient-to-b from-piko-softblue/60 via-piko-lavenderlight/30 to-transparent rounded-full blur-3xl pointer-events-none -z-10"></div>
+    <div class="absolute top-1/3 -left-32 w-80 h-80 bg-piko-mint/40 rounded-full blur-2xl pointer-events-none -z-10"></div>
+    <div class="absolute top-2/3 -right-32 w-96 h-96 bg-piko-peach/40 rounded-full blur-2xl pointer-events-none -z-10"></div>
+
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center">
+        
+        <!-- Left: Copy & CTAs -->
+        <div class="lg:col-span-7 flex flex-col items-start text-left">
+          
+          <!-- Tactile Badge -->
+          <div class="inline-flex items-center gap-2 px-4 py-2 rounded-2xl bg-piko-cream border border-white shadow-clay-card mb-6 animate-pulse-subtle">
+            <span class="flex h-2.5 w-2.5 relative">
+              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-piko-blue opacity-75"></span>
+              <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-piko-blue"></span>
+            </span>
+            <span class="text-xs font-bold text-piko-muted tracking-wide uppercase">Connected by care · Protected with choice</span>
+          </div>
+
+          <!-- Main Headline -->
+          <h1 class="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-piko-dark tracking-tight leading-[1.12] mb-6">
+            A little more peace of mind. <br>
+            <span class="bg-gradient-to-r from-piko-blue via-piko-deepblue to-piko-lavender bg-clip-text text-transparent">A lot more freedom.</span>
+          </h1>
+
+          <!-- Supporting copy -->
+          <p class="text-lg sm:text-xl text-piko-muted leading-relaxed font-medium mb-8 max-w-xl">
+            Stay connected with your family through Piko. Get the convenience of a hosted service, or self-host it for complete control over your family's data and setup.
+          </p>
+
+          <!-- CTAs -->
+          <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 w-full sm:w-auto mb-5">
+            <a href="#hosting-options" class="inline-flex items-center justify-center gap-2.5 px-7 py-4 rounded-2xl bg-piko-blue hover:bg-piko-deepblue text-white font-bold text-base shadow-clay-button-blue transition-all transform active:scale-95 focus:outline-none focus:ring-4 focus:ring-piko-blue/30">
+              <span>Get started with Piko</span>
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+            </a>
+            <a href="#hosting-options" class="inline-flex items-center justify-center gap-2 px-7 py-4 rounded-2xl bg-piko-cream hover:bg-white text-piko-dark border border-white font-bold text-base shadow-clay-button-white transition-all transform active:scale-95 focus:outline-none focus:ring-4 focus:ring-piko-muted/20">
+              <svg class="w-5 h-5 text-piko-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M12 5l7 7-7 7"></path></svg>
+              <span>Explore self-hosting</span>
+            </a>
+          </div>
+
+          <!-- Supporting line -->
+          <div class="flex items-center gap-2 text-xs font-semibold text-piko-muted/90">
+            <span class="w-1.5 h-1.5 rounded-full bg-piko-mintdark"></span>
+            <span>Your family. Your choice. No vendor lock-in.</span>
+          </div>
+        </div>
+
+        <!-- Right: Tactile Mascot Stage & Floating UI -->
+        <div class="lg:col-span-5 relative flex items-center justify-center">
+          
+          <!-- Main Clay Stage Orb -->
+          <div class="relative w-80 h-80 sm:w-96 sm:h-96 rounded-full bg-gradient-to-b from-white via-piko-softblue/50 to-piko-lavenderlight/40 p-4 shadow-clay-float border border-white/80 flex items-center justify-center">
+            
+            <!-- Radiating Ring -->
+            <div class="absolute inset-4 rounded-full border-2 border-dashed border-piko-blue/20 animate-spin" style="animation-duration: 40s;"></div>
+
+            <!-- The Official Mascot Image -->
+            <div class="relative z-10 w-64 h-64 sm:w-72 sm:h-72 flex items-center justify-center animate-float-slow">
+              <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuAvTLgr06odlkhjcwjrlTm32o2x3_HhOWwhx5CbnhQ9qacmglcc5hn3TztBFFxcGWCLkDKmPbzNVxZG2U5EuhNofxwukDeoL9v57fdVYL0lPFtcK10pU5klSXEqvR_vw5Shb2drUZ-p6A2H0MI9WE9kWQD46R6RvJ1weZKvjIGzcigFbRZ4XUUOwKrJzbzRfZLmZ8RMtnHraqOrkudjiNiIXoIXWYDret7E9U9d9qGMKKD_MDO9PAo3E6vb73qp2TrCS18" alt="Piko Official Mascot - Glossy Blue Protective Cyclops Companion" class="w-full h-full object-contain filter drop-shadow-2xl" />
+            </div>
+
+            <!-- Floating UI Card 1: Family Mesh Safe Zone -->
+            <div class="absolute -top-4 -left-6 bg-piko-cream border border-white rounded-2xl p-3.5 shadow-clay-card animate-float-opposite z-20 flex items-center gap-3">
+              <div class="w-9 h-9 rounded-xl bg-piko-mint flex items-center justify-center text-piko-mintdark font-bold text-sm shadow-clay-inset">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+              </div>
+              <div class="text-left">
+                <div class="text-xs font-bold text-piko-dark">Safe Zone Verified</div>
+                <div class="text-[11px] font-medium text-piko-mintdark">Greenwood Campus · Synced</div>
+              </div>
+            </div>
+
+            <!-- Floating UI Card 2: Transparent Telemetry Check-in -->
+            <div class="absolute -bottom-6 -right-4 bg-piko-cream border border-white rounded-2xl p-3.5 shadow-clay-card animate-float-slow z-20 flex items-center gap-3">
+              <div class="w-9 h-9 rounded-xl bg-piko-softblue flex items-center justify-center text-piko-blue font-bold text-sm shadow-clay-inset">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
+              </div>
+              <div class="text-left">
+                <div class="text-xs font-bold text-piko-dark">Aarav · At School</div>
+                <div class="text-[11px] font-medium text-piko-muted">84% Battery · Fresh 12s ago</div>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- C. TRUST & CORE PRINCIPLES -->
+  <section class="py-14 bg-white/50 border-y border-piko-border/60">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
+        
+        <!-- Principle 1 -->
+        <div class="bg-piko-cream border border-white rounded-3xl p-7 shadow-clay-card flex flex-col gap-3 transition-transform hover:-translate-y-1">
+          <div class="w-12 h-12 rounded-2xl bg-piko-softblue text-piko-blue flex items-center justify-center font-bold shadow-clay-inset">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+          </div>
+          <h3 class="text-lg font-bold text-piko-dark">Stay genuinely connected</h3>
+          <p class="text-sm text-piko-muted leading-relaxed font-medium">
+            Useful, low-latency location sharing and lightweight family messaging designed for daily reassurance without constant friction.
+          </p>
+        </div>
+
+        <!-- Principle 2 -->
+        <div class="bg-piko-cream border border-white rounded-3xl p-7 shadow-clay-card flex flex-col gap-3 transition-transform hover:-translate-y-1">
+          <div class="w-12 h-12 rounded-2xl bg-piko-mint text-piko-mintdark flex items-center justify-center font-bold shadow-clay-inset">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
+          </div>
+          <h3 class="text-lg font-bold text-piko-dark">Respect independence</h3>
+          <p class="text-sm text-piko-muted leading-relaxed font-medium">
+            Help families stay in touch with complete mutual transparency. Children see what parents see — never treated as objects to silently track.
+          </p>
+        </div>
+
+        <!-- Principle 3 -->
+        <div class="bg-piko-cream border border-white rounded-3xl p-7 shadow-clay-card flex flex-col gap-3 transition-transform hover:-translate-y-1">
+          <div class="w-12 h-12 rounded-2xl bg-piko-lavenderlight text-piko-lavender flex items-center justify-center font-bold shadow-clay-inset">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+          </div>
+          <h3 class="text-lg font-bold text-piko-dark">Choose your setup</h3>
+          <p class="text-sm text-piko-muted leading-relaxed font-medium">
+            Zero lock-in. Subscribe to managed Piko Hosted, or self-host your own server on your personal infrastructure whenever you want.
+          </p>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- D. HOW PIKO WORKS -->
+  <section id="how-it-works" class="py-24">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+      
+      <!-- Section Header -->
+      <div class="text-center max-w-2xl mx-auto mb-16">
+        <div class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-piko-softblue text-piko-blue text-xs font-bold uppercase tracking-wider mb-3">
+          Simple by Design
+        </div>
+        <h2 class="text-3xl sm:text-4xl font-extrabold text-piko-dark tracking-tight mb-4">
+          How Piko brings your family closer
+        </h2>
+        <p class="text-base sm:text-lg text-piko-muted font-medium">
+          Straightforward setup for parents and children, without technical confusion or intimidating surveillance screens.
+        </p>
+      </div>
+
+      <!-- 3 Steps Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8 relative">
+        
+        <!-- Step 1 -->
+        <div class="bg-piko-cream border border-white rounded-3xl p-8 shadow-clay-card flex flex-col relative group">
+          <div class="flex items-center justify-between mb-6">
+            <span class="text-3xl font-black text-piko-blue/30 group-hover:text-piko-blue transition-colors">01</span>
+            <div class="w-12 h-12 rounded-2xl bg-white border border-piko-border/60 shadow-clay-button-white flex items-center justify-center text-piko-dark font-bold">
+              <svg class="w-6 h-6 text-piko-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+            </div>
+          </div>
+          <h3 class="text-xl font-bold text-piko-dark mb-3">Set up your family</h3>
+          <p class="text-sm text-piko-muted leading-relaxed font-medium mb-6">
+            Create your private family space. Pair devices with a transparent, mutual QR code or linking code so everyone understands what is shared.
+          </p>
+          <div class="mt-auto pt-4 border-t border-piko-border/50 text-xs font-semibold text-piko-muted flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-piko-mintdark"></span>
+            <span>Takes under 2 minutes</span>
+          </div>
+        </div>
+
+        <!-- Step 2 -->
+        <div class="bg-piko-cream border border-white rounded-3xl p-8 shadow-clay-card flex flex-col relative group">
+          <div class="flex items-center justify-between mb-6">
+            <span class="text-3xl font-black text-piko-lavender/30 group-hover:text-piko-lavender transition-colors">02</span>
+            <div class="w-12 h-12 rounded-2xl bg-white border border-piko-border/60 shadow-clay-button-white flex items-center justify-center text-piko-dark font-bold">
+              <svg class="w-6 h-6 text-piko-lavender" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+            </div>
+          </div>
+          <h3 class="text-xl font-bold text-piko-dark mb-3">Stay connected gently</h3>
+          <p class="text-sm text-piko-muted leading-relaxed font-medium mb-6">
+            View battery status, transparent location freshness, geofence updates, and quick reassuring check-ins ("I'm okay", "Arrived at school").
+          </p>
+          <div class="mt-auto pt-4 border-t border-piko-border/50 text-xs font-semibold text-piko-muted flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-piko-blue"></span>
+            <span>Offline-aware data syncing</span>
+          </div>
+        </div>
+
+        <!-- Step 3 -->
+        <div class="bg-piko-cream border border-white rounded-3xl p-8 shadow-clay-card flex flex-col relative group">
+          <div class="flex items-center justify-between mb-6">
+            <span class="text-3xl font-black text-piko-peachdark/30 group-hover:text-piko-peachdark transition-colors">03</span>
+            <div class="w-12 h-12 rounded-2xl bg-white border border-piko-border/60 shadow-clay-button-white flex items-center justify-center text-piko-dark font-bold">
+              <svg class="w-6 h-6 text-piko-peachdark" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01"></path></svg>
+            </div>
+          </div>
+          <h3 class="text-xl font-bold text-piko-dark mb-3">Choose how it runs</h3>
+          <p class="text-sm text-piko-muted leading-relaxed font-medium mb-6">
+            Let us maintain the cloud and updates with Piko Hosted, or run your own instance via Docker on home hardware with our self-hosted stack.
+          </p>
+          <div class="mt-auto pt-4 border-t border-piko-border/50 text-xs font-semibold text-piko-muted flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-piko-lavender"></span>
+            <span>Switch anytime without hassle</span>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </section>
+
+  <!-- E. TWO WAYS TO USE PIKO (THE KEY CONVERSION SECTION) -->
+  <section id="hosting-options" class="py-24 bg-gradient-to-b from-white/60 via-piko-softblue/20 to-white/60 border-y border-piko-border/60 relative">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+      
+      <!-- Section Title -->
+      <div class="text-center max-w-3xl mx-auto mb-16">
+        <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-piko-lavenderlight text-piko-lavender text-xs font-bold uppercase tracking-wider mb-3">
+          Your Family · Your Choice
+        </div>
+        <h2 class="text-3xl sm:text-5xl font-extrabold text-piko-dark tracking-tight mb-4">
+          Two ways to use Piko. <br class="hidden sm:inline">Both completely supported.
+        </h2>
+        <p class="text-base sm:text-lg text-piko-muted font-medium">
+          “Family safety that fits the way you live. Let us handle the setup, or run Piko on your own terms.”
+        </p>
+      </div>
+
+      <!-- Side-by-Side Claymorphic Option Cards -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-stretch">
+        
+        <!-- CARD 1: PIKO HOSTED -->
+        <div class="bg-piko-cream border-2 border-white rounded-3xl p-8 sm:p-10 shadow-clay-card flex flex-col relative overflow-hidden transition-all hover:shadow-clay-float">
+          <!-- Subtle Accent Header -->
+          <div class="flex items-center justify-between mb-6">
+            <span class="px-3.5 py-1.5 rounded-xl bg-piko-softblue text-piko-blue text-xs font-bold uppercase tracking-wider">
+              Option A · Hosted Subscription
+            </span>
+            <div class="w-8 h-8 rounded-full bg-piko-blue/10 flex items-center justify-center text-piko-blue">
+              <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+            </div>
+          </div>
+
+          <h3 class="text-2xl sm:text-3xl font-extrabold text-piko-dark tracking-tight mb-3">
+            You focus on family. <br>We handle the setup.
+          </h3>
+          <p class="text-base text-piko-muted font-medium leading-relaxed mb-8">
+            Ideal for parents who want reliable safety tools without server administration, security patching, or maintenance overhead.
+          </p>
+
+          <!-- Tactile Feature Checklist -->
+          <ul class="space-y-4 mb-10 text-sm font-semibold text-piko-dark">
+            <li class="flex items-center gap-3">
+              <div class="w-6 h-6 rounded-lg bg-piko-mint text-piko-mintdark flex items-center justify-center text-xs shadow-sm">✓</div>
+              <span>Fully managed cloud infrastructure & automatic updates</span>
+            </li>
+            <li class="flex items-center gap-3">
+              <div class="w-6 h-6 rounded-lg bg-piko-mint text-piko-mintdark flex items-center justify-center text-xs shadow-sm">✓</div>
+              <span>No server setup, database configuration, or maintenance</span>
+            </li>
+            <li class="flex items-center gap-3">
+              <div class="w-6 h-6 rounded-lg bg-piko-mint text-piko-mintdark flex items-center justify-center text-xs shadow-sm">✓</div>
+              <span>Instant device pairing via authenticated QR codes</span>
+            </li>
+            <li class="flex items-center gap-3">
+              <div class="w-6 h-6 rounded-lg bg-piko-mint text-piko-mintdark flex items-center justify-center text-xs shadow-sm">✓</div>
+              <span>Transparent subscription pricing (cancel anytime)</span>
+            </li>
+          </ul>
+
+          <!-- Mascot mini badge -->
+          <div class="bg-gradient-to-r from-piko-softblue to-white p-4 rounded-2xl border border-white flex items-center gap-4 mb-8 shadow-clay-inset">
+            <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuAvTLgr06odlkhjcwjrlTm32o2x3_HhOWwhx5CbnhQ9qacmglcc5hn3TztBFFxcGWCLkDKmPbzNVxZG2U5EuhNofxwukDeoL9v57fdVYL0lPFtcK10pU5klSXEqvR_vw5Shb2drUZ-p6A2H0MI9WE9kWQD46R6RvJ1weZKvjIGzcigFbRZ4XUUOwKrJzbzRfZLmZ8RMtnHraqOrkudjiNiIXoIXWYDret7E9U9d9qGMKKD_MDO9PAo3E6vb73qp2TrCS18" alt="Piko Mascot Icon" class="w-12 h-12 object-contain" />
+            <div class="text-xs">
+              <span class="font-bold text-piko-dark block">Zero Technical Setup</span>
+              <span class="text-piko-muted font-medium">Download the apps, connect your kids, and enjoy peace of mind.</span>
+            </div>
+          </div>
+
+          <!-- Action Button -->
+          <div class="mt-auto">
+            <a href="#final-cta" class="w-full inline-flex items-center justify-center gap-2 py-4 px-6 rounded-2xl bg-piko-blue hover:bg-piko-deepblue text-white font-bold text-base shadow-clay-button-blue transition-all transform active:scale-95">
+              <span>Explore hosted Piko</span>
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+            </a>
+            <p class="text-center text-[11px] font-semibold text-piko-muted mt-3">Simple subscription · Managed by Piko team</p>
+          </div>
+        </div>
+
+        <!-- CARD 2: SELF-HOSTED PIKO -->
+        <div class="bg-piko-cream border-2 border-white rounded-3xl p-8 sm:p-10 shadow-clay-card flex flex-col relative overflow-hidden transition-all hover:shadow-clay-float">
+          <!-- Subtle Accent Header -->
+          <div class="flex items-center justify-between mb-6">
+            <span class="px-3.5 py-1.5 rounded-xl bg-piko-lavenderlight text-piko-lavender text-xs font-bold uppercase tracking-wider">
+              Option B · Self-Hosted Control
+            </span>
+            <div class="w-8 h-8 rounded-full bg-piko-lavender/10 flex items-center justify-center text-piko-lavender">
+              <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M12.316 3.051a1 1 0 01.633 1.265l-4 12a1 1 0 11-1.898-.632l4-12a1 1 0 011.265-.633zM5.707 6.293a1 1 0 010 1.414L3.414 10l2.293 2.293a1 1 0 11-1.414 1.414l-3-3a1 1 0 010-1.414l3-3a1 1 0 011.414 0zm8.586 0a1 1 0 011.414 0l3 3a1 1 0 010 1.414l-3 3a1 1 0 11-1.414-1.414L16.586 10l-2.293-2.293a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
+            </div>
+          </div>
+
+          <h3 class="text-2xl sm:text-3xl font-extrabold text-piko-dark tracking-tight mb-3">
+            Your infrastructure. <br>Your rules.
+          </h3>
+          <p class="text-base text-piko-muted font-medium leading-relaxed mb-8">
+            Ideal for technically confident families, homelab enthusiasts, and privacy-conscious users wanting total custody of their hardware.
+          </p>
+
+          <!-- Tactile Feature Checklist -->
+          <ul class="space-y-4 mb-10 text-sm font-semibold text-piko-dark">
+            <li class="flex items-center gap-3">
+              <div class="w-6 h-6 rounded-lg bg-piko-lavenderlight text-piko-lavender flex items-center justify-center text-xs shadow-sm">✓</div>
+              <span>Run your own Piko server container on local hardware or VPS</span>
+            </li>
+            <li class="flex items-center gap-3">
+              <div class="w-6 h-6 rounded-lg bg-piko-lavenderlight text-piko-lavender flex items-center justify-center text-xs shadow-sm">✓</div>
+              <span>All telemetry and family records remain on your own disks</span>
+            </li>
+            <li class="flex items-center gap-3">
+              <div class="w-6 h-6 rounded-lg bg-piko-lavenderlight text-piko-lavender flex items-center justify-center text-xs shadow-sm">✓</div>
+              <span>Open-source architecture with full API compatibility</span>
+            </li>
+            <li class="flex items-center gap-3">
+              <div class="w-6 h-6 rounded-lg bg-piko-lavenderlight text-piko-lavender flex items-center justify-center text-xs shadow-sm">✓</div>
+              <span>Requires your own server, configuration, & maintenance</span>
+            </li>
+          </ul>
+
+          <!-- Technical Transparency note -->
+          <div class="bg-gradient-to-r from-piko-lavenderlight to-white p-4 rounded-2xl border border-white flex items-center gap-4 mb-8 shadow-clay-inset">
+            <div class="w-10 h-10 rounded-xl bg-piko-lavender text-white flex items-center justify-center font-bold text-xs shadow-clay-button-lavender">
+              CLI
+            </div>
+            <div class="text-xs">
+              <span class="font-bold text-piko-dark block">Honest Technical Responsibility</span>
+              <span class="text-piko-muted font-medium">Self-hosting requires server administration and external map/push accounts where needed.</span>
+            </div>
+          </div>
+
+          <!-- Action Button -->
+          <div class="mt-auto">
+            <a href="#faq" class="w-full inline-flex items-center justify-center gap-2 py-4 px-6 rounded-2xl bg-piko-cream hover:bg-white text-piko-dark border border-white font-bold text-base shadow-clay-button-white transition-all transform active:scale-95">
+              <span>Explore self-hosting guide</span>
+              <svg class="w-5 h-5 text-piko-lavender" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path></svg>
+            </a>
+            <p class="text-center text-[11px] font-semibold text-piko-muted mt-3">Docker compose ready · Full documentation provided</p>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </section>
+
+  <!-- F. FEATURE SHOWCASE -->
+  <section id="features" class="py-24">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+      
+      <!-- Section Header -->
+      <div class="text-center max-w-2xl mx-auto mb-16">
+        <div class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-piko-mint text-piko-mintdark text-xs font-bold uppercase tracking-wider mb-3">
+          Thoughtful Craft
+        </div>
+        <h2 class="text-3xl sm:text-4xl font-extrabold text-piko-dark tracking-tight mb-4">
+          Real features built for real families
+        </h2>
+        <p class="text-base sm:text-lg text-piko-muted font-medium">
+          Every tool is designed to be gentle, battery-conscious, and honest about network realities.
+        </p>
+      </div>
+
+      <!-- Varied Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-12 gap-8">
+        
+        <!-- Feature 1: Live Family Map (Wide) -->
+        <div class="md:col-span-8 bg-piko-cream border border-white rounded-3xl p-8 shadow-clay-card flex flex-col justify-between relative overflow-hidden">
+          <div class="max-w-md mb-6 z-10">
+            <span class="text-xs font-bold text-piko-blue uppercase tracking-wider">Live & Geofenced</span>
+            <h3 class="text-2xl font-bold text-piko-dark mt-1 mb-2">Live Family Map & Safe Zones</h3>
+            <p class="text-sm text-piko-muted font-medium leading-relaxed">
+              Real-time spatial awareness with circular precision uncertainty (±5m), arrival safe-zone notifications, and transparent freshness indicators. Never guess if data is stale.
+            </p>
+          </div>
+          <!-- Mini UI Mockup inside clay card -->
+          <div class="bg-white/90 border border-piko-border/60 rounded-2xl p-4 shadow-clay-inset flex flex-col gap-3">
+            <div class="flex items-center justify-between text-xs font-bold text-piko-dark">
+              <div class="flex items-center gap-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-piko-mintdark"></span>
+                <span>Bengaluru Safe Corridor · 2 Active Nodes</span>
+              </div>
+              <span class="text-[11px] font-semibold text-piko-muted">Updated 18s ago</span>
+            </div>
+            <div class="h-28 rounded-xl bg-gradient-to-r from-piko-softblue/30 via-piko-lavenderlight/30 to-piko-mint/30 flex items-center justify-around px-4 relative overflow-hidden">
+              <div class="flex items-center gap-2 bg-white px-3 py-1.5 rounded-xl shadow-sm text-xs font-bold">
+                <span class="w-2 h-2 rounded-full bg-piko-blue"></span> Aarav · School (Gate 2)
+              </div>
+              <div class="flex items-center gap-2 bg-white px-3 py-1.5 rounded-xl shadow-sm text-xs font-bold">
+                <span class="w-2 h-2 rounded-full bg-piko-mintdark"></span> Diya · Art Studio
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Feature 2: Battery & Hardware Health (Compact) -->
+        <div class="md:col-span-4 bg-piko-cream border border-white rounded-3xl p-8 shadow-clay-card flex flex-col justify-between">
+          <div>
+            <span class="text-xs font-bold text-piko-lavender uppercase tracking-wider">Telemetry Health</span>
+            <h3 class="text-2xl font-bold text-piko-dark mt-1 mb-2">Device Battery & Diagnostics</h3>
+            <p class="text-sm text-piko-muted font-medium leading-relaxed mb-6">
+              Track battery percentage, fast charging status, and network connection without pinging your child repeatedly.
+            </p>
+          </div>
+          <div class="bg-white/90 border border-piko-border/60 rounded-2xl p-4 shadow-clay-inset flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <div class="text-2xl font-black text-piko-dark">84%</div>
+              <div class="text-xs font-bold text-piko-mintdark">Fast Charging</div>
+            </div>
+            <span class="px-2.5 py-1 rounded-lg bg-piko-softblue text-piko-blue text-[11px] font-bold">5G Active</span>
+          </div>
+        </div>
+
+        <!-- Feature 3: One-Tap Urgent SOS (Compact) -->
+        <div class="md:col-span-4 bg-piko-cream border border-white rounded-3xl p-8 shadow-clay-card flex flex-col justify-between">
+          <div>
+            <span class="text-xs font-bold text-[#C83F4D] uppercase tracking-wider">Emergency Triage</span>
+            <h3 class="text-2xl font-bold text-piko-dark mt-1 mb-2">Instant Emergency SOS</h3>
+            <p class="text-sm text-piko-muted font-medium leading-relaxed mb-6">
+              A 3-second hold trigger guards against accidental taps while ensuring rapid alert delivery and siren activation when it counts.
+            </p>
+          </div>
+          <div class="bg-red-50 border border-red-200/60 rounded-2xl p-3.5 flex items-center justify-between">
+            <div class="flex items-center gap-2.5">
+              <div class="w-3 h-3 rounded-full bg-[#C83F4D] animate-ping"></div>
+              <span class="text-xs font-bold text-[#C83F4D]">Priority Link Ready</span>
+            </div>
+            <span class="text-[11px] font-bold text-piko-muted">Hold 3s Trigger</span>
+          </div>
+        </div>
+
+        <!-- Feature 4: Two-Way Reassurance Messaging (Wide) -->
+        <div class="md:col-span-8 bg-piko-cream border border-white rounded-3xl p-8 shadow-clay-card flex flex-col justify-between">
+          <div class="max-w-md mb-6">
+            <span class="text-xs font-bold text-piko-mintdark uppercase tracking-wider">Gentle Intercom</span>
+            <h3 class="text-2xl font-bold text-piko-dark mt-1 mb-2">Reassurance Intercom & Quick Check-Ins</h3>
+            <p class="text-sm text-piko-muted font-medium leading-relaxed">
+              Pre-configured tactile check-ins like "I'm okay" or "At soccer practice" make communication seamless without typing long messages.
+            </p>
+          </div>
+          <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+            <div class="bg-white p-3 rounded-2xl border border-piko-border/60 shadow-sm text-center">
+              <span class="text-base">👋</span>
+              <div class="text-xs font-bold text-piko-dark mt-1">I'm Okay</div>
+            </div>
+            <div class="bg-white p-3 rounded-2xl border border-piko-border/60 shadow-sm text-center">
+              <span class="text-base">🏫</span>
+              <div class="text-xs font-bold text-piko-dark mt-1">At School</div>
+            </div>
+            <div class="bg-white p-3 rounded-2xl border border-piko-border/60 shadow-sm text-center col-span-2 sm:col-span-1">
+              <span class="text-base">💬</span>
+              <div class="text-xs font-bold text-piko-dark mt-1">Chat Mom</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </section>
+
+  <!-- G. PRIVACY & CONTROL -->
+  <section id="privacy" class="py-24 bg-white/60 border-t border-piko-border/60">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+      
+      <div class="bg-piko-cream border-2 border-white rounded-3xl p-8 sm:p-14 shadow-clay-card text-center relative overflow-hidden">
+        
+        <!-- Small mascot peek -->
+        <div class="w-16 h-16 mx-auto mb-4 bg-gradient-to-b from-piko-softblue to-white rounded-2xl p-1.5 shadow-clay-card border border-white">
+          <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuAvTLgr06odlkhjcwjrlTm32o2x3_HhOWwhx5CbnhQ9qacmglcc5hn3TztBFFxcGWCLkDKmPbzNVxZG2U5EuhNofxwukDeoL9v57fdVYL0lPFtcK10pU5klSXEqvR_vw5Shb2drUZ-p6A2H0MI9WE9kWQD46R6RvJ1weZKvjIGzcigFbRZ4XUUOwKrJzbzRfZLmZ8RMtnHraqOrkudjiNiIXoIXWYDret7E9U9d9qGMKKD_MDO9PAo3E6vb73qp2TrCS18" alt="Piko Logo Symbol" class="w-full h-full object-contain" />
+        </div>
+
+        <h2 class="text-3xl sm:text-4xl font-extrabold text-piko-dark tracking-tight mb-4">
+          Built around families, not fear.
+        </h2>
+        <p class="text-base sm:text-lg text-piko-muted font-medium max-w-2xl mx-auto mb-10 leading-relaxed">
+          Piko is engineered on mutual respect. We do not sell location data, build advertising profiles, or hide location-sharing indicators from children. Whether managed in our cloud or on your own server, your family's data belongs to your family.
+        </p>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 text-left">
+          <div class="bg-white/80 p-5 rounded-2xl border border-piko-border/60 shadow-sm">
+            <div class="w-8 h-8 rounded-xl bg-piko-mint text-piko-mintdark flex items-center justify-center font-bold text-sm mb-3">01</div>
+            <h4 class="text-sm font-bold text-piko-dark mb-1">Open Mutual Visibility</h4>
+            <p class="text-xs text-piko-muted font-medium">Children can always see who can view their location and what permissions are active.</p>
+          </div>
+          <div class="bg-white/80 p-5 rounded-2xl border border-piko-border/60 shadow-sm">
+            <div class="w-8 h-8 rounded-xl bg-piko-softblue text-piko-blue flex items-center justify-center font-bold text-sm mb-3">02</div>
+            <h4 class="text-sm font-bold text-piko-dark mb-1">Zero Advertising Brokers</h4>
+            <p class="text-xs text-piko-muted font-medium">We do not monetize your movements. Our revenue comes directly from transparent software subscriptions.</p>
+          </div>
+          <div class="bg-white/80 p-5 rounded-2xl border border-piko-border/60 shadow-sm">
+            <div class="w-8 h-8 rounded-xl bg-piko-lavenderlight text-piko-lavender flex items-center justify-center font-bold text-sm mb-3">03</div>
+            <h4 class="text-sm font-bold text-piko-dark mb-1">Self-Hosting Sovereignty</h4>
+            <p class="text-xs text-piko-muted font-medium">Want zero third-party touchpoints? Self-host the backend in Docker on your own local server.</p>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </section>
+
+  <!-- H. FAQ ACCORDION -->
+  <section id="faq" class="py-24">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+      
+      <div class="text-center mb-16">
+        <div class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-piko-softblue text-piko-blue text-xs font-bold uppercase tracking-wider mb-3">
+          Questions & Answers
+        </div>
+        <h2 class="text-3xl sm:text-4xl font-extrabold text-piko-dark tracking-tight mb-4">
+          Frequently asked questions
+        </h2>
+        <p class="text-base sm:text-lg text-piko-muted font-medium">
+          Clear, honest answers about Piko, hosting differences, and platform support.
+        </p>
+      </div>
+
+      <!-- Accordion Container -->
+      <div class="space-y-4">
+        
+        <!-- FAQ 1 -->
+        <details class="group bg-piko-cream border border-white rounded-3xl p-6 shadow-clay-card [&_summary::-webkit-details-marker]:hidden">
+          <summary class="flex items-center justify-between cursor-pointer font-bold text-base text-piko-dark focus:outline-none">
+            <span>What is Piko?</span>
+            <span class="w-8 h-8 rounded-xl bg-white flex items-center justify-center shadow-sm text-piko-muted group-open:rotate-180 transition-transform">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+            </span>
+          </summary>
+          <p class="mt-4 text-sm text-piko-muted font-medium leading-relaxed pt-3 border-t border-piko-border/60">
+            Piko is a modern personal security and family safety platform that lets parents and children stay connected through location sharing, device telemetry (battery and signal freshness), emergency SOS triggers, and reassurance check-ins.
+          </p>
+        </details>
+
+        <!-- FAQ 2 -->
+        <details class="group bg-piko-cream border border-white rounded-3xl p-6 shadow-clay-card [&_summary::-webkit-details-marker]:hidden">
+          <summary class="flex items-center justify-between cursor-pointer font-bold text-base text-piko-dark focus:outline-none">
+            <span>What is the difference between Piko Hosted and Self-Hosted?</span>
+            <span class="w-8 h-8 rounded-xl bg-white flex items-center justify-center shadow-sm text-piko-muted group-open:rotate-180 transition-transform">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+            </span>
+          </summary>
+          <p class="mt-4 text-sm text-piko-muted font-medium leading-relaxed pt-3 border-t border-piko-border/60">
+            With <strong>Piko Hosted</strong>, our team manages the cloud server, database, automatic upgrades, and high availability via a subscription. With <strong>Self-Hosted Piko</strong>, you deploy the software on your own server or home hardware, retaining full control over your data.
+          </p>
+        </details>
+
+        <!-- FAQ 3 -->
+        <details class="group bg-piko-cream border border-white rounded-3xl p-6 shadow-clay-card [&_summary::-webkit-details-marker]:hidden">
+          <summary class="flex items-center justify-between cursor-pointer font-bold text-base text-piko-dark focus:outline-none">
+            <span>Do I need technical expertise to self-host Piko?</span>
+            <span class="w-8 h-8 rounded-xl bg-white flex items-center justify-center shadow-sm text-piko-muted group-open:rotate-180 transition-transform">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+            </span>
+          </summary>
+          <p class="mt-4 text-sm text-piko-muted font-medium leading-relaxed pt-3 border-t border-piko-border/60">
+            Yes, self-hosting requires familiarity with Docker, reverse proxies, domain configuration, and server maintenance. You will also be responsible for backups, system updates, and your own third-party credentials (such as map tiles or push messaging accounts).
+          </p>
+        </details>
+
+        <!-- FAQ 4 -->
+        <details class="group bg-piko-cream border border-white rounded-3xl p-6 shadow-clay-card [&_summary::-webkit-details-marker]:hidden">
+          <summary class="flex items-center justify-between cursor-pointer font-bold text-base text-piko-dark focus:outline-none">
+            <span>Can I migrate between Hosted and Self-Hosted later?</span>
+            <span class="w-8 h-8 rounded-xl bg-white flex items-center justify-center shadow-sm text-piko-muted group-open:rotate-180 transition-transform">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+            </span>
+          </summary>
+          <p class="mt-4 text-sm text-piko-muted font-medium leading-relaxed pt-3 border-t border-piko-border/60">
+            Yes. Piko uses standardized family export formats so you can take your family configuration and telemetry history with you if you decide to switch hosting models.
+          </p>
+        </details>
+
+        <!-- FAQ 5 -->
+        <details class="group bg-piko-cream border border-white rounded-3xl p-6 shadow-clay-card [&_summary::-webkit-details-marker]:hidden">
+          <summary class="flex items-center justify-between cursor-pointer font-bold text-base text-piko-dark focus:outline-none">
+            <span>Does Piko work on Android phones?</span>
+            <span class="w-8 h-8 rounded-xl bg-white flex items-center justify-center shadow-sm text-piko-muted group-open:rotate-180 transition-transform">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+            </span>
+          </summary>
+          <p class="mt-4 text-sm text-piko-muted font-medium leading-relaxed pt-3 border-t border-piko-border/60">
+            Yes, Piko is natively optimized for Android with Material 3 foundation, supporting portrait layouts, battery guardrails, offline breadcrumb storage, and quick tile shortcuts.
+          </p>
+        </details>
+
+      </div>
+
+    </div>
+  </section>
+
+  <!-- I. FINAL CTA & FOOTER -->
+  <section id="final-cta" class="py-24 bg-gradient-to-b from-transparent to-white/80 border-t border-piko-border/60">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+      
+      <div class="bg-gradient-to-b from-piko-cream to-white border-2 border-white rounded-3xl p-10 sm:p-16 shadow-clay-float relative">
+        <h2 class="text-3xl sm:text-5xl font-extrabold text-piko-dark tracking-tight mb-4">
+          Find your family's way to Piko.
+        </h2>
+        <p class="text-base sm:text-xl text-piko-muted font-medium max-w-xl mx-auto mb-10">
+          Choose the convenience of hosted Piko or the control of running it yourself.
+        </p>
+
+        <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
+          <a href="#hosting-options" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-4 rounded-2xl bg-piko-blue hover:bg-piko-deepblue text-white font-bold text-base shadow-clay-button-blue transition-all transform active:scale-95">
+            <span>Get started with hosted Piko</span>
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+          </a>
+          <a href="#hosting-options" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-4 rounded-2xl bg-piko-cream hover:bg-white text-piko-dark border border-white font-bold text-base shadow-clay-button-white transition-all transform active:scale-95">
+            <span>Explore self-hosting</span>
+          </a>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="py-12 bg-piko-ivory border-t border-piko-border text-sm text-piko-muted">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex flex-col md:flex-row items-center justify-between gap-6">
+        
+        <div class="flex items-center gap-3">
+          <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuAvTLgr06odlkhjcwjrlTm32o2x3_HhOWwhx5CbnhQ9qacmglcc5hn3TztBFFxcGWCLkDKmPbzNVxZG2U5EuhNofxwukDeoL9v57fdVYL0lPFtcK10pU5klSXEqvR_vw5Shb2drUZ-p6A2H0MI9WE9kWQD46R6RvJ1weZKvjIGzcigFbRZ4XUUOwKrJzbzRfZLmZ8RMtnHraqOrkudjiNiIXoIXWYDret7E9U9d9qGMKKD_MDO9PAo3E6vb73qp2TrCS18" alt="Piko Mascot Icon" class="w-8 h-8 object-contain" />
+          <span class="text-base font-extrabold text-piko-dark">Piko</span>
+          <span class="text-xs font-semibold text-piko-muted">· Connected by care. Protected by choice.</span>
+        </div>
+
+        <div class="flex items-center gap-6 font-medium text-xs">
+          <a href="#features" class="hover:text-piko-dark transition-colors">Features</a>
+          <a href="#how-it-works" class="hover:text-piko-dark transition-colors">How it works</a>
+          <a href="#hosting-options" class="hover:text-piko-dark transition-colors">Hosting Options</a>
+          <a href="#privacy" class="hover:text-piko-dark transition-colors">Privacy & Control</a>
+          <a href="#faq" class="hover:text-piko-dark transition-colors">FAQ</a>
+        </div>
+
+        <div class="text-xs text-piko-muted/80">
+          © 2025 Piko Safety Ecosystem. All rights reserved.
+        </div>
+
+      </div>
+    </div>
+  </footer>
+
+  <!-- Script for Mobile Menu Toggle -->
+  <script>
+    const mobileBtn = document.getElementById('mobileMenuBtn');
+    const mobileMenu = document.getElementById('mobileMenu');
+    if (mobileBtn && mobileMenu) {
+      mobileBtn.addEventListener('click', () => {
+        mobileMenu.classList.toggle('hidden');
+      });
+    }
+  </script>
+
+</body>
+</html>

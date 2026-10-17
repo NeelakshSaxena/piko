@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+
+<html class="scroll-smooth" lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_standard" name="shell-type"/><title>Piko — Family Safety &amp; Location Sharing</title><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config={darkMode:"class",theme:{extend:{colors:{"primary-container":"#7768bd","on-error":"#ffffff","on-secondary":"#ffffff","surface-container-lowest":"#ffffff","secondary-fixed-dim":"#86d7a9","error":"#ba1a1a","surface-variant":"#e3e0f8","on-surface-variant":"#484551","tertiary-container":"#877063","surface-container-high":"#e9e5fe","tertiary":"#6d584c","on-background":"#1b1a2b","on-primary-fixed":"#1c035e","on-tertiary":"#ffffff","tertiary-fixed-dim":"#ddc1b2","primary-fixed":"#e6deff","secondary-fixed":"#a2f4c4","on-secondary-fixed":"#002112","outline-variant":"#c9c4d2","outline":"#797582","background":"#fcf8ff","on-tertiary-fixed":"#27180f","on-tertiary-fixed-variant":"#564338","on-tertiary-container":"#fffbff","surface-bright":"#fcf8ff","on-primary-container":"#fffbff","secondary":"#146c46","inverse-on-surface":"#f3eeff","surface":"#fcf8ff","on-error-container":"#93000a","surface-tint":"#6152a4","secondary-container":"#9ff1c1","surface-container-highest":"#e3e0f8","on-secondary-fixed-variant":"#005232","on-primary":"#ffffff","surface-dim":"#dbd7ef","primary-fixed-dim":"#cabeff","surface-container":"#efebff","surface-container-low":"#f6f2ff","inverse-surface":"#302e41","on-secondary-container":"#1a704a","inverse-primary":"#cabeff","on-surface":"#1b1a2b","primary":"#5e4fa2","error-container":"#ffdad6","on-primary-fixed-variant":"#49398b","tertiary-fixed":"#faddce"},borderRadius:{DEFAULT:"0.25rem",lg:"0.5rem",xl:"0.75rem",full:"9999px"},spacing:{"space-md":"1rem","margin-tablet":"2rem","space-xs":"0.25rem","gutter-tablet":"1.5rem","margin-desktop":"3rem","space-sm":"0.5rem","space-lg":"1.5rem","gutter-desktop":"2rem",margin:"1rem",gutter:"1rem","space-xl":"2rem"},fontFamily:{"label-sm":["Plus Jakarta Sans"],"body-sm":["Plus Jakarta Sans"],"label-md":["Plus Jakarta Sans"],"title-lg":["Plus Jakarta Sans"],"label-lg":["Plus Jakarta Sans"],"body-md":["Plus Jakarta Sans"],"display-lg-mobile":["Plus Jakarta Sans"],"headline-md":["Plus Jakarta Sans"],"body-lg":["Plus Jakarta Sans"],"headline-sm":["Plus Jakarta Sans"],telemetry:["Plus Jakarta Sans"],"title-md":["Plus Jakarta Sans"],"headline-lg":["Plus Jakarta Sans"],"display-lg":["Plus Jakarta Sans"]},fontSize:{"label-sm":["11px",{lineHeight:"14px",letterSpacing:"0.03em",fontWeight:"500"}],"body-sm":["12px",{lineHeight:"18px",fontWeight:"400"}],"label-md":["12px",{lineHeight:"16px",letterSpacing:"0.02em",fontWeight:"600"}],"title-lg":["18px",{lineHeight:"26px",fontWeight:"600"}],"label-lg":["14px",{lineHeight:"20px",letterSpacing:"0.01em",fontWeight:"600"}],"body-md":["14px",{lineHeight:"20px",fontWeight:"400"}],"display-lg-mobile":["32px",{lineHeight:"40px",letterSpacing:"-0.02em",fontWeight:"700"}],"headline-md":["24px",{lineHeight:"32px",letterSpacing:"-0.01em",fontWeight:"600"}],"body-lg":["16px",{lineHeight:"24px",fontWeight:"400"}],"headline-sm":["20px",{lineHeight:"28px",fontWeight:"600"}],telemetry:["13px",{lineHeight:"18px",letterSpacing:"0.02em",fontWeight:"500"}],"title-md":["16px",{lineHeight:"24px",fontWeight:"600"}],"headline-lg":["28px",{lineHeight:"36px",letterSpacing:"-0.01em",fontWeight:"700"}],"display-lg":["40px",{lineHeight:"48px",letterSpacing:"-0.02em",fontWeight:"700"}]}}}}</script></head><body class="bg-surface font-body-md text-on-surface antialiased selection:bg-primary-fixed selection:text-on-primary-fixed min-h-screen flex flex-col justify-between"><header class="fixed top-0 w-full z-50 bg-surface/85 backdrop-blur-xl shadow-[0_10px_30px_-10px_rgba(72,60,102,0.08)]"><div class="h-20 max-w-7xl mx-auto px-margin md:px-margin-tablet lg:px-margin-desktop flex items-center justify-between"><a class="flex items-center gap-space-sm group text-left" data-path="features" href="#"><div class="relative flex items-center justify-center p-space-xs rounded-full bg-surface-container-lowest shadow-[0_4px_12px_rgba(65,50,92,0.08),inset_1.5px_1.5px_2px_rgba(255,255,255,0.9)]"><img alt="Glossy Blue Cyclops Mascot Icon.png" class="h-8 w-auto object-contain transition-transform group-hover:scale-105 duration-200" src="https://lh3.googleusercontent.com/aida/AEtjO1X15_PVPZOIwwJOcA1aMteVyUNwb2zOYgb6za0aBhStGhMvdo9zT29rlxzKNJJv18UdLR-5LIpz9Xzf5HnBMaBF1oyB8db0KLX92BUA4c7045QiGj1UaGHrEel3RdlheEyyN0Hrn6IcNhpkyAVbD4OtAple9YjaIx02AAiIQPIpHGQhXBtT14IGrQMamEInL4xlZcIKyopzGN1xYnPumZRRJJ-vV7zkEvoAkWTp_ugKNy7e55OKz7t9FKKyVCSeYhGP6GLKJCqIB2Q"/></div><div class="flex flex-col ml-space-xs"><span class="font-headline-sm text-headline-sm text-primary tracking-tight font-bold leading-none">Piko</span><span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider font-semibold mt-0.5">Family Safety</span></div></a><nav class="hidden lg:flex items-center gap-space-xs bg-surface-container-low px-space-sm py-1.5 rounded-full shadow-[inset_2px_3px_6px_rgba(41,40,58,0.06),inset_-2px_-2px_4px_rgba(255,255,255,0.9)]" data-active-classes="bg-primary-container text-on-primary-container font-label-lg shadow-[inset_1.5px_1.5px_2px_rgba(255,255,255,0.85)]"><a class="font-label-lg text-label-lg px-space-md py-space-xs rounded-full text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-all" data-path="features" href="#">Features</a><a aria-current="page" class="px-space-md py-space-xs rounded-full transition-all bg-primary-container text-on-primary-container font-label-lg shadow-[inset_1.5px_1.5px_2px_rgba(255,255,255,0.85)]" data-path="how-it-works" href="#">How it works</a><a class="font-label-lg text-label-lg px-space-md py-space-xs rounded-full text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-all" data-path="hosting-options" href="#">Hosting options</a><a class="font-label-lg text-label-lg px-space-md py-space-xs rounded-full text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-all" data-path="privacy" href="#">Privacy</a><a class="font-label-lg text-label-lg px-space-md py-space-xs rounded-full text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-all" data-path="faq" href="#">FAQ</a></nav><div class="flex items-center gap-space-sm"><a class="hidden sm:inline-flex items-center justify-center px-space-lg py-2.5 rounded-full bg-primary text-on-primary font-title-md text-title-md shadow-[0_14px_28px_-6px_rgba(65,50,92,0.22),inset_1.5px_1.5px_2px_rgba(255,255,255,0.85)] hover:bg-primary-container hover:text-on-primary-container active:translate-y-0.5 active:shadow-[inset_2px_3px_5px_rgba(0,0,0,0.2)] transition-all duration-150" href="https://piko-web-jade.vercel.app/login">Get started</a><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center shadow-[0_4px_10px_rgba(94,79,162,0.2)]"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div><button aria-label="Toggle Mobile Menu" class="lg:hidden flex items-center justify-center w-10 h-10 rounded-full bg-surface-container-lowest text-on-surface shadow-[0_6px_16px_-2px_rgba(65,50,92,0.1),inset_1.5px_1.5px_2px_rgba(255,255,255,0.9)] hover:bg-surface-container-high transition-all" id="mobile-nav-toggle"><span class="material-symbols-outlined text-[24px]">menu</span></button></div></div><div class="hidden lg:hidden w-full bg-surface-container-low px-margin py-space-md shadow-[0_12px_24px_rgba(72,60,102,0.08)]" id="mobile-menu-drawer"><div class="flex flex-col gap-space-xs max-w-7xl mx-auto"><a class="font-label-lg text-label-lg px-space-md py-space-sm rounded-xl text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-all" data-path="features" href="#">Features</a><a class="font-label-lg text-label-lg px-space-md py-space-sm rounded-xl text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-all" data-path="how-it-works" href="#">How it works</a><a class="font-label-lg text-label-lg px-space-md py-space-sm rounded-xl text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-all" data-path="hosting-options" href="#">Hosting options</a><a class="font-label-lg text-label-lg px-space-md py-space-sm rounded-xl text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-all" data-path="privacy" href="#">Privacy</a><a class="font-label-lg text-label-lg px-space-md py-space-sm rounded-xl text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-all" data-path="faq" href="#">FAQ</a><div class="pt-space-xs mt-space-xs flex flex-col gap-space-xs"><a class="inline-flex items-center justify-center w-full py-space-sm rounded-full bg-primary text-on-primary font-title-md text-title-md shadow-[0_8px_18px_-4px_rgba(65,50,92,0.25)] hover:bg-primary-container hover:text-on-primary-container transition-all" href="https://piko-web-jade.vercel.app/login">Get started</a></div></div></div></header><main class="w-full pt-20 bg-surface flex-1"><div class="flex flex-col w-full">
+<!-- INTRO HERO BLOCK -->
+<section class="relative w-full px-margin md:px-margin-tablet lg:px-margin-desktop py-space-xl overflow-hidden">
+<!-- Ambient diffused clay blobs -->
+<div class="absolute -top-24 -left-20 w-80 h-80 rounded-full bg-primary-fixed/40 blur-3xl pointer-events-none"></div>
+<div class="absolute top-1/2 -right-24 w-96 h-96 rounded-full bg-secondary-fixed/30 blur-3xl pointer-events-none"></div>
+<div class="max-w-4xl mx-auto flex flex-col items-center text-center relative z-10">
+<!-- Mascot peek & Step Badge -->
+<div class="flex items-center gap-space-sm mb-space-md">
+<span class="inline-flex items-center gap-1.5 px-space-md py-1 rounded-full bg-surface-container-high text-primary font-label-md text-label-md tracking-wider uppercase shadow-[inset_1.5px_1.5px_2px_rgba(255,255,255,0.9),0_4px_12px_rgba(65,50,92,0.06)]">
+<span class="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
+          Step-by-Step Journey
+        </span>
+</div>
+<h1 class="font-display-lg text-display-lg-mobile md:text-display-lg text-on-surface tracking-tight font-extrabold max-w-3xl mb-space-md">
+        Simple, transparent setup for every family.
+      </h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant max-w-2xl mx-auto leading-relaxed">
+        From your first device pairing to daily check-ins, Piko keeps family coordination effortless, tactile, and completely under your control.
+      </p>
+<!-- Quick Switch Filter Chips for Perspective Toggle -->
+<div class="mt-space-lg inline-flex p-1.5 rounded-full bg-surface-container-low shadow-[inset_2px_3px_6px_rgba(41,40,58,0.06),inset_-2px_-2px_4px_rgba(255,255,255,0.95)]">
+<button class="px-space-md py-1.5 rounded-full font-label-lg text-label-lg text-on-primary bg-primary shadow-[0_4px_12px_rgba(94,79,162,0.25),inset_1.5px_1.5px_2px_rgba(255,255,255,0.7)] transition-all duration-200" id="view-mode-all">
+          Complete Path (5 Steps)
+        </button>
+<button class="px-space-md py-1.5 rounded-full font-label-lg text-label-lg text-on-surface-variant hover:text-on-surface transition-all duration-200" id="view-mode-parent">
+          Parent View
+        </button>
+<button class="px-space-md py-1.5 rounded-full font-label-lg text-label-lg text-on-surface-variant hover:text-on-surface transition-all duration-200" id="view-mode-child">
+          Child Consent
+        </button>
+</div>
+</div>
+</section>
+<!-- 5-STEP PROCESS TIMELINE -->
+<section class="w-full px-margin md:px-margin-tablet lg:px-margin-desktop py-space-xl">
+<div class="max-w-5xl mx-auto relative">
+<!-- Vertical Clay Tube Guide Line (Desktop) -->
+<div class="hidden lg:block absolute left-[52px] top-8 bottom-8 w-1.5 bg-surface-container-high rounded-full shadow-[inset_1px_1px_2px_rgba(41,40,58,0.1),inset_-1px_-1px_2px_rgba(255,255,255,0.9)]"></div>
+<div class="flex flex-col gap-space-xl">
+<!-- STEP 01 -->
+<div class="step-card group relative flex flex-col lg:flex-row items-start gap-space-lg" data-step="1">
+<!-- Tactile Number Disc Indicator -->
+<div class="flex-shrink-0 relative z-10 w-24 h-24 lg:w-[104px] lg:h-[104px] rounded-3xl bg-surface-container-lowest flex flex-col items-center justify-center text-primary shadow-[0_12px_24px_-4px_rgba(65,50,92,0.12),inset_2px_2px_3px_rgba(255,255,255,0.95)]">
+<span class="font-label-sm text-label-sm text-outline uppercase font-bold tracking-widest">STEP</span>
+<span class="font-display-lg text-display-lg-mobile text-primary font-extrabold leading-none">01</span>
+</div>
+<!-- Pillowed Clay Card -->
+<div class="flex-1 w-full p-space-lg md:p-space-xl rounded-[28px] bg-surface-container-lowest shadow-[0_14px_32px_-6px_rgba(65,50,92,0.08),inset_2px_2px_3px_rgba(255,255,255,0.95)]">
+<div class="flex flex-col lg:flex-row lg:items-start justify-between gap-space-md">
+<div class="max-w-xl">
+<div class="flex items-center gap-space-xs mb-space-xs">
+<span class="material-symbols-outlined text-primary text-[22px]">dns</span>
+<span class="font-label-md text-label-md text-primary font-bold uppercase tracking-wider">Foundation</span>
+</div>
+<h2 class="font-headline-lg text-headline-lg text-on-surface font-bold tracking-tight mb-space-sm">
+                  Choose Your Infrastructure
+                </h2>
+<p class="font-body-lg text-body-lg text-on-surface-variant leading-relaxed">
+                  Choose Piko Hosted for zero-maintenance cloud simplicity, or spin up our Docker container on your home hardware. Both paths connect to the identical soft, privacy-first mobile apps.
+                </p>
+</div>
+<!-- Live Option Badges -->
+<div class="flex flex-col sm:flex-row lg:flex-col gap-space-xs min-w-[210px]">
+<div class="p-space-sm rounded-2xl bg-surface-container-low shadow-[inset_1.5px_1.5px_2px_rgba(255,255,255,0.85)] flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="w-2.5 h-2.5 rounded-full bg-secondary"></span>
+<span class="font-title-md text-title-md text-on-surface font-medium">Piko Hosted</span>
+</div>
+<span class="font-telemetry text-telemetry text-secondary font-semibold bg-secondary-fixed/50 px-2 py-0.5 rounded-full">Instant</span>
+</div>
+<div class="p-space-sm rounded-2xl bg-surface-container-low shadow-[inset_1.5px_1.5px_2px_rgba(255,255,255,0.85)] flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="w-2.5 h-2.5 rounded-full bg-primary-container"></span>
+<span class="font-title-md text-title-md text-on-surface font-medium">Self-Hosted</span>
+</div>
+<span class="font-telemetry text-telemetry text-primary font-semibold bg-primary-fixed/60 px-2 py-0.5 rounded-full">Docker</span>
+</div>
+</div>
+</div>
+<!-- Inset Clay Spec Well -->
+<div class="mt-space-lg p-space-md rounded-2xl bg-surface-container shadow-[inset_2px_3px_6px_rgba(41,40,58,0.06),inset_-2px_-2px_4px_rgba(255,255,255,0.95)] flex flex-wrap items-center justify-between gap-space-sm">
+<div class="flex items-center gap-space-sm">
+<span class="material-symbols-outlined text-on-surface-variant text-[20px]">verified_user</span>
+<span class="font-body-md text-body-md text-on-surface">Zero analytics beacons, end-to-end device token isolation</span>
+</div>
+<span class="font-label-sm text-label-sm uppercase font-bold text-outline">Open Standards API</span>
+</div>
+</div>
+</div>
+<!-- STEP 02 -->
+<div class="step-card group relative flex flex-col lg:flex-row items-start gap-space-lg" data-step="2">
+<div class="flex-shrink-0 relative z-10 w-24 h-24 lg:w-[104px] lg:h-[104px] rounded-3xl bg-surface-container-lowest flex flex-col items-center justify-center text-primary shadow-[0_12px_24px_-4px_rgba(65,50,92,0.12),inset_2px_2px_3px_rgba(255,255,255,0.95)]">
+<span class="font-label-sm text-label-sm text-outline uppercase font-bold tracking-widest">STEP</span>
+<span class="font-display-lg text-display-lg-mobile text-primary font-extrabold leading-none">02</span>
+</div>
+<div class="flex-1 w-full p-space-lg md:p-space-xl rounded-[28px] bg-surface-container-lowest shadow-[0_14px_32px_-6px_rgba(65,50,92,0.08),inset_2px_2px_3px_rgba(255,255,255,0.95)]">
+<div class="grid grid-cols-1 md:grid-cols-12 gap-space-lg items-center">
+<div class="md:col-span-7">
+<div class="flex items-center gap-space-xs mb-space-xs">
+<span class="material-symbols-outlined text-primary text-[22px]">diversity_1</span>
+<span class="font-label-md text-label-md text-primary font-bold uppercase tracking-wider">Parent Setup</span>
+</div>
+<h2 class="font-headline-lg text-headline-lg text-on-surface font-bold tracking-tight mb-space-sm">
+                  Create Your Private Family Space
+                </h2>
+<p class="font-body-lg text-body-lg text-on-surface-variant leading-relaxed mb-space-md">
+                  As a parent, configure your family circle in seconds. Generate a secure, single-use pairing QR code or share an ephemeral 6-digit linking PIN directly from your dashboard.
+                </p>
+<div class="inline-flex items-center gap-space-sm px-space-md py-1.5 rounded-full bg-surface-container-low text-on-surface-variant font-telemetry text-telemetry shadow-[inset_1.5px_1.5px_2px_rgba(255,255,255,0.9)]">
+<span class="material-symbols-outlined text-secondary text-[18px]">lock_clock</span>
+<span>Pairing code automatically expires after 15 minutes</span>
+</div>
+</div>
+<!-- Interactive Mockup Clay Pod: Pairing Code -->
+<div class="md:col-span-5 flex justify-center">
+<div class="w-full max-w-xs p-space-md rounded-3xl bg-surface-container-low shadow-[0_10px_24px_-4px_rgba(65,50,92,0.09),inset_1.5px_1.5px_2px_rgba(255,255,255,0.9)] flex flex-col items-center text-center">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase font-semibold mb-space-xs">Temporary Child Pass</span>
+<!-- Debossed PIN container -->
+<div class="w-full py-space-sm px-space-md rounded-2xl bg-surface-container shadow-[inset_2px_3px_5px_rgba(41,40,58,0.08),inset_-2px_-2px_4px_rgba(255,255,255,0.9)] flex items-center justify-center gap-2 tracking-[0.3em] font-headline-md text-headline-md text-primary font-extrabold mb-space-sm">
+<span>4</span><span>8</span><span>2</span><span class="text-outline">·</span><span>9</span><span>1</span><span>0</span>
+</div>
+<!-- QR Code Representation -->
+<div class="p-3 bg-surface-container-lowest rounded-2xl shadow-[0_4px_12px_rgba(65,50,92,0.06),inset_1px_1px_2px_rgba(255,255,255,0.9)] mb-space-xs">
+<svg class="w-28 h-28 text-on-surface" fill="currentColor" viewbox="0 0 100 100">
+<rect fill="none" height="24" rx="4" stroke="currentColor" stroke-width="6" width="24" x="10" y="10"></rect>
+<rect height="8" rx="2" width="8" x="18" y="18"></rect>
+<rect fill="none" height="24" rx="4" stroke="currentColor" stroke-width="6" width="24" x="66" y="10"></rect>
+<rect height="8" rx="2" width="8" x="74" y="18"></rect>
+<rect fill="none" height="24" rx="4" stroke="currentColor" stroke-width="6" width="24" x="10" y="66"></rect>
+<rect height="8" rx="2" width="8" x="18" y="74"></rect>
+<circle cx="50" cy="22" r="4"></circle>
+<circle class="text-primary" cx="50" cy="50" fill="#5e4fa2" r="5"></circle>
+<rect height="18" rx="2" width="6" x="42" y="72"></rect>
+<rect height="8" rx="2" width="18" x="70" y="52"></rect>
+<rect height="14" rx="3" width="14" x="72" y="76"></rect>
+</svg>
+</div>
+<span class="font-label-sm text-label-sm text-outline">Scan with Child App Camera</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- STEP 03 -->
+<div class="step-card group relative flex flex-col lg:flex-row items-start gap-space-lg" data-step="3">
+<div class="flex-shrink-0 relative z-10 w-24 h-24 lg:w-[104px] lg:h-[104px] rounded-3xl bg-surface-container-lowest flex flex-col items-center justify-center text-primary shadow-[0_12px_24px_-4px_rgba(65,50,92,0.12),inset_2px_2px_3px_rgba(255,255,255,0.95)]">
+<span class="font-label-sm text-label-sm text-outline uppercase font-bold tracking-widest">STEP</span>
+<span class="font-display-lg text-display-lg-mobile text-primary font-extrabold leading-none">03</span>
+</div>
+<div class="flex-1 w-full p-space-lg md:p-space-xl rounded-[28px] bg-surface-container-lowest shadow-[0_14px_32px_-6px_rgba(65,50,92,0.08),inset_2px_2px_3px_rgba(255,255,255,0.95)]">
+<div class="flex items-center gap-space-xs mb-space-xs">
+<span class="material-symbols-outlined text-secondary text-[22px]">fingerprint</span>
+<span class="font-label-md text-label-md text-secondary font-bold uppercase tracking-wider">Mutual Trust</span>
+</div>
+<h2 class="font-headline-lg text-headline-lg text-on-surface font-bold tracking-tight mb-space-sm">
+              Pair Your Child's Device with Full Consent
+            </h2>
+<p class="font-body-lg text-body-lg text-on-surface-variant leading-relaxed max-w-2xl mb-space-lg">
+              Scan the QR code on your child's phone. Piko clearly displays what information is shared so there are never hidden background trackers, covert listening hooks, or surprise surveillance.
+            </p>
+<!-- Tactile Consent Checklist Panels -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-space-md">
+<div class="p-space-md rounded-2xl bg-surface-container-low shadow-[inset_1.5px_1.5px_2px_rgba(255,255,255,0.85)] flex items-start gap-space-sm">
+<div class="w-8 h-8 rounded-full bg-secondary-fixed flex items-center justify-center flex-shrink-0 text-on-secondary-fixed shadow-[inset_1px_1px_1.5px_rgba(255,255,255,0.8)]">
+<span class="material-symbols-outlined text-[18px]">check</span>
+</div>
+<div class="flex flex-col">
+<span class="font-title-md text-title-md text-on-surface font-semibold">Visible Shared Metrics</span>
+<span class="font-body-md text-body-md text-on-surface-variant">Live coordinate pins, safe zone arrivals, and device battery level.</span>
+</div>
+</div>
+<div class="p-space-md rounded-2xl bg-surface-container-low shadow-[inset_1.5px_1.5px_2px_rgba(255,255,255,0.85)] flex items-start gap-space-sm">
+<div class="w-8 h-8 rounded-full bg-surface-container-high flex items-center justify-center flex-shrink-0 text-outline shadow-[inset_1px_1px_1.5px_rgba(255,255,255,0.8)]">
+<span class="material-symbols-outlined text-[18px]">block</span>
+</div>
+<div class="flex flex-col">
+<span class="font-title-md text-title-md text-on-surface font-semibold">Strictly Forbidden by Design</span>
+<span class="font-body-md text-body-md text-on-surface-variant">No message eavesdropping, camera tapping, browsing history, or keylogging.</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- STEP 04 -->
+<div class="step-card group relative flex flex-col lg:flex-row items-start gap-space-lg" data-step="4">
+<div class="flex-shrink-0 relative z-10 w-24 h-24 lg:w-[104px] lg:h-[104px] rounded-3xl bg-surface-container-lowest flex flex-col items-center justify-center text-primary shadow-[0_12px_24px_-4px_rgba(65,50,92,0.12),inset_2px_2px_3px_rgba(255,255,255,0.95)]">
+<span class="font-label-sm text-label-sm text-outline uppercase font-bold tracking-widest">STEP</span>
+<span class="font-display-lg text-display-lg-mobile text-primary font-extrabold leading-none">04</span>
+</div>
+<div class="flex-1 w-full p-space-lg md:p-space-xl rounded-[28px] bg-surface-container-lowest shadow-[0_14px_32px_-6px_rgba(65,50,92,0.08),inset_2px_2px_3px_rgba(255,255,255,0.95)]">
+<div class="grid grid-cols-1 md:grid-cols-12 gap-space-lg items-center">
+<div class="md:col-span-7">
+<div class="flex items-center gap-space-xs mb-space-xs">
+<span class="material-symbols-outlined text-primary text-[22px]">notifications_active</span>
+<span class="font-label-md text-label-md text-primary font-bold uppercase tracking-wider">Guardrails</span>
+</div>
+<h2 class="font-headline-lg text-headline-lg text-on-surface font-bold tracking-tight mb-space-sm">
+                  Configure Safe Zones &amp; Notification Guardrails
+                </h2>
+<p class="font-body-lg text-body-lg text-on-surface-variant leading-relaxed mb-space-md">
+                  Mark familiar sanctuary coordinates like School, Home, or Sports Club. Tailor automated arrival notices and low-battery alert thresholds (triggers calmly at 20%) without intrusive alarms.
+                </p>
+<!-- Interactive Switch Simulation -->
+<div class="flex flex-col gap-space-xs max-w-md">
+<div class="flex items-center justify-between p-space-sm rounded-2xl bg-surface-container-low shadow-[inset_1.5px_1.5px_2px_rgba(255,255,255,0.9)]">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-primary text-[20px]">school</span>
+<span class="font-title-md text-title-md text-on-surface font-medium">Notify on School Arrival</span>
+</div>
+<!-- Tactile Toggle Switch -->
+<button class="toggle-btn w-12 h-7 rounded-full bg-primary p-0.5 shadow-[inset_1px_2px_3px_rgba(0,0,0,0.15)] flex items-center justify-end transition-all">
+<div class="w-6 h-6 rounded-full bg-surface-container-lowest shadow-[0_2px_5px_rgba(0,0,0,0.2),inset_1px_1px_1px_rgba(255,255,255,0.9)]"></div>
+</button>
+</div>
+<div class="flex items-center justify-between p-space-sm rounded-2xl bg-surface-container-low shadow-[inset_1.5px_1.5px_2px_rgba(255,255,255,0.9)]">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-secondary text-[20px]">battery_alert</span>
+<span class="font-title-md text-title-md text-on-surface font-medium">Gentle Low-Battery Ping (20%)</span>
+</div>
+<button class="toggle-btn w-12 h-7 rounded-full bg-primary p-0.5 shadow-[inset_1px_2px_3px_rgba(0,0,0,0.15)] flex items-center justify-end transition-all">
+<div class="w-6 h-6 rounded-full bg-surface-container-lowest shadow-[0_2px_5px_rgba(0,0,0,0.2),inset_1px_1px_1px_rgba(255,255,255,0.9)]"></div>
+</button>
+</div>
+</div>
+</div>
+<!-- Map Pod Representation -->
+<div class="md:col-span-5">
+<div class="relative w-full h-48 rounded-3xl overflow-hidden shadow-[inset_2px_2px_4px_rgba(0,0,0,0.06),0_8px_20px_-4px_rgba(65,50,92,0.1)]">
+<div class="w-full h-full bg-cover bg-center" data-location="Lincoln Middle School, Seattle, WA" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCsIckn3sq-w05GzLnqaNnLW77N2OKPtf_9WOuYtIdZYSacxHfvHuBXauTFmwz9VCM88pbzK61snonAaxVATAI5rAPC9uur4YEcdKFkoK12QU_5vh3g7_-SeX5SyrwIKMMIweKjyY1IUz-7_1pAsAcz6QFwYELAUzp9Wo18fjSNl4Bveatc-EDAMs8llGSOqljFSqbvBrX2w5cFWxNtOD1qinBQ722omQEiPVQ56YVHqv77ZEyeDwWB-Q')"></div>
+<!-- Tactile Clay Geofence Halo Ring -->
+<div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+<div class="w-24 h-24 rounded-full border-4 border-primary/40 bg-primary/10 animate-pulse flex items-center justify-center">
+<div class="w-8 h-8 rounded-full bg-primary text-on-primary flex items-center justify-center shadow-lg">
+<span class="material-symbols-outlined text-[18px]">home_pin</span>
+</div>
+</div>
+</div>
+<div class="absolute bottom-3 left-3 right-3 bg-surface-container-lowest/95 backdrop-blur-md px-3 py-1.5 rounded-full shadow-sm flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-on-surface font-bold">Lincoln Middle School</span>
+<span class="font-telemetry text-telemetry text-secondary font-semibold">Radius: 300m</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- STEP 05 -->
+<div class="step-card group relative flex flex-col lg:flex-row items-start gap-space-lg" data-step="5">
+<div class="flex-shrink-0 relative z-10 w-24 h-24 lg:w-[104px] lg:h-[104px] rounded-3xl bg-surface-container-lowest flex flex-col items-center justify-center text-primary shadow-[0_12px_24px_-4px_rgba(65,50,92,0.12),inset_2px_2px_3px_rgba(255,255,255,0.95)]">
+<span class="font-label-sm text-label-sm text-outline uppercase font-bold tracking-widest">STEP</span>
+<span class="font-display-lg text-display-lg-mobile text-primary font-extrabold leading-none">05</span>
+</div>
+<div class="flex-1 w-full p-space-lg md:p-space-xl rounded-[28px] bg-surface-container-lowest shadow-[0_14px_32px_-6px_rgba(65,50,92,0.08),inset_2px_2px_3px_rgba(255,255,255,0.95)]">
+<div class="grid grid-cols-1 md:grid-cols-12 gap-space-lg items-center">
+<div class="md:col-span-7">
+<div class="flex items-center gap-space-xs mb-space-xs">
+<span class="material-symbols-outlined text-primary text-[22px]">favorite</span>
+<span class="font-label-md text-label-md text-primary font-bold uppercase tracking-wider">Daily Harmony</span>
+</div>
+<h2 class="font-headline-lg text-headline-lg text-on-surface font-bold tracking-tight mb-space-sm">
+                  Stay Connected with Gentle Touchpoints
+                </h2>
+<p class="font-body-lg text-body-lg text-on-surface-variant leading-relaxed mb-space-md">
+                  Check the live map, send quick "Heading home?" pings, or receive reassuring check-ins. If an emergency strikes, one deliberate 3-second hold activates the SOS beacon to notify the entire circle.
+                </p>
+<!-- Quick Check-in Chips -->
+<div class="flex flex-wrap gap-2">
+<button class="px-space-md py-2 rounded-full bg-surface-container text-on-surface font-label-md text-label-md shadow-[0_4px_10px_rgba(65,50,92,0.06),inset_1.5px_1.5px_2px_rgba(255,255,255,0.9)] hover:bg-surface-container-high transition-all flex items-center gap-1.5 active:translate-y-0.5">
+<span class="material-symbols-outlined text-[16px] text-primary">chat_bubble</span>
+                    "Heading home now!"
+                  </button>
+<button class="px-space-md py-2 rounded-full bg-surface-container text-on-surface font-label-md text-label-md shadow-[0_4px_10px_rgba(65,50,92,0.06),inset_1.5px_1.5px_2px_rgba(255,255,255,0.9)] hover:bg-surface-container-high transition-all flex items-center gap-1.5 active:translate-y-0.5">
+<span class="material-symbols-outlined text-[16px] text-secondary">thumb_up</span>
+                    "Arrived safely"
+                  </button>
+</div>
+</div>
+<!-- Clay SOS Disc Micro-Component -->
+<div class="md:col-span-5 flex flex-col items-center justify-center p-space-md rounded-3xl bg-surface-container-low shadow-[inset_1.5px_1.5px_2px_rgba(255,255,255,0.85)]">
+<span class="font-label-sm text-label-sm text-outline font-semibold uppercase mb-space-sm tracking-wider">3-Second Protective SOS</span>
+<!-- Pillowy Red Disc -->
+<button class="w-24 h-24 rounded-full bg-[#C83F4D] text-on-error flex flex-col items-center justify-center shadow-[0_16px_32px_-6px_rgba(200,63,77,0.38),inset_2px_2px_3px_rgba(255,255,255,0.6)] active:scale-95 active:shadow-[inset_2px_3px_6px_rgba(0,0,0,0.3)] transition-all cursor-pointer" id="sos-interactive">
+<span class="material-symbols-outlined text-[32px]">sos</span>
+<span class="font-label-sm text-[10px] tracking-wider font-bold">HOLD 3S</span>
+</button>
+<span class="font-telemetry text-telemetry text-on-surface-variant mt-space-sm text-center">Failsafe against pocket triggers</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- SETUP REALITIES & TECHNICAL HONESTY SECTION -->
+<section class="w-full px-margin md:px-margin-tablet lg:px-margin-desktop py-space-xl">
+<div class="max-w-5xl mx-auto">
+<!-- Section Header -->
+<div class="text-center max-w-2xl mx-auto mb-space-xl">
+<span class="inline-flex items-center gap-1.5 px-space-md py-1 rounded-full bg-secondary-fixed/50 text-on-secondary-fixed font-label-md text-label-md tracking-wider uppercase font-bold mb-space-xs">
+          Transparent Expectations
+        </span>
+<h2 class="font-headline-lg text-headline-lg text-on-surface font-bold tracking-tight">
+          Honest Setup Expectations
+        </h2>
+<p class="font-body-md text-body-md text-on-surface-variant mt-space-xs">
+          No bait-and-switch. We build for both busy families who need turnkey instant sync and privacy advocates running sovereign hardware.
+        </p>
+</div>
+<!-- Side-by-Side Honest Comparison Cards -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-space-lg">
+<!-- Hosted Path Card -->
+<div class="p-space-lg md:p-space-xl rounded-[28px] bg-surface-container-lowest shadow-[0_12px_28px_-6px_rgba(65,50,92,0.08),inset_2px_2px_3px_rgba(255,255,255,0.95)] flex flex-col justify-between">
+<div>
+<div class="flex items-center justify-between mb-space-md">
+<div class="flex items-center gap-space-xs">
+<span class="w-10 h-10 rounded-2xl bg-secondary-fixed flex items-center justify-center text-on-secondary-fixed shadow-[inset_1px_1px_2px_rgba(255,255,255,0.8)]">
+<span class="material-symbols-outlined text-[24px]">cloud_done</span>
+</span>
+<div>
+<h3 class="font-title-lg text-title-lg text-on-surface font-bold">Piko Hosted Setup</h3>
+<span class="font-telemetry text-telemetry text-secondary font-semibold">Zero Server Maintenance</span>
+</div>
+</div>
+<span class="px-space-sm py-1 rounded-full bg-secondary-container text-on-secondary-container font-label-md text-label-md font-bold">
+                ~2 Minutes
+              </span>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant mb-space-lg">
+              Optimized for families who prioritize swift convenience. Managed end-to-end with high availability and automated updates.
+            </p>
+<ul class="flex flex-col gap-space-sm">
+<li class="flex items-center gap-space-sm font-body-md text-body-md text-on-surface">
+<span class="material-symbols-outlined text-secondary text-[20px]">check_circle</span>
+<span>Immediate cloud login via web app</span>
+</li>
+<li class="flex items-center gap-space-sm font-body-md text-body-md text-on-surface">
+<span class="material-symbols-outlined text-secondary text-[20px]">check_circle</span>
+<span>Native iOS &amp; Android mobile pairing</span>
+</li>
+<li class="flex items-center gap-space-sm font-body-md text-body-md text-on-surface">
+<span class="material-symbols-outlined text-secondary text-[20px]">check_circle</span>
+<span>Automated weekly database backups</span>
+</li>
+<li class="flex items-center gap-space-sm font-body-md text-body-md text-on-surface">
+<span class="material-symbols-outlined text-secondary text-[20px]">check_circle</span>
+<span>Zero telemetry or location monetization</span>
+</li>
+</ul>
+</div>
+<div class="mt-space-lg pt-space-md border-t-0 bg-surface-container-low p-space-md rounded-2xl shadow-[inset_1.5px_1.5px_2px_rgba(255,255,255,0.9)]">
+<span class="font-label-sm text-label-sm text-outline font-semibold uppercase block mb-1">Target Profile</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Parents wanting immediate protection without configuring servers, domains, or network routers.</span>
+</div>
+</div>
+<!-- Self-Hosted Path Card -->
+<div class="p-space-lg md:p-space-xl rounded-[28px] bg-surface-container-lowest shadow-[0_12px_28px_-6px_rgba(65,50,92,0.08),inset_2px_2px_3px_rgba(255,255,255,0.95)] flex flex-col justify-between">
+<div>
+<div class="flex items-center justify-between mb-space-md">
+<div class="flex items-center gap-space-xs">
+<span class="w-10 h-10 rounded-2xl bg-primary-fixed flex items-center justify-center text-primary shadow-[inset_1px_1px_2px_rgba(255,255,255,0.8)]">
+<span class="material-symbols-outlined text-[24px]">terminal</span>
+</span>
+<div>
+<h3 class="font-title-lg text-title-lg text-on-surface font-bold">Self-Hosted Setup</h3>
+<span class="font-telemetry text-telemetry text-primary font-semibold">100% Data Sovereignty</span>
+</div>
+</div>
+<span class="px-space-sm py-1 rounded-full bg-surface-container-high text-primary font-label-md text-label-md font-bold">
+                15 - 30 Mins
+              </span>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant mb-space-lg">
+              For tech-savvy parents and homelab enthusiasts who want every single byte of coordinate data staying inside their own home wall.
+            </p>
+<ul class="flex flex-col gap-space-sm">
+<li class="flex items-center gap-space-sm font-body-md text-body-md text-on-surface">
+<span class="material-symbols-outlined text-primary text-[20px]">settings_ethernet</span>
+<span>Requires Docker / docker-compose environment</span>
+</li>
+<li class="flex items-center gap-space-sm font-body-md text-body-md text-on-surface">
+<span class="material-symbols-outlined text-primary text-[20px]">vpn_lock</span>
+<span>Domain with SSL reverse proxy (Caddy/Nginx) or Tailscale VPN</span>
+</li>
+<li class="flex items-center gap-space-sm font-body-md text-body-md text-on-surface">
+<span class="material-symbols-outlined text-primary text-[20px]">install_mobile</span>
+<span>Android APK side-load or self-built iOS client profile</span>
+</li>
+<li class="flex items-center gap-space-sm font-body-md text-body-md text-on-surface">
+<span class="material-symbols-outlined text-primary text-[20px]">folder_special</span>
+<span>Full access to local SQLite/PostgreSQL store</span>
+</li>
+</ul>
+</div>
+<div class="mt-space-lg pt-space-md border-t-0 bg-surface-container-low p-space-md rounded-2xl shadow-[inset_1.5px_1.5px_2px_rgba(255,255,255,0.9)]">
+<span class="font-label-sm text-label-sm text-outline font-semibold uppercase block mb-1">Target Profile</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Homelab runners, privacy maximalists, and sysadmins seeking zero third-party cloud reliance.</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- CLAY CALL TO ACTION SECTION -->
+<section class="w-full px-margin md:px-margin-tablet lg:px-margin-desktop py-space-xl mb-space-xl">
+<div class="max-w-5xl mx-auto p-space-xl md:p-12 rounded-[36px] bg-surface-container-lowest shadow-[0_20px_48px_-12px_rgba(65,50,92,0.12),inset_2.5px_2.5px_4px_rgba(255,255,255,0.95)] flex flex-col items-center text-center relative overflow-hidden">
+<!-- Decorative clay backdrop rings -->
+<div class="absolute -right-16 -top-16 w-64 h-64 rounded-full bg-primary-fixed/30 blur-2xl pointer-events-none"></div>
+<div class="absolute -left-16 -bottom-16 w-64 h-64 rounded-full bg-secondary-fixed/40 blur-2xl pointer-events-none"></div>
+<div class="w-16 h-16 rounded-3xl bg-surface-container-high flex items-center justify-center text-primary mb-space-md shadow-[0_8px_16px_rgba(65,50,92,0.08),inset_1.5px_1.5px_2px_rgba(255,255,255,0.9)]">
+<span class="material-symbols-outlined text-[36px]">shield_with_heart</span>
+</div>
+<h2 class="font-display-lg text-display-lg-mobile md:text-display-lg text-on-surface font-extrabold tracking-tight max-w-2xl mb-space-sm">
+        Ready to connect your family circle?
+      </h2>
+<p class="font-body-lg text-body-lg text-on-surface-variant max-w-xl mx-auto mb-space-xl">
+        Begin immediately with our hosted experience or dive into our self-hosting documentation. Either way, peace of mind begins here.
+      </p>
+<div class="flex flex-col sm:flex-row items-center gap-space-md w-full sm:w-auto">
+<a class="w-full sm:w-auto px-8 py-3.5 rounded-full bg-primary text-on-primary font-title-md text-title-md shadow-[0_14px_28px_-6px_rgba(65,50,92,0.25),inset_1.5px_1.5px_2px_rgba(255,255,255,0.85)] hover:bg-primary-container hover:text-on-primary-container active:translate-y-0.5 active:shadow-[inset_2px_3px_5px_rgba(0,0,0,0.2)] transition-all text-center" href="https://piko-web-jade.vercel.app/login">
+          Get started with Piko
+        </a>
+<a class="w-full sm:w-auto px-8 py-3.5 rounded-full bg-surface-container-high text-on-surface font-title-md text-title-md shadow-[0_8px_18px_-4px_rgba(65,50,92,0.08),inset_1.5px_1.5px_2px_rgba(255,255,255,0.9)] hover:bg-surface-variant active:translate-y-0.5 transition-all text-center" data-path="self-hosting-guide" href="#">
+          Read self-hosting guide
+        </a>
+</div>
+</div>
+</section>
+</div>
+<!-- CLIENT MICRO-INTERACTION SCRIPT -->
+<script>
+  (function() {
+    // 1. Perspective Filter Chips
+    const btnAll = document.getElementById('view-mode-all');
+    const btnParent = document.getElementById('view-mode-parent');
+    const btnChild = document.getElementById('view-mode-child');
+    const stepCards = document.querySelectorAll('.step-card');
+
+    function setActiveBtn(active) {
+      [btnAll, btnParent, btnChild].forEach(btn => {
+        if (!btn) return;
+        btn.classList.remove('bg-primary', 'text-on-primary', 'shadow-[0_4px_12px_rgba(94,79,162,0.25),inset_1.5px_1.5px_2px_rgba(255,255,255,0.7)]');
+        btn.classList.add('text-on-surface-variant');
+      });
+      active.classList.add('bg-primary', 'text-on-primary', 'shadow-[0_4px_12px_rgba(94,79,162,0.25),inset_1.5px_1.5px_2px_rgba(255,255,255,0.7)]');
+      active.classList.remove('text-on-surface-variant');
+    }
+
+    if (btnAll && btnParent && btnChild) {
+      btnAll.addEventListener('click', () => {
+        setActiveBtn(btnAll);
+        stepCards.forEach(c => c.style.opacity = '1');
+      });
+
+      btnParent.addEventListener('click', () => {
+        setActiveBtn(btnParent);
+        stepCards.forEach(c => {
+          const step = c.getAttribute('data-step');
+          c.style.opacity = (step === '1' || step === '2' || step === '4') ? '1' : '0.35';
+        });
+      });
+
+      btnChild.addEventListener('click', () => {
+        setActiveBtn(btnChild);
+        stepCards.forEach(c => {
+          const step = c.getAttribute('data-step');
+          c.style.opacity = (step === '3' || step === '5') ? '1' : '0.35';
+        });
+      });
+    }
+
+    // 2. Interactive Toggle Switches
+    const toggles = document.querySelectorAll('.toggle-btn');
+    toggles.forEach(toggle => {
+      toggle.addEventListener('click', () => {
+        const knob = toggle.firstElementChild;
+        const isRight = toggle.classList.contains('justify-end');
+        if (isRight) {
+          toggle.classList.remove('justify-end', 'bg-primary');
+          toggle.classList.add('justify-start', 'bg-surface-variant');
+        } else {
+          toggle.classList.remove('justify-start', 'bg-surface-variant');
+          toggle.classList.add('justify-end', 'bg-primary');
+        }
+      });
+    });
+
+    // 3. Tactile SOS Button Hold Animation
+    const sosBtn = document.getElementById('sos-interactive');
+    let pressTimer;
+
+    if (sosBtn) {
+      const startHold = () => {
+        sosBtn.style.transform = 'scale(0.92)';
+        pressTimer = setTimeout(() => {
+          alert('Reassuring Demo: Emergency SOS beacon verified! Circle receives instant ping.');
+          sosBtn.style.transform = 'scale(1)';
+        }, 1200);
+      };
+
+      const cancelHold = () => {
+        clearTimeout(pressTimer);
+        sosBtn.style.transform = 'scale(1)';
+      };
+
+      sosBtn.addEventListener('mousedown', startHold);
+      sosBtn.addEventListener('mouseup', cancelHold);
+      sosBtn.addEventListener('mouseleave', cancelHold);
+      sosBtn.addEventListener('touchstart', startHold);
+      sosBtn.addEventListener('touchend', cancelHold);
+    }
+  })();
+</script></main><footer class="w-full bg-surface-container-low py-space-xl shadow-[0_-8px_24px_rgba(72,60,102,0.04)]"><div class="max-w-7xl mx-auto px-margin md:px-margin-tablet lg:px-margin-desktop"><div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-space-xl pb-space-xl"><div class="flex flex-col items-start gap-space-sm"><div class="flex items-center gap-space-sm"><div class="flex items-center justify-center p-1.5 rounded-full bg-surface-container-lowest shadow-[0_4px_12px_rgba(65,50,92,0.08),inset_1.5px_1.5px_2px_rgba(255,255,255,0.95)]"><img alt="Glossy Blue Cyclops Mascot Icon.png" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/AEtjO1X15_PVPZOIwwJOcA1aMteVyUNwb2zOYgb6za0aBhStGhMvdo9zT29rlxzKNJJv18UdLR-5LIpz9Xzf5HnBMaBF1oyB8db0KLX92BUA4c7045QiGj1UaGHrEel3RdlheEyyN0Hrn6IcNhpkyAVbD4OtAple9YjaIx02AAiIQPIpHGQhXBtT14IGrQMamEInL4xlZcIKyopzGN1xYnPumZRRJJ-vV7zkEvoAkWTp_ugKNy7e55OKz7t9FKKyVCSeYhGP6GLKJCqIB2Q"/></div><span class="font-headline-sm text-headline-sm text-primary font-bold">Piko</span></div><p class="font-body-md text-body-md text-on-surface-variant max-w-xs mt-space-xs">Connected by care. Protected by choice.</p><p class="font-body-sm text-body-sm text-outline mt-space-sm">© 2025 Piko Safety Systems. Soft, tactile family protection.</p></div><div class="flex flex-col gap-space-xs"><span class="font-label-md text-label-md uppercase tracking-wider text-primary font-bold mb-space-xs">Platform</span><a class="font-body-md text-body-md text-on-surface-variant hover:text-on-surface transition-colors py-1" data-path="features" href="#">Features</a><a class="font-body-md text-body-md text-on-surface-variant hover:text-on-surface transition-colors py-1" data-path="how-it-works" href="#">How it works</a><a class="font-body-md text-body-md text-on-surface-variant hover:text-on-surface transition-colors py-1" data-path="hosting-options" href="#">Hosting options</a><a class="font-body-md text-body-md text-on-surface-variant hover:text-on-surface transition-colors py-1" data-path="self-hosting-guide" href="#">Self-hosting guide</a><a class="font-body-md text-body-md text-on-surface-variant hover:text-on-surface transition-colors py-1" data-path="pricing" href="#">Pricing</a><a class="font-body-md text-body-md text-on-surface-variant hover:text-on-surface transition-colors py-1" data-path="faq" href="#">FAQ</a></div><div class="flex flex-col gap-space-xs"><span class="font-label-md text-label-md uppercase tracking-wider text-primary font-bold mb-space-xs">Trust &amp; Transparency</span><a class="font-body-md text-body-md text-on-surface-variant hover:text-on-surface transition-colors py-1" data-path="privacy" href="#">Privacy &amp; Control</a><a class="font-body-md text-body-md text-on-surface-variant hover:text-on-surface transition-colors py-1" data-path="terms-of-service" href="#">Terms of Service</a><a class="font-body-md text-body-md text-on-surface-variant hover:text-on-surface transition-colors py-1" href="https://github.com" rel="noreferrer" target="_blank">GitHub Repository</a><a class="font-body-md text-body-md text-on-surface-variant hover:text-on-surface transition-colors py-1" data-path="docs" href="#">Documentation</a></div><div class="flex flex-col gap-space-md"><div class="p-space-lg rounded-2xl bg-surface-container shadow-[0_8px_20px_-4px_rgba(65,50,92,0.07),inset_1.5px_1.5px_2px_rgba(255,255,255,0.9)] flex flex-col items-start gap-space-sm"><span class="font-title-md text-title-md text-on-surface font-semibold">Ready to launch?</span><p class="font-body-sm text-body-sm text-on-surface-variant">Connect instantly through our hosted, privacy-first infrastructure.</p><a class="inline-flex items-center justify-center w-full px-space-md py-space-sm rounded-full bg-secondary text-on-secondary font-title-md text-title-md shadow-[0_12px_24px_-6px_rgba(20,108,70,0.25),inset_1.5px_1.5px_2px_rgba(255,255,255,0.6)] hover:bg-on-secondary-container hover:text-surface-container-lowest transition-all" href="https://piko-web-jade.vercel.app/login">Launch Hosted App</a></div></div></div></div></footer><script>const toggleBtn=document.getElementById('mobile-nav-toggle');const mobileDrawer=document.getElementById('mobile-menu-drawer');if(toggleBtn&&mobileDrawer){toggleBtn.addEventListener('click',()=>{mobileDrawer.classList.toggle('hidden');});}</script></body></html>

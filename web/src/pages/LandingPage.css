@@ -1,0 +1,825 @@
+/* Piko Landing Page — Tactile Clay Safety System */
+
+.piko-landing {
+  --lp-canvas: #f5f2ea;
+  --lp-surface: #faf8f4;
+  --lp-surface-elevated: #ffffff;
+  --lp-well: #f0ede4;
+  --lp-primary: #5e4fa2;
+  --lp-primary-light: #8273c8;
+  --lp-primary-soft: #dcd5f5;
+  --lp-primary-tint: #f3eeff;
+  --lp-blue: #2b72ee;
+  --lp-deepblue: #194bb5;
+  --lp-softblue: #e7f0fd;
+  --lp-mint: #d4ebdd;
+  --lp-mint-dark: #1f6b47;
+  --lp-peach: #f5d8c9;
+  --lp-peach-dark: #d96938;
+  --lp-text: #29283a;
+  --lp-muted: #5f5d70;
+  --lp-border: #e8e4da;
+  --lp-critical: #c83f4d;
+
+  --lp-shadow-card: 0 16px 36px -8px rgba(65, 50, 92, 0.09), 0 4px 12px rgba(65, 50, 92, 0.04), inset 1.5px 1.5px 2px rgba(255, 255, 255, 0.95), inset -2px -2px 4px rgba(200, 190, 175, 0.15);
+  --lp-shadow-float: 0 24px 48px -12px rgba(65, 50, 92, 0.15), 0 6px 16px rgba(65, 50, 92, 0.06), inset 1.5px 1.5px 2px rgba(255, 255, 255, 0.95);
+  --lp-shadow-well: inset 2px 3px 6px rgba(41, 40, 58, 0.07), inset -2px -2px 4px rgba(255, 255, 255, 0.9);
+  --lp-shadow-btn-primary: 0 10px 22px -4px rgba(94, 79, 162, 0.35), inset 1.5px 1.5px 2px rgba(255, 255, 255, 0.8);
+  --lp-shadow-btn-white: 0 8px 18px -4px rgba(41, 40, 58, 0.08), inset 1.5px 1.5px 2px rgba(255, 255, 255, 0.95);
+
+  background-color: var(--lp-canvas);
+  color: var(--lp-text);
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  line-height: 1.5;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* Header */
+.piko-landing-header {
+  position: fixed;
+  top: 16px;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  padding: 0 20px;
+}
+
+.piko-landing-header-inner {
+  max-width: 1140px;
+  margin: 0 auto;
+  background: rgba(250, 248, 244, 0.92);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.85);
+  border-radius: 9999px;
+  padding: 10px 20px;
+  box-shadow: var(--lp-shadow-card);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.piko-landing-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-decoration: none;
+  color: var(--lp-text);
+}
+
+.piko-landing-brand-logo {
+  width: 40px;
+  height: 40px;
+  border-radius: 14px;
+  background: linear-gradient(180deg, var(--lp-softblue), #ffffff);
+  border: 1px solid #ffffff;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--lp-shadow-well);
+}
+
+.piko-landing-brand-logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.piko-landing-brand-title {
+  font-size: 1.25rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--lp-primary);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  line-height: 1.1;
+}
+
+.piko-landing-brand-badge {
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--lp-muted);
+}
+
+.piko-landing-nav {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+@media (max-width: 860px) {
+  .piko-landing-nav {
+    display: none;
+  }
+  #piko-mobile-toggle {
+    display: inline-flex !important;
+  }
+}
+
+.piko-landing-nav a {
+  text-decoration: none;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--lp-muted);
+  transition: color 0.15s ease;
+}
+
+.piko-landing-nav a:hover {
+  color: var(--lp-primary);
+}
+
+.piko-landing-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Button styles */
+.piko-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: var(--lp-primary);
+  color: #ffffff !important;
+  text-decoration: none;
+  padding: 12px 24px;
+  border-radius: 9999px;
+  font-weight: 700;
+  font-size: 0.95rem;
+  box-shadow: var(--lp-shadow-btn-primary);
+  border: none;
+  cursor: pointer;
+  transition: transform 0.15s ease, background-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.piko-btn-primary:hover {
+  background: var(--lp-primary-light);
+  transform: translateY(-1px);
+}
+
+.piko-btn-primary:active {
+  transform: translateY(1px);
+  box-shadow: var(--lp-shadow-well);
+}
+
+.piko-btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: var(--lp-surface);
+  color: var(--lp-text) !important;
+  text-decoration: none;
+  padding: 12px 24px;
+  border-radius: 9999px;
+  font-weight: 700;
+  font-size: 0.95rem;
+  box-shadow: var(--lp-shadow-btn-white);
+  border: 1px solid #ffffff;
+  cursor: pointer;
+  transition: transform 0.15s ease, background-color 0.15s ease;
+}
+
+.piko-btn-secondary:hover {
+  background: #ffffff;
+  transform: translateY(-1px);
+}
+
+.piko-btn-secondary:active {
+  transform: translateY(1px);
+}
+
+/* Hero Section */
+.piko-hero {
+  position: relative;
+  padding-top: 140px;
+  padding-bottom: 80px;
+  max-width: 1140px;
+  margin: 0 auto;
+  padding-left: 20px;
+  padding-right: 20px;
+}
+
+.piko-hero-grid {
+  display: grid;
+  grid-template-columns: 1.15fr 0.85fr;
+  gap: 48px;
+  align-items: center;
+}
+
+@media (max-width: 900px) {
+  .piko-hero-grid {
+    grid-template-columns: 1fr;
+    gap: 40px;
+    text-align: center;
+  }
+}
+
+.piko-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--lp-surface);
+  border: 1px solid #ffffff;
+  padding: 6px 16px;
+  border-radius: 9999px;
+  box-shadow: var(--lp-shadow-well);
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--lp-primary);
+  margin-bottom: 20px;
+}
+
+.piko-badge-pulse {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--lp-primary);
+  position: relative;
+}
+
+.piko-badge-pulse::after {
+  content: '';
+  position: absolute;
+  inset: -3px;
+  border-radius: 50%;
+  background: var(--lp-primary-soft);
+  animation: piko-pulse 2s infinite;
+}
+
+@keyframes piko-pulse {
+  0% { transform: scale(0.9); opacity: 0.8; }
+  50% { transform: scale(1.6); opacity: 0; }
+  100% { transform: scale(0.9); opacity: 0; }
+}
+
+.piko-hero-title {
+  font-size: 3.25rem;
+  font-weight: 800;
+  line-height: 1.12;
+  letter-spacing: -0.03em;
+  color: var(--lp-text);
+  margin-bottom: 20px;
+}
+
+@media (max-width: 600px) {
+  .piko-hero-title {
+    font-size: 2.25rem;
+  }
+}
+
+.piko-gradient-text {
+  background: linear-gradient(135deg, var(--lp-primary), var(--lp-primary-light), var(--lp-blue));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.piko-hero-sub {
+  font-size: 1.15rem;
+  line-height: 1.6;
+  color: var(--lp-muted);
+  margin-bottom: 32px;
+  max-width: 540px;
+}
+
+@media (max-width: 900px) {
+  .piko-hero-sub {
+    margin-left: auto;
+    margin-right: auto;
+  }
+}
+
+.piko-hero-ctas {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 24px;
+}
+
+@media (max-width: 900px) {
+  .piko-hero-ctas {
+    justify-content: center;
+  }
+}
+
+.piko-hero-footnote {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--lp-muted);
+}
+
+@media (max-width: 900px) {
+  .piko-hero-footnote {
+    justify-content: center;
+  }
+}
+
+/* Hero Stage / Mascot */
+.piko-stage-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.piko-stage-orb {
+  width: 340px;
+  height: 340px;
+  border-radius: 50%;
+  background: linear-gradient(180deg, #ffffff 0%, var(--lp-softblue) 50%, var(--lp-primary-tint) 100%);
+  border: 3px solid rgba(255, 255, 255, 0.9);
+  box-shadow: var(--lp-shadow-float);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+@media (max-width: 480px) {
+  .piko-stage-orb {
+    width: 270px;
+    height: 270px;
+  }
+}
+
+.piko-mascot-img {
+  width: 260px;
+  height: 260px;
+  object-fit: contain;
+  filter: drop-shadow(0 20px 25px rgba(41, 40, 58, 0.2));
+  user-select: none;
+}
+
+@media (max-width: 480px) {
+  .piko-mascot-img {
+    width: 200px;
+    height: 200px;
+  }
+}
+
+/* Floating chips on hero */
+.piko-float-chip {
+  position: absolute;
+  background: var(--lp-surface);
+  border: 1px solid #ffffff;
+  padding: 10px 14px;
+  border-radius: 20px;
+  box-shadow: var(--lp-shadow-card);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  z-index: 10;
+  text-align: left;
+}
+
+.piko-float-chip-1 {
+  top: -10px;
+  left: -20px;
+}
+
+.piko-float-chip-2 {
+  bottom: -15px;
+  right: -20px;
+}
+
+@media (max-width: 480px) {
+  .piko-float-chip-1 {
+    left: -5px;
+    top: -15px;
+  }
+  .piko-float-chip-2 {
+    right: -5px;
+    bottom: -20px;
+  }
+}
+
+.piko-chip-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+}
+
+.piko-chip-title {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--lp-text);
+}
+
+.piko-chip-sub {
+  font-size: 0.7rem;
+  color: var(--lp-muted);
+  font-weight: 500;
+}
+
+/* Section Containers */
+.piko-section {
+  padding: 90px 20px;
+  max-width: 1140px;
+  margin: 0 auto;
+}
+
+.piko-section-header {
+  text-align: center;
+  max-width: 680px;
+  margin: 0 auto 50px auto;
+}
+
+.piko-section-tag {
+  display: inline-block;
+  padding: 4px 14px;
+  border-radius: 9999px;
+  background: var(--lp-primary-tint);
+  color: var(--lp-primary);
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 12px;
+}
+
+.piko-section-title {
+  font-size: 2.35rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--lp-text);
+  margin-bottom: 14px;
+  line-height: 1.2;
+}
+
+.piko-section-desc {
+  font-size: 1.05rem;
+  color: var(--lp-muted);
+  line-height: 1.6;
+}
+
+/* Trust Principles Grid */
+.piko-principles-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+}
+
+@media (max-width: 800px) {
+  .piko-principles-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.piko-clay-card {
+  background: var(--lp-surface);
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  border-radius: 28px;
+  padding: 32px 28px;
+  box-shadow: var(--lp-shadow-card);
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.piko-clay-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--lp-shadow-float);
+}
+
+.piko-card-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  margin-bottom: 20px;
+  box-shadow: var(--lp-shadow-well);
+}
+
+.piko-card-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-bottom: 10px;
+  color: var(--lp-text);
+}
+
+.piko-card-desc {
+  font-size: 0.925rem;
+  color: var(--lp-muted);
+  line-height: 1.6;
+}
+
+/* Steps Grid */
+.piko-steps-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 28px;
+}
+
+@media (max-width: 800px) {
+  .piko-steps-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.piko-step-num {
+  font-size: 2.25rem;
+  font-weight: 900;
+  opacity: 0.3;
+  margin-bottom: 12px;
+  color: var(--lp-primary);
+}
+
+/* Pricing & Hosting Option Cards */
+.piko-pricing-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 32px;
+  align-items: stretch;
+}
+
+@media (max-width: 860px) {
+  .piko-pricing-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.piko-pricing-card {
+  background: var(--lp-surface);
+  border: 2px solid rgba(255, 255, 255, 0.95);
+  border-radius: 32px;
+  padding: 40px 36px;
+  box-shadow: var(--lp-shadow-card);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+}
+
+.piko-pricing-card.featured {
+  background: linear-gradient(180deg, #ffffff 0%, var(--lp-surface) 100%);
+  border-color: var(--lp-primary-light);
+  box-shadow: var(--lp-shadow-float);
+}
+
+.piko-featured-badge {
+  position: absolute;
+  top: 18px;
+  right: 24px;
+  background: var(--lp-primary);
+  color: #ffffff;
+  font-size: 0.7rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 4px 12px;
+  border-radius: 9999px;
+  box-shadow: 0 4px 12px rgba(94, 79, 162, 0.3);
+}
+
+.piko-price-tag {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin: 16px 0 24px 0;
+}
+
+.piko-price-amount {
+  font-size: 2.75rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: var(--lp-text);
+  font-variant-numeric: tabular-nums;
+}
+
+.piko-price-period {
+  font-size: 0.95rem;
+  color: var(--lp-muted);
+  font-weight: 600;
+}
+
+.piko-feature-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 32px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  flex: 1;
+}
+
+.piko-feature-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  font-size: 0.925rem;
+  font-weight: 600;
+  color: var(--lp-text);
+  line-height: 1.45;
+}
+
+.piko-feature-check {
+  width: 22px;
+  height: 22px;
+  border-radius: 8px;
+  background: var(--lp-mint);
+  color: var(--lp-mint-dark);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  font-weight: 800;
+  shrink: 0;
+}
+
+/* Comparison Matrix Table */
+.piko-matrix-wrapper {
+  background: var(--lp-surface);
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  border-radius: 28px;
+  box-shadow: var(--lp-shadow-card);
+  overflow-x: auto;
+  margin-top: 48px;
+  padding: 24px;
+}
+
+.piko-matrix-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.piko-matrix-table th,
+.piko-matrix-table td {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--lp-border);
+  font-size: 0.925rem;
+}
+
+.piko-matrix-table th {
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--lp-muted);
+  font-weight: 700;
+}
+
+.piko-matrix-table tr:last-child td {
+  border-bottom: none;
+}
+
+/* Feature Showcase Bento Grid */
+.piko-bento-grid {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 24px;
+}
+
+.piko-bento-col-8 {
+  grid-column: span 8;
+}
+
+.piko-bento-col-4 {
+  grid-column: span 4;
+}
+
+@media (max-width: 860px) {
+  .piko-bento-col-8,
+  .piko-bento-col-4 {
+    grid-column: span 12;
+  }
+}
+
+.piko-mockup-well {
+  background: var(--lp-well);
+  border-radius: 20px;
+  padding: 18px;
+  box-shadow: var(--lp-shadow-well);
+  margin-top: 20px;
+}
+
+/* FAQ Details Accordion */
+.piko-faq-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 840px;
+  margin: 0 auto;
+}
+
+.piko-faq-item {
+  background: var(--lp-surface);
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  border-radius: 24px;
+  box-shadow: var(--lp-shadow-card);
+  padding: 22px 26px;
+  cursor: pointer;
+  transition: box-shadow 0.2s ease;
+}
+
+.piko-faq-item[open] {
+  box-shadow: var(--lp-shadow-float);
+}
+
+.piko-faq-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-weight: 700;
+  font-size: 1.05rem;
+  color: var(--lp-text);
+  list-style: none;
+  user-select: none;
+}
+
+.piko-faq-summary::-webkit-details-marker {
+  display: none;
+}
+
+.piko-faq-arrow {
+  width: 32px;
+  height: 32px;
+  border-radius: 12px;
+  background: var(--lp-well);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+  box-shadow: var(--lp-shadow-well);
+  transition: transform 0.2s ease;
+}
+
+.piko-faq-item[open] .piko-faq-arrow {
+  transform: rotate(180deg);
+}
+
+.piko-faq-content {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--lp-border);
+  font-size: 0.95rem;
+  color: var(--lp-muted);
+  line-height: 1.6;
+}
+
+/* Final CTA Card */
+.piko-cta-banner {
+  background: linear-gradient(180deg, var(--lp-surface) 0%, #ffffff 100%);
+  border: 2px solid #ffffff;
+  border-radius: 36px;
+  padding: 60px 40px;
+  box-shadow: var(--lp-shadow-float);
+  text-align: center;
+  max-width: 960px;
+  margin: 0 auto;
+}
+
+/* Footer */
+.piko-landing-footer {
+  border-top: 1px solid var(--lp-border);
+  padding: 40px 20px;
+  font-size: 0.85rem;
+  color: var(--lp-muted);
+}
+
+.piko-footer-inner {
+  max-width: 1140px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.piko-footer-links {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.piko-footer-links a {
+  color: var(--lp-muted);
+  text-decoration: none;
+  font-weight: 600;
+  transition: color 0.15s ease;
+}
+
+.piko-footer-links a:hover {
+  color: var(--lp-primary);
+}

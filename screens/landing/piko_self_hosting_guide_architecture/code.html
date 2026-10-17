@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+
+<html class="scroll-smooth" lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_standard" name="shell-type"/><title>Piko — Family Safety &amp; Location Sharing</title><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config={darkMode:"class",theme:{extend:{colors:{"primary-container":"#7768bd","on-error":"#ffffff","on-secondary":"#ffffff","surface-container-lowest":"#ffffff","secondary-fixed-dim":"#86d7a9","error":"#ba1a1a","surface-variant":"#e3e0f8","on-surface-variant":"#484551","tertiary-container":"#877063","surface-container-high":"#e9e5fe","tertiary":"#6d584c","on-background":"#1b1a2b","on-primary-fixed":"#1c035e","on-tertiary":"#ffffff","tertiary-fixed-dim":"#ddc1b2","primary-fixed":"#e6deff","secondary-fixed":"#a2f4c4","on-secondary-fixed":"#002112","outline-variant":"#c9c4d2","outline":"#797582","background":"#fcf8ff","on-tertiary-fixed":"#27180f","on-tertiary-fixed-variant":"#564338","on-tertiary-container":"#fffbff","surface-bright":"#fcf8ff","on-primary-container":"#fffbff","secondary":"#146c46","inverse-on-surface":"#f3eeff","surface":"#fcf8ff","on-error-container":"#93000a","surface-tint":"#6152a4","secondary-container":"#9ff1c1","surface-container-highest":"#e3e0f8","on-secondary-fixed-variant":"#005232","on-primary":"#ffffff","surface-dim":"#dbd7ef","primary-fixed-dim":"#cabeff","surface-container":"#efebff","surface-container-low":"#f6f2ff","inverse-surface":"#302e41","on-secondary-container":"#1a704a","inverse-primary":"#cabeff","on-surface":"#1b1a2b","primary":"#5e4fa2","error-container":"#ffdad6","on-primary-fixed-variant":"#49398b","tertiary-fixed":"#faddce"},borderRadius:{DEFAULT:"0.25rem",lg:"0.5rem",xl:"0.75rem",full:"9999px"},spacing:{"space-md":"1rem","margin-tablet":"2rem","space-xs":"0.25rem","gutter-tablet":"1.5rem","margin-desktop":"3rem","space-sm":"0.5rem","space-lg":"1.5rem","gutter-desktop":"2rem",margin:"1rem",gutter:"1rem","space-xl":"2rem"},fontFamily:{"label-sm":["Plus Jakarta Sans"],"body-sm":["Plus Jakarta Sans"],"label-md":["Plus Jakarta Sans"],"title-lg":["Plus Jakarta Sans"],"label-lg":["Plus Jakarta Sans"],"body-md":["Plus Jakarta Sans"],"display-lg-mobile":["Plus Jakarta Sans"],"headline-md":["Plus Jakarta Sans"],"body-lg":["Plus Jakarta Sans"],"headline-sm":["Plus Jakarta Sans"],telemetry:["Plus Jakarta Sans"],"title-md":["Plus Jakarta Sans"],"headline-lg":["Plus Jakarta Sans"],"display-lg":["Plus Jakarta Sans"]},fontSize:{"label-sm":["11px",{lineHeight:"14px",letterSpacing:"0.03em",fontWeight:"500"}],"body-sm":["12px",{lineHeight:"18px",fontWeight:"400"}],"label-md":["12px",{lineHeight:"16px",letterSpacing:"0.02em",fontWeight:"600"}],"title-lg":["18px",{lineHeight:"26px",fontWeight:"600"}],"label-lg":["14px",{lineHeight:"20px",letterSpacing:"0.01em",fontWeight:"600"}],"body-md":["14px",{lineHeight:"20px",fontWeight:"400"}],"display-lg-mobile":["32px",{lineHeight:"40px",letterSpacing:"-0.02em",fontWeight:"700"}],"headline-md":["24px",{lineHeight:"32px",letterSpacing:"-0.01em",fontWeight:"600"}],"body-lg":["16px",{lineHeight:"24px",fontWeight:"400"}],"headline-sm":["20px",{lineHeight:"28px",fontWeight:"600"}],telemetry:["13px",{lineHeight:"18px",letterSpacing:"0.02em",fontWeight:"500"}],"title-md":["16px",{lineHeight:"24px",fontWeight:"600"}],"headline-lg":["28px",{lineHeight:"36px",letterSpacing:"-0.01em",fontWeight:"700"}],"display-lg":["40px",{lineHeight:"48px",letterSpacing:"-0.02em",fontWeight:"700"}]}}}}</script></head><body class="bg-surface font-body-md text-on-surface antialiased selection:bg-primary-fixed selection:text-on-primary-fixed min-h-screen flex flex-col justify-between"><header class="fixed top-0 w-full z-50 bg-surface/85 backdrop-blur-xl shadow-[0_10px_30px_-10px_rgba(72,60,102,0.08)]"><div class="h-20 max-w-7xl mx-auto px-margin md:px-margin-tablet lg:px-margin-desktop flex items-center justify-between"><a class="flex items-center gap-space-sm group text-left" data-path="features" href="#"><div class="relative flex items-center justify-center p-space-xs rounded-full bg-surface-container-lowest shadow-[0_4px_12px_rgba(65,50,92,0.08),inset_1.5px_1.5px_2px_rgba(255,255,255,0.9)]"><img alt="Glossy Blue Cyclops Mascot Icon.png" class="h-8 w-auto object-contain transition-transform group-hover:scale-105 duration-200" src="https://lh3.googleusercontent.com/aida/AEtjO1X15_PVPZOIwwJOcA1aMteVyUNwb2zOYgb6za0aBhStGhMvdo9zT29rlxzKNJJv18UdLR-5LIpz9Xzf5HnBMaBF1oyB8db0KLX92BUA4c7045QiGj1UaGHrEel3RdlheEyyN0Hrn6IcNhpkyAVbD4OtAple9YjaIx02AAiIQPIpHGQhXBtT14IGrQMamEInL4xlZcIKyopzGN1xYnPumZRRJJ-vV7zkEvoAkWTp_ugKNy7e55OKz7t9FKKyVCSeYhGP6GLKJCqIB2Q"/></div><div class="flex flex-col ml-space-xs"><span class="font-headline-sm text-headline-sm text-primary tracking-tight font-bold leading-none">Piko</span><span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider font-semibold mt-0.5">Family Safety</span></div></a><nav class="hidden lg:flex items-center gap-space-xs bg-surface-container-low px-space-sm py-1.5 rounded-full shadow-[inset_2px_3px_6px_rgba(41,40,58,0.06),inset_-2px_-2px_4px_rgba(255,255,255,0.9)]" data-active-classes="bg-primary-container text-on-primary-container font-label-lg shadow-[inset_1.5px_1.5px_2px_rgba(255,255,255,0.85)]"><a class="font-label-lg text-label-lg px-space-md py-space-xs rounded-full text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-all" data-path="features" href="#">Features</a><a class="font-label-lg text-label-lg px-space-md py-space-xs rounded-full text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-all" data-path="how-it-works" href="#">How it works</a><a class="font-label-lg text-label-lg px-space-md py-space-xs rounded-full text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-all" data-path="hosting-options" href="#">Hosting options</a><a class="font-label-lg text-label-lg px-space-md py-space-xs rounded-full text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-all" data-path="privacy" href="#">Privacy</a><a class="font-label-lg text-label-lg px-space-md py-space-xs rounded-full text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-all" data-path="faq" href="#">FAQ</a></nav><div class="flex items-center gap-space-sm"><a class="hidden sm:inline-flex items-center justify-center px-space-lg py-2.5 rounded-full bg-primary text-on-primary font-title-md text-title-md shadow-[0_14px_28px_-6px_rgba(65,50,92,0.22),inset_1.5px_1.5px_2px_rgba(255,255,255,0.85)] hover:bg-primary-container hover:text-on-primary-container active:translate-y-0.5 active:shadow-[inset_2px_3px_5px_rgba(0,0,0,0.2)] transition-all duration-150" href="https://piko-web-jade.vercel.app/login">Get started</a><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center shadow-[0_4px_10px_rgba(94,79,162,0.2)]"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div><button aria-label="Toggle Mobile Menu" class="lg:hidden flex items-center justify-center w-10 h-10 rounded-full bg-surface-container-lowest text-on-surface shadow-[0_6px_16px_-2px_rgba(65,50,92,0.1),inset_1.5px_1.5px_2px_rgba(255,255,255,0.9)] hover:bg-surface-container-high transition-all" id="mobile-nav-toggle"><span class="material-symbols-outlined text-[24px]">menu</span></button></div></div><div class="hidden lg:hidden w-full bg-surface-container-low px-margin py-space-md shadow-[0_12px_24px_rgba(72,60,102,0.08)]" id="mobile-menu-drawer"><div class="flex flex-col gap-space-xs max-w-7xl mx-auto"><a class="font-label-lg text-label-lg px-space-md py-space-sm rounded-xl text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-all" data-path="features" href="#">Features</a><a class="font-label-lg text-label-lg px-space-md py-space-sm rounded-xl text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-all" data-path="how-it-works" href="#">How it works</a><a class="font-label-lg text-label-lg px-space-md py-space-sm rounded-xl text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-all" data-path="hosting-options" href="#">Hosting options</a><a class="font-label-lg text-label-lg px-space-md py-space-sm rounded-xl text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-all" data-path="privacy" href="#">Privacy</a><a class="font-label-lg text-label-lg px-space-md py-space-sm rounded-xl text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-all" data-path="faq" href="#">FAQ</a><div class="pt-space-xs mt-space-xs flex flex-col gap-space-xs"><a class="inline-flex items-center justify-center w-full py-space-sm rounded-full bg-primary text-on-primary font-title-md text-title-md shadow-[0_8px_18px_-4px_rgba(65,50,92,0.25)] hover:bg-primary-container hover:text-on-primary-container transition-all" href="https://piko-web-jade.vercel.app/login">Get started</a></div></div></div></header><main class="w-full pt-20 bg-surface flex-1"><div class="flex flex-col w-full">
+<section class="relative w-full overflow-hidden py-space-xl lg:py-24">
+<div class="absolute -top-32 -left-20 w-96 h-96 rounded-full bg-primary-fixed/40 blur-3xl pointer-events-none"></div>
+<div class="absolute top-1/2 -right-32 w-80 h-80 rounded-full bg-secondary-fixed/30 blur-3xl pointer-events-none"></div>
+<div class="max-w-7xl mx-auto px-margin md:px-margin-tablet lg:px-margin-desktop relative z-10">
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-space-xl items-center">
+<div class="lg:col-span-7 flex flex-col items-start gap-space-md">
+<div class="inline-flex items-center gap-space-xs px-space-md py-1.5 rounded-full bg-surface-container-high shadow-[0_4px_12px_rgba(65,50,92,0.06),inset_1.5px_1.5px_2px_rgba(255,255,255,0.9)]">
+<span class="w-2.5 h-2.5 rounded-full bg-secondary animate-pulse"></span>
+<span class="font-label-sm text-label-sm text-primary uppercase font-bold tracking-wider">Open Source Architecture</span>
+</div>
+<h1 class="font-display-lg text-display-lg text-on-surface tracking-tight max-w-2xl">
+            Run Piko on your own hardware.
+          </h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant max-w-xl leading-relaxed">
+            Take complete ownership of your family’s location records, telemetry, and private messages with our lightweight, self-hosted stack designed for absolute digital sovereignty.
+          </p>
+<div class="flex flex-wrap items-center gap-space-md pt-space-xs">
+<a class="inline-flex items-center gap-space-xs px-space-lg py-3 rounded-full bg-primary text-on-primary font-title-md text-title-md shadow-[0_14px_28px_-6px_rgba(65,50,92,0.22),inset_1.5px_1.5px_2px_rgba(255,255,255,0.85)] hover:bg-primary-container hover:text-on-primary-container active:translate-y-0.5 transition-all" href="#quickstart">
+<span class="material-symbols-outlined text-[20px]">terminal</span>
+<span>Jump to Quickstart</span>
+</a>
+<a class="inline-flex items-center gap-space-xs px-space-lg py-3 rounded-full bg-surface-container-low text-on-surface font-title-md text-title-md shadow-[0_8px_20px_-4px_rgba(65,50,92,0.07),inset_1.5px_1.5px_2px_rgba(255,255,255,0.9)] hover:bg-surface-container-high transition-all" href="https://github.com" rel="noreferrer" target="_blank">
+<span class="material-symbols-outlined text-[20px]">code</span>
+<span>GitHub Repo</span>
+</a>
+</div>
+<div class="flex items-center gap-space-lg pt-space-sm text-on-surface-variant">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-secondary text-[18px]">verified_user</span>
+<span class="font-label-sm text-label-sm">Zero Telemetry Leakage</span>
+</div>
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-primary text-[18px]">memory</span>
+<span class="font-label-sm text-label-sm">Runs on Raspberry Pi 4</span>
+</div>
+</div>
+</div>
+<div class="lg:col-span-5 relative flex justify-center">
+<div class="relative w-full max-w-md p-space-lg rounded-[32px] bg-surface-container shadow-[0_20px_40px_-10px_rgba(65,50,92,0.14),inset_2px_2px_4px_rgba(255,255,255,0.95)]">
+<div class="flex items-center justify-between pb-space-md">
+<div class="flex items-center gap-space-xs">
+<span class="w-3 h-3 rounded-full bg-error/70"></span>
+<span class="w-3 h-3 rounded-full bg-tertiary-fixed-dim"></span>
+<span class="w-3 h-3 rounded-full bg-secondary-fixed-dim"></span>
+<span class="font-telemetry text-telemetry text-on-surface-variant ml-2 font-semibold">daemon.status</span>
+</div>
+<span class="px-2 py-0.5 rounded-full bg-secondary-fixed text-on-secondary-fixed font-label-sm text-label-sm font-bold">HEALTHY</span>
+</div>
+<div class="space-y-space-sm">
+<div class="p-space-sm rounded-2xl bg-surface-container-lowest shadow-[inset_2px_3px_6px_rgba(41,40,58,0.06),inset_-2px_-2px_4px_rgba(255,255,255,0.9)] flex items-center justify-between">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-primary text-[20px]">dns</span>
+<span class="font-label-md text-label-md text-on-surface font-semibold">Local Node Core</span>
+</div>
+<span class="font-telemetry text-telemetry text-secondary font-bold">piko.internal:8080</span>
+</div>
+<div class="p-space-sm rounded-2xl bg-surface-container-lowest shadow-[inset_2px_3px_6px_rgba(41,40,58,0.06),inset_-2px_-2px_4px_rgba(255,255,255,0.9)] flex items-center justify-between">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-primary text-[20px]">dataset</span>
+<span class="font-label-md text-label-md text-on-surface font-semibold">Spatial DB</span>
+</div>
+<span class="font-telemetry text-telemetry text-on-surface-variant">PostGIS 16</span>
+</div>
+<div class="p-space-sm rounded-2xl bg-surface-container-lowest shadow-[inset_2px_3px_6px_rgba(41,40,58,0.06),inset_-2px_-2px_4px_rgba(255,255,255,0.9)] flex items-center justify-between">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-primary text-[20px]">sync</span>
+<span class="font-label-md text-label-md text-on-surface font-semibold">Sync WebSockets</span>
+</div>
+<span class="font-telemetry text-telemetry text-secondary font-bold">12ms latency</span>
+</div>
+<div class="mt-space-md p-space-md rounded-2xl bg-surface-container-high shadow-[0_6px_14px_rgba(65,50,92,0.06),inset_1.5px_1.5px_2px_rgba(255,255,255,0.9)] flex items-center gap-space-md">
+<div class="w-12 h-12 rounded-full bg-primary flex items-center justify-center text-on-primary shadow-[0_6px_12px_rgba(94,79,162,0.25)] flex-shrink-0">
+<span class="material-symbols-outlined text-[24px]">vpn_key</span>
+</div>
+<div class="flex flex-col">
+<span class="font-title-md text-title-md text-on-surface font-bold leading-tight">100% Cryptographic Isolation</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Keys remain strictly in your custody.</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<section class="w-full py-space-xl bg-surface-container-low">
+<div class="max-w-7xl mx-auto px-margin md:px-margin-tablet lg:px-margin-desktop">
+<div class="flex flex-col md:flex-row md:items-end justify-between mb-space-xl gap-space-md">
+<div>
+<span class="font-label-md text-label-md text-primary font-bold uppercase tracking-wider">System Specifications</span>
+<h2 class="font-headline-lg text-headline-lg text-on-surface mt-1">Prerequisites &amp; Audience</h2>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant max-w-md">
+          Designed for minimal resource footprint. Runs comfortably on energy-efficient home servers or pocket cloud instances.
+        </p>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-space-lg">
+<div class="p-space-lg rounded-[26px] bg-surface-container shadow-[0_8px_20px_-4px_rgba(65,50,92,0.07),inset_1.5px_1.5px_2px_rgba(255,255,255,0.9)] flex flex-col justify-between">
+<div>
+<div class="w-12 h-12 rounded-2xl bg-primary-fixed flex items-center justify-center text-on-primary-fixed mb-space-md shadow-[0_4px_10px_rgba(65,50,92,0.08),inset_1.5px_1.5px_2px_rgba(255,255,255,0.9)]">
+<span class="material-symbols-outlined text-[24px]">engineering</span>
+</div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface font-bold mb-space-xs">Who It’s For</h3>
+<p class="font-body-md text-body-md text-on-surface-variant leading-relaxed">
+              Homelab enthusiasts, self-taught sysadmins, and privacy-conscious families who prefer complete autonomy and have foundational knowledge of containerized workloads.
+            </p>
+</div>
+<div class="mt-space-md pt-space-md border-t-0 bg-surface-container-lowest/80 p-space-sm rounded-xl">
+<span class="font-label-sm text-label-sm text-on-surface font-semibold flex items-center gap-1.5">
+<span class="material-symbols-outlined text-secondary text-[16px]">check_circle</span>
+              Docker &amp; terminal comfort recommended
+            </span>
+</div>
+</div>
+<div class="p-space-lg rounded-[26px] bg-surface-container shadow-[0_8px_20px_-4px_rgba(65,50,92,0.07),inset_1.5px_1.5px_2px_rgba(255,255,255,0.9)] flex flex-col justify-between">
+<div>
+<div class="w-12 h-12 rounded-2xl bg-secondary-fixed flex items-center justify-center text-on-secondary-fixed mb-space-md shadow-[0_4px_10px_rgba(20,108,70,0.1),inset_1.5px_1.5px_2px_rgba(255,255,255,0.9)]">
+<span class="material-symbols-outlined text-[24px]">hardware</span>
+</div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface font-bold mb-space-xs">Hardware Spec</h3>
+<ul class="space-y-space-xs font-body-md text-body-md text-on-surface-variant">
+<li class="flex items-center justify-between">
+<span>Processor:</span>
+<span class="font-telemetry text-telemetry font-bold text-on-surface">1 vCPU</span>
+</li>
+<li class="flex items-center justify-between">
+<span>Memory:</span>
+<span class="font-telemetry text-telemetry font-bold text-on-surface">1 GB RAM</span>
+</li>
+<li class="flex items-center justify-between">
+<span>Storage:</span>
+<span class="font-telemetry text-telemetry font-bold text-on-surface">10 GB NVMe / SSD</span>
+</li>
+<li class="flex items-center justify-between">
+<span>Host examples:</span>
+<span class="font-label-sm text-label-sm text-primary font-semibold">Pi 4, NUC, VPS</span>
+</li>
+</ul>
+</div>
+<div class="mt-space-md pt-space-md bg-surface-container-lowest/80 p-space-sm rounded-xl">
+<span class="font-label-sm text-label-sm text-on-surface font-semibold flex items-center gap-1.5">
+<span class="material-symbols-outlined text-secondary text-[16px]">bolt</span>
+              Idle consumption under 80MB RAM
+            </span>
+</div>
+</div>
+<div class="p-space-lg rounded-[26px] bg-surface-container shadow-[0_8px_20px_-4px_rgba(65,50,92,0.07),inset_1.5px_1.5px_2px_rgba(255,255,255,0.9)] flex flex-col justify-between">
+<div>
+<div class="w-12 h-12 rounded-2xl bg-tertiary-fixed flex items-center justify-center text-on-tertiary-fixed mb-space-md shadow-[0_4px_10px_rgba(109,88,76,0.1),inset_1.5px_1.5px_2px_rgba(255,255,255,0.9)]">
+<span class="material-symbols-outlined text-[24px]">lan</span>
+</div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface font-bold mb-space-xs">Networking &amp; TLS</h3>
+<p class="font-body-md text-body-md text-on-surface-variant leading-relaxed">
+              Mandatory TLS/HTTPS termination for secure location packets. Open ports 80 and 443 with an active domain or subdomain pointing to your host.
+            </p>
+</div>
+<div class="mt-space-md pt-space-md bg-surface-container-lowest/80 p-space-sm rounded-xl">
+<span class="font-label-sm text-label-sm text-on-surface font-semibold flex items-center gap-1.5">
+<span class="material-symbols-outlined text-primary text-[16px]">lock</span>
+              Automated TLS via Caddy or Traefik
+            </span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<section class="w-full py-space-xl">
+<div class="max-w-7xl mx-auto px-margin md:px-margin-tablet lg:px-margin-desktop">
+<div class="text-center max-w-2xl mx-auto mb-space-xl">
+<span class="font-label-md text-label-md text-primary font-bold uppercase tracking-wider">Tactile Architecture</span>
+<h2 class="font-headline-lg text-headline-lg text-on-surface mt-1">High-Level System Topology</h2>
+<p class="font-body-md text-body-md text-on-surface-variant mt-space-xs">
+          Engineered as modular, unopinionated containers. Swap or scale individual layers as your family network expands.
+        </p>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-5 gap-space-md relative">
+<div class="p-space-lg rounded-[26px] bg-surface-container shadow-[0_12px_24px_-6px_rgba(65,50,92,0.08),inset_1.5px_1.5px_2px_rgba(255,255,255,0.9)] flex flex-col items-center text-center">
+<div class="w-14 h-14 rounded-full bg-primary-fixed flex items-center justify-center text-primary shadow-[0_6px_14px_rgba(94,79,162,0.15)] mb-space-md">
+<span class="material-symbols-outlined text-[28px]">smartphone</span>
+</div>
+<span class="font-label-sm text-label-sm uppercase font-bold text-on-surface-variant mb-1">Layer 1</span>
+<h3 class="font-title-md text-title-md text-on-surface font-bold mb-space-xs">Client Apps</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant leading-relaxed">
+            Native Android &amp; iOS Piko apps with custom host domain config and localized geofencing cache.
+          </p>
+<div class="mt-space-md px- space-xs py-1 rounded-full bg-surface-container-high font-telemetry text-telemetry text-primary font-semibold">
+            Custom Host URL
+          </div>
+</div>
+<div class="p-space-lg rounded-[26px] bg-surface-container shadow-[0_12px_24px_-6px_rgba(65,50,92,0.08),inset_1.5px_1.5px_2px_rgba(255,255,255,0.9)] flex flex-col items-center text-center">
+<div class="w-14 h-14 rounded-full bg-secondary-fixed flex items-center justify-center text-secondary shadow-[0_6px_14px_rgba(20,108,70,0.15)] mb-space-md">
+<span class="material-symbols-outlined text-[28px]">router</span>
+</div>
+<span class="font-label-sm text-label-sm uppercase font-bold text-on-surface-variant mb-1">Layer 2</span>
+<h3 class="font-title-md text-title-md text-on-surface font-bold mb-space-xs">API &amp; Gateway</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant leading-relaxed">
+            Lightweight Go HTTP microservice handling token auth, member permissions, and REST requests.
+          </p>
+<div class="mt-space-md px-space-xs py-1 rounded-full bg-surface-container-high font-telemetry text-telemetry text-secondary font-semibold">
+            REST • Port 8080
+          </div>
+</div>
+<div class="p-space-lg rounded-[26px] bg-surface-container shadow-[0_12px_24px_-6px_rgba(65,50,92,0.08),inset_1.5px_1.5px_2px_rgba(255,255,255,0.9)] flex flex-col items-center text-center">
+<div class="w-14 h-14 rounded-full bg-surface-container-highest flex items-center justify-center text-primary shadow-[0_6px_14px_rgba(65,50,92,0.12)] mb-space-md">
+<span class="material-symbols-outlined text-[28px]">radar</span>
+</div>
+<span class="font-label-sm text-label-sm uppercase font-bold text-on-surface-variant mb-1">Layer 3</span>
+<h3 class="font-title-md text-title-md text-on-surface font-bold mb-space-xs">Real-Time Sync</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant leading-relaxed">
+            Dedicated WebSocket multiplexer for zero-lag coordinates distribution and instantaneous SOS packets.
+          </p>
+<div class="mt-space-md px-space-xs py-1 rounded-full bg-surface-container-high font-telemetry text-telemetry text-on-surface font-semibold">
+            WSS Protocol
+          </div>
+</div>
+<div class="p-space-lg rounded-[26px] bg-surface-container shadow-[0_12px_24px_-6px_rgba(65,50,92,0.08),inset_1.5px_1.5px_2px_rgba(255,255,255,0.9)] flex flex-col items-center text-center">
+<div class="w-14 h-14 rounded-full bg-primary-container flex items-center justify-center text-on-primary-container shadow-[0_6px_14px_rgba(94,79,162,0.2)] mb-space-md">
+<span class="material-symbols-outlined text-[28px]">database</span>
+</div>
+<span class="font-label-sm text-label-sm uppercase font-bold text-on-surface-variant mb-1">Layer 4</span>
+<h3 class="font-title-md text-title-md text-on-surface font-bold mb-space-xs">PostGIS Store</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant leading-relaxed">
+            PostgreSQL relational core paired with PostGIS extension for polygon zones and radius math.
+          </p>
+<div class="mt-space-md px-space-xs py-1 rounded-full bg-surface-container-high font-telemetry text-telemetry text-primary font-semibold">
+            PostgreSQL 16
+          </div>
+</div>
+<div class="p-space-lg rounded-[26px] bg-surface-container shadow-[0_12px_24px_-6px_rgba(65,50,92,0.08),inset_1.5px_1.5px_2px_rgba(255,255,255,0.9)] flex flex-col items-center text-center">
+<div class="w-14 h-14 rounded-full bg-tertiary-fixed flex items-center justify-center text-tertiary shadow-[0_6px_14px_rgba(109,88,76,0.15)] mb-space-md">
+<span class="material-symbols-outlined text-[28px]">notifications_active</span>
+</div>
+<span class="font-label-sm text-label-sm uppercase font-bold text-on-surface-variant mb-1">Layer 5</span>
+<h3 class="font-title-md text-title-md text-on-surface font-bold mb-space-xs">Alert Broker</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant leading-relaxed">
+            Unified push daemon supporting Firebase Cloud Messaging, UnifiedPush, or self-hosted Gotify feeds.
+          </p>
+<div class="mt-space-md px-space-xs py-1 rounded-full bg-surface-container-high font-telemetry text-telemetry text-tertiary font-semibold">
+            Push Relay
+          </div>
+</div>
+</div>
+</div>
+</section>
+<section class="w-full py-space-xl bg-surface-container-low" id="quickstart">
+<div class="max-w-7xl mx-auto px-margin md:px-margin-tablet lg:px-margin-desktop">
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-space-xl items-start">
+<div class="lg:col-span-5 flex flex-col items-start gap-space-md">
+<span class="font-label-md text-label-md text-primary font-bold uppercase tracking-wider">Quickstart Guide</span>
+<h2 class="font-headline-lg text-headline-lg text-on-surface">Docker Compose in 2 minutes.</h2>
+<p class="font-body-md text-body-md text-on-surface-variant leading-relaxed">
+            Deploy the primary backend and spatial storage with a single command. The compose specification encapsulates database migrations, socket bindings, and network isolation.
+          </p>
+<div class="w-full p-space-md rounded-2xl bg-surface-container shadow-[0_6px_16px_rgba(65,50,92,0.06),inset_1.5px_1.5px_2px_rgba(255,255,255,0.9)] flex items-start gap-space-sm">
+<span class="material-symbols-outlined text-error text-[22px] flex-shrink-0 mt-0.5">warning</span>
+<div>
+<span class="font-title-md text-title-md text-on-surface font-bold block mb-0.5">Critical Secret Caution</span>
+<p class="font-body-sm text-body-sm text-on-surface-variant leading-relaxed">
+                Never commit real secrets, encryption tokens, or passwords to public repositories. Populate <code class="font-telemetry text-primary font-semibold">.env.production</code> with cryptographically random strings.
+              </p>
+</div>
+</div>
+<div class="w-full space-y-space-xs">
+<div class="p-space-sm rounded-xl bg-surface-container-lowest flex items-center justify-between shadow-[inset_1.5px_1.5px_2px_rgba(0,0,0,0.04)]">
+<span class="font-telemetry text-telemetry text-on-surface font-medium">1. git clone https://github.com/piko-safety/server</span>
+<button aria-label="Copy Command" class="p-1 rounded hover:bg-surface-container-high text-primary" onclick="navigator.clipboard.writeText('git clone https://github.com/piko-safety/server')">
+<span class="material-symbols-outlined text-[18px]">content_copy</span>
+</button>
+</div>
+<div class="p-space-sm rounded-xl bg-surface-container-lowest flex items-center justify-between shadow-[inset_1.5px_1.5px_2px_rgba(0,0,0,0.04)]">
+<span class="font-telemetry text-telemetry text-on-surface font-medium">2. cp .env.example .env &amp;&amp; docker compose up -d</span>
+<button aria-label="Copy Command" class="p-1 rounded hover:bg-surface-container-high text-primary" onclick="navigator.clipboard.writeText('cp .env.example .env &amp;&amp; docker compose up -d')">
+<span class="material-symbols-outlined text-[18px]">content_copy</span>
+</button>
+</div>
+</div>
+</div>
+<div class="lg:col-span-7">
+<div class="p-space-md sm:p-space-lg rounded-[28px] bg-inverse-surface text-inverse-on-surface shadow-[0_20px_35px_-8px_rgba(30,26,45,0.35)]">
+<div class="flex items-center justify-between pb-space-sm border-b-0 mb-space-sm">
+<div class="flex items-center gap-2">
+<span class="w-3 h-3 rounded-full bg-error"></span>
+<span class="w-3 h-3 rounded-full bg-tertiary-fixed-dim"></span>
+<span class="w-3 h-3 rounded-full bg-secondary-fixed"></span>
+<span class="font-telemetry text-telemetry text-surface-dim ml-2 font-mono">docker-compose.yml</span>
+</div>
+<button class="px-space-sm py-1 rounded-full bg-surface-container-highest/20 hover:bg-surface-container-highest/40 text-surface-bright font-label-sm text-label-sm flex items-center gap-1 transition-all" id="copy-compose-btn">
+<span class="material-symbols-outlined text-[14px]">content_copy</span>
+<span id="copy-label">Copy Compose</span>
+</button>
+</div>
+<pre class="font-telemetry text-telemetry leading-relaxed overflow-x-auto p-space-md rounded-2xl bg-on-background text-surface-dim font-mono shadow-[inset_2px_3px_6px_rgba(0,0,0,0.4)]" id="compose-code"><code><span class="text-secondary-fixed">services:</span>
+  <span class="text-primary-fixed">piko-api:</span>
+    <span class="text-tertiary-fixed">image:</span> ghcr.io/piko-safety/server:v1.4.0
+    <span class="text-tertiary-fixed">restart:</span> unless-stopped
+    <span class="text-tertiary-fixed">ports:</span>
+      - <span class="text-secondary-fixed-dim">"8080:8080"</span>
+    <span class="text-tertiary-fixed">environment:</span>
+      - <span class="text-outline-variant">PORT=8080</span>
+      - <span class="text-outline-variant">DATABASE_URL=postgres://piko:secret@db:5432/piko_db?sslmode=disable</span>
+      - <span class="text-outline-variant">JWT_SECRET=super_secret_crypto_hash_replace_me</span>
+      - <span class="text-outline-variant">REALTIME_ENABLED=true</span>
+    <span class="text-tertiary-fixed">depends_on:</span>
+      - db
+
+  <span class="text-primary-fixed">db:</span>
+    <span class="text-tertiary-fixed">image:</span> postgis/postgis:16-3.4-alpine
+    <span class="text-tertiary-fixed">restart:</span> unless-stopped
+    <span class="text-tertiary-fixed">environment:</span>
+      - <span class="text-outline-variant">POSTGRES_USER=piko</span>
+      - <span class="text-outline-variant">POSTGRES_PASSWORD=secret</span>
+      - <span class="text-outline-variant">POSTGRES_DB=piko_db</span>
+    <span class="text-tertiary-fixed">volumes:</span>
+      - piko-data:/var/lib/postgresql/data
+
+<span class="text-secondary-fixed">volumes:</span>
+  <span class="text-primary-fixed">piko-data:</span>
+    <span class="text-tertiary-fixed">driver:</span> local</code></pre>
+<div class="mt-space-md flex items-center justify-between text-on-surface-variant">
+<span class="font-label-sm text-label-sm text-outline-variant">Format: Compose Spec v3.8+</span>
+<span class="font-telemetry text-telemetry text-secondary-fixed-dim">Production Ready</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<section class="w-full py-space-xl">
+<div class="max-w-7xl mx-auto px-margin md:px-margin-tablet lg:px-margin-desktop">
+<div class="flex flex-col items-center text-center max-w-2xl mx-auto mb-space-xl">
+<span class="font-label-md text-label-md text-primary font-bold uppercase tracking-wider">Day Two Operations</span>
+<h2 class="font-headline-lg text-headline-lg text-on-surface mt-1">Ongoing Maintenance &amp; Responsibilities</h2>
+<p class="font-body-md text-body-md text-on-surface-variant mt-space-xs">
+          Running your own platform delivers absolute privacy, but requires routine operational hygiene to preserve family safety.
+        </p>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-space-lg">
+<div class="p-space-lg rounded-[26px] bg-surface-container shadow-[0_8px_20px_-4px_rgba(65,50,92,0.07),inset_1.5px_1.5px_2px_rgba(255,255,255,0.9)] flex flex-col justify-between">
+<div>
+<div class="w-12 h-12 rounded-2xl bg-primary-fixed flex items-center justify-center text-on-primary-fixed mb-space-md shadow-[0_4px_10px_rgba(94,79,162,0.12),inset_1.5px_1.5px_2px_rgba(255,255,255,0.9)]">
+<span class="material-symbols-outlined text-[24px]">backup</span>
+</div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface font-bold mb-space-xs">Daily Backup Routine</h3>
+<p class="font-body-md text-body-md text-on-surface-variant leading-relaxed">
+              Schedule automated snapshot backups of the PostGIS store. A nightly <code class="font-telemetry text-primary font-semibold">pg_dump</code> piped to encrypted cold storage protects historical trips and zone bounds.
+            </p>
+</div>
+<div class="mt-space-md p-space-sm rounded-xl bg-surface-container-lowest font-telemetry text-telemetry text-on-surface-variant">
+            Cron: <span class="text-primary font-bold">0 3 * * *</span> pg_dump -Fc
+          </div>
+</div>
+<div class="p-space-lg rounded-[26px] bg-surface-container shadow-[0_8px_20px_-4px_rgba(65,50,92,0.07),inset_1.5px_1.5px_2px_rgba(255,255,255,0.9)] flex flex-col justify-between">
+<div>
+<div class="w-12 h-12 rounded-2xl bg-secondary-fixed flex items-center justify-center text-on-secondary-fixed mb-space-md shadow-[0_4px_10px_rgba(20,108,70,0.12),inset_1.5px_1.5px_2px_rgba(255,255,255,0.9)]">
+<span class="material-symbols-outlined text-[24px]">upgrade</span>
+</div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface font-bold mb-space-xs">Container Upgrades</h3>
+<p class="font-body-md text-body-md text-on-surface-variant leading-relaxed">
+              Stay synchronized with security patches and new mobile features. Pull official semantic tags and allow Piko’s automated migrations to run at container launch.
+            </p>
+</div>
+<div class="mt-space-md p-space-sm rounded-xl bg-surface-container-lowest font-telemetry text-telemetry text-on-surface-variant">
+            docker compose pull &amp;&amp; up -d
+          </div>
+</div>
+<div class="p-space-lg rounded-[26px] bg-surface-container shadow-[0_8px_20px_-4px_rgba(65,50,92,0.07),inset_1.5px_1.5px_2px_rgba(255,255,255,0.9)] flex flex-col justify-between">
+<div>
+<div class="w-12 h-12 rounded-2xl bg-tertiary-fixed flex items-center justify-center text-on-tertiary-fixed mb-space-md shadow-[0_4px_10px_rgba(109,88,76,0.12),inset_1.5px_1.5px_2px_rgba(255,255,255,0.9)]">
+<span class="material-symbols-outlined text-[24px]">security</span>
+</div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface font-bold mb-space-xs">Hardening &amp; TLS</h3>
+<p class="font-body-md text-body-md text-on-surface-variant leading-relaxed">
+              Maintain unattended OS security updates on your host node, configure strict UFW firewall policies, and confirm automated ACME SSL certificate renewals.
+            </p>
+</div>
+<div class="mt-space-md p-space-sm rounded-xl bg-surface-container-lowest font-telemetry text-telemetry text-on-surface-variant">
+            Qualys SSL Labs: <span class="text-secondary font-bold">Grade A+</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<section class="w-full py-space-xl bg-surface-container-low">
+<div class="max-w-7xl mx-auto px-margin md:px-margin-tablet lg:px-margin-desktop">
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-space-xl items-center">
+<div class="lg:col-span-6 flex flex-col items-start gap-space-md">
+<span class="font-label-md text-label-md text-primary font-bold uppercase tracking-wider">Community &amp; Open Source</span>
+<h2 class="font-headline-lg text-headline-lg text-on-surface">We build out in the open.</h2>
+<p class="font-body-md text-body-md text-on-surface-variant leading-relaxed">
+            Have questions about reverse proxies, VPN meshing with Tailscale, or configuring push daemons? Join our thriving collective of self-hosters and contributors.
+          </p>
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-space-sm w-full pt-space-xs">
+<a class="p-space-md rounded-2xl bg-surface-container shadow-[0_8px_20px_-4px_rgba(65,50,92,0.07),inset_1.5px_1.5px_2px_rgba(255,255,255,0.9)] hover:bg-surface-container-high transition-all flex items-center gap-space-sm group" href="https://github.com" rel="noreferrer" target="_blank">
+<span class="material-symbols-outlined text-primary text-[28px] group-hover:scale-110 transition-transform">forum</span>
+<div class="flex flex-col">
+<span class="font-title-md text-title-md text-on-surface font-semibold">GitHub Discussions</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Ask questions &amp; setups</span>
+</div>
+</a>
+<a class="p-space-md rounded-2xl bg-surface-container shadow-[0_8px_20px_-4px_rgba(65,50,92,0.07),inset_1.5px_1.5px_2px_rgba(255,255,255,0.9)] hover:bg-surface-container-high transition-all flex items-center gap-space-sm group" href="https://github.com" rel="noreferrer" target="_blank">
+<span class="material-symbols-outlined text-secondary text-[28px] group-hover:scale-110 transition-transform">bug_report</span>
+<div class="flex flex-col">
+<span class="font-title-md text-title-md text-on-surface font-semibold">Issue Tracker</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Report bugs &amp; PRs</span>
+</div>
+</a>
+<a class="p-space-md rounded-2xl bg-surface-container shadow-[0_8px_20px_-4px_rgba(65,50,92,0.07),inset_1.5px_1.5px_2px_rgba(255,255,255,0.9)] hover:bg-surface-container-high transition-all flex items-center gap-space-sm group" data-path="docs" href="#">
+<span class="material-symbols-outlined text-tertiary text-[28px] group-hover:scale-110 transition-transform">menu_book</span>
+<div class="flex flex-col">
+<span class="font-title-md text-title-md text-on-surface font-semibold">Full API Docs</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Endpoints &amp; payloads</span>
+</div>
+</a>
+<a class="p-space-md rounded-2xl bg-surface-container shadow-[0_8px_20px_-4px_rgba(65,50,92,0.07),inset_1.5px_1.5px_2px_rgba(255,255,255,0.9)] hover:bg-surface-container-high transition-all flex items-center gap-space-sm group" data-path="faq" href="#">
+<span class="material-symbols-outlined text-primary text-[28px] group-hover:scale-110 transition-transform">help</span>
+<div class="flex flex-col">
+<span class="font-title-md text-title-md text-on-surface font-semibold">Hosting FAQ</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Network troubleshooting</span>
+</div>
+</a>
+</div>
+</div>
+<div class="lg:col-span-6">
+<div class="p-space-xl rounded-[32px] bg-surface-container-highest shadow-[0_16px_32px_-8px_rgba(65,50,92,0.12),inset_2px_2px_4px_rgba(255,255,255,0.95)] flex flex-col items-start gap-space-md">
+<div class="flex items-center gap-space-sm">
+<div class="w-10 h-10 rounded-full bg-secondary text-on-secondary flex items-center justify-center shadow-[0_4px_10px_rgba(20,108,70,0.2)]">
+<span class="material-symbols-outlined text-[20px]">cloud_done</span>
+</div>
+<span class="font-label-sm text-label-sm uppercase font-bold text-secondary tracking-wider">Zero Maintenance Choice</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-on-surface">Too busy to manage servers?</h3>
+<p class="font-body-md text-body-md text-on-surface-variant leading-relaxed">
+              Get all the end-to-end encrypted family safety features of Piko with 99.99% uptime, managed backups, automated updates, and zero terminal hassle.
+            </p>
+<div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-space-sm w-full pt-space-xs">
+<a class="inline-flex items-center justify-center gap-space-xs px-space-lg py-3 rounded-full bg-secondary text-on-secondary font-title-md text-title-md shadow-[0_14px_28px_-6px_rgba(20,108,70,0.25),inset_1.5px_1.5px_2px_rgba(255,255,255,0.6)] hover:bg-on-secondary-container hover:text-surface-container-lowest active:translate-y-0.5 transition-all" href="https://piko-web-jade.vercel.app/login">
+<span>Get started with hosted Piko</span>
+<span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+</a>
+<a class="inline-flex items-center justify-center px-space-md py-3 rounded-full bg-surface-container text-on-surface font-title-md text-title-md shadow-[inset_1.5px_1.5px_2px_rgba(255,255,255,0.9)] hover:bg-surface-container-high transition-all text-center" data-path="hosting-options" href="#">
+                Compare Options
+              </a>
+</div>
+<div class="flex items-center gap-space-sm pt-space-xs text-on-surface-variant">
+<span class="material-symbols-outlined text-secondary text-[18px]">swap_horiz</span>
+<span class="font-label-sm text-label-sm">Migrate between self-hosted and cloud whenever you want.</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<script>
+    const copyBtn = document.getElementById('copy-compose-btn');
+    const copyLabel = document.getElementById('copy-label');
+    const codeEl = document.getElementById('compose-code');
+
+    if (copyBtn && codeEl && copyLabel) {
+      copyBtn.addEventListener('click', () => {
+        const textToCopy = codeEl.innerText;
+        navigator.clipboard.writeText(textToCopy).then(() => {
+          copyLabel.textContent = 'Copied!';
+          copyBtn.classList.add('bg-secondary', 'text-on-secondary');
+          setTimeout(() => {
+            copyLabel.textContent = 'Copy Compose';
+            copyBtn.classList.remove('bg-secondary', 'text-on-secondary');
+          }, 2000);
+        });
+      });
+    }
+  </script>
+</div></main><footer class="w-full bg-surface-container-low py-space-xl shadow-[0_-8px_24px_rgba(72,60,102,0.04)]"><div class="max-w-7xl mx-auto px-margin md:px-margin-tablet lg:px-margin-desktop"><div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-space-xl pb-space-xl"><div class="flex flex-col items-start gap-space-sm"><div class="flex items-center gap-space-sm"><div class="flex items-center justify-center p-1.5 rounded-full bg-surface-container-lowest shadow-[0_4px_12px_rgba(65,50,92,0.08),inset_1.5px_1.5px_2px_rgba(255,255,255,0.95)]"><img alt="Glossy Blue Cyclops Mascot Icon.png" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/AEtjO1X15_PVPZOIwwJOcA1aMteVyUNwb2zOYgb6za0aBhStGhMvdo9zT29rlxzKNJJv18UdLR-5LIpz9Xzf5HnBMaBF1oyB8db0KLX92BUA4c7045QiGj1UaGHrEel3RdlheEyyN0Hrn6IcNhpkyAVbD4OtAple9YjaIx02AAiIQPIpHGQhXBtT14IGrQMamEInL4xlZcIKyopzGN1xYnPumZRRJJ-vV7zkEvoAkWTp_ugKNy7e55OKz7t9FKKyVCSeYhGP6GLKJCqIB2Q"/></div><span class="font-headline-sm text-headline-sm text-primary font-bold">Piko</span></div><p class="font-body-md text-body-md text-on-surface-variant max-w-xs mt-space-xs">Connected by care. Protected by choice.</p><p class="font-body-sm text-body-sm text-outline mt-space-sm">© 2025 Piko Safety Systems. Soft, tactile family protection.</p></div><div class="flex flex-col gap-space-xs"><span class="font-label-md text-label-md uppercase tracking-wider text-primary font-bold mb-space-xs">Platform</span><a class="font-body-md text-body-md text-on-surface-variant hover:text-on-surface transition-colors py-1" data-path="features" href="#">Features</a><a class="font-body-md text-body-md text-on-surface-variant hover:text-on-surface transition-colors py-1" data-path="how-it-works" href="#">How it works</a><a class="font-body-md text-body-md text-on-surface-variant hover:text-on-surface transition-colors py-1" data-path="hosting-options" href="#">Hosting options</a><a class="font-body-md text-body-md text-on-surface-variant hover:text-on-surface transition-colors py-1" data-path="self-hosting-guide" href="#">Self-hosting guide</a><a class="font-body-md text-body-md text-on-surface-variant hover:text-on-surface transition-colors py-1" data-path="pricing" href="#">Pricing</a><a class="font-body-md text-body-md text-on-surface-variant hover:text-on-surface transition-colors py-1" data-path="faq" href="#">FAQ</a></div><div class="flex flex-col gap-space-xs"><span class="font-label-md text-label-md uppercase tracking-wider text-primary font-bold mb-space-xs">Trust &amp; Transparency</span><a class="font-body-md text-body-md text-on-surface-variant hover:text-on-surface transition-colors py-1" data-path="privacy" href="#">Privacy &amp; Control</a><a class="font-body-md text-body-md text-on-surface-variant hover:text-on-surface transition-colors py-1" data-path="terms-of-service" href="#">Terms of Service</a><a class="font-body-md text-body-md text-on-surface-variant hover:text-on-surface transition-colors py-1" href="https://github.com" rel="noreferrer" target="_blank">GitHub Repository</a><a class="font-body-md text-body-md text-on-surface-variant hover:text-on-surface transition-colors py-1" data-path="docs" href="#">Documentation</a></div><div class="flex flex-col gap-space-md"><div class="p-space-lg rounded-2xl bg-surface-container shadow-[0_8px_20px_-4px_rgba(65,50,92,0.07),inset_1.5px_1.5px_2px_rgba(255,255,255,0.9)] flex flex-col items-start gap-space-sm"><span class="font-title-md text-title-md text-on-surface font-semibold">Ready to launch?</span><p class="font-body-sm text-body-sm text-on-surface-variant">Connect instantly through our hosted, privacy-first infrastructure.</p><a class="inline-flex items-center justify-center w-full px-space-md py-space-sm rounded-full bg-secondary text-on-secondary font-title-md text-title-md shadow-[0_12px_24px_-6px_rgba(20,108,70,0.25),inset_1.5px_1.5px_2px_rgba(255,255,255,0.6)] hover:bg-on-secondary-container hover:text-surface-container-lowest transition-all" href="https://piko-web-jade.vercel.app/login">Launch Hosted App</a></div></div></div></div></footer><script>const toggleBtn=document.getElementById('mobile-nav-toggle');const mobileDrawer=document.getElementById('mobile-menu-drawer');if(toggleBtn&&mobileDrawer){toggleBtn.addEventListener('click',()=>{mobileDrawer.classList.toggle('hidden');});}</script></body></html>

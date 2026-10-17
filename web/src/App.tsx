@@ -1,3 +1,4 @@
+import { useRef } from 'react'
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import type { ApiClient } from './api/client'
 import { AuthProvider, useAuth } from './auth/AuthContext'
@@ -18,6 +19,8 @@ import { OverviewPage } from './pages/OverviewPage'
 import { SettingsPage } from './pages/SettingsPage'
 import { SosPage } from './pages/SosPage'
 
+import { LandingPage } from './pages/LandingPage'
+
 /** Hiding pages is only convenience: every request is authorised again by the API. */
 function Protected() {
   const { state } = useAuth()
@@ -34,13 +37,41 @@ function Protected() {
   )
 }
 
+function RootRoute() {
+  const { state, api } = useAuth()
+  const sessionFailedRef = useRef(false)
+
+  if (!(api as any)._wrapped_restore) {
+    ;(api as any)._wrapped_restore = true
+    const origRestore = api.restore.bind(api)
+    api.restore = async () => {
+      const hadSession = api.hasSession
+      const ok = await origRestore()
+      if (!ok && hadSession) {
+        sessionFailedRef.current = true
+      }
+      return ok
+    }
+  }
+
+  if (state.status === 'loading') return <Loading label="Checking your session…" />
+  if (state.status === 'anonymous') {
+    if (state.notice || sessionFailedRef.current) return <Navigate to="/login" replace />
+    return <LandingPage />
+  }
+  return <Protected />
+}
+
 export function AppRoutes() {
   return (
     <Routes>
+      <Route path="/landing" element={<LandingPage />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/join" element={<JoinPage />} />
-      <Route element={<Protected />}>
+      <Route path="/" element={<RootRoute />}>
         <Route index element={<OverviewPage />} />
+      </Route>
+      <Route element={<Protected />}>
         <Route path="map" element={<MapPage />} />
         <Route path="activity" element={<ActivityPage />} />
         <Route path="health" element={<HealthPage />} />
