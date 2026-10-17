@@ -22,7 +22,9 @@ PHASE2_TABLES = {
 }  # fmt: skip
 PHASE3_TABLES = {"telemetry_events", "device_latest_state"}
 INVITATION_TABLES = {"member_invitations"}
-HEAD_TABLES = PHASE2_TABLES | PHASE3_TABLES | INVITATION_TABLES
+SAFETY_TABLES = {"sos_incidents", "messages"}
+PUSH_TABLES = {"device_push_tokens", "web_push_subscriptions", "notification_outbox"}
+HEAD_TABLES = PHASE2_TABLES | PHASE3_TABLES | INVITATION_TABLES | SAFETY_TABLES | PUSH_TABLES
 
 
 @pytest.fixture
@@ -77,7 +79,57 @@ def test_upgrade_from_previous_schema_preserves_data(scratch: tuple[Settings, En
             conn.execute(text("SELECT count(*) FROM users WHERE id = :i"), {"i": user_id}).scalar()
             == 1
         )
-        assert conn.execute(text("SELECT version_num FROM alembic_version")).scalar() == "0003"
+        assert conn.execute(text("SELECT version_num FROM alembic_version")).scalar() == "0005"
+
+
+def test_0004_applies_to_a_populated_0003_schema_without_touching_existing_rows(  # type: ignore[no-untyped-def]
+    scratch: tuple[Settings, Engine],
+) -> None:
+    """The persistent schema is at 0003 with real rows: 0004 must be additive (audit action list widens)."""
+    s, engine = scratch
+    cfg = alembic_config(s)
+    command.upgrade(cfg, "0003")
+    user_id, family_id, audit_id = uuid.uuid4(), uuid.uuid4(), uuid.uuid4()
+    with engine.begin() as conn:
+        conn.execute(
+            text("INSERT INTO users (id, email, password_hash) VALUES (:i, :e, '!')"),
+            {"i": user_id, "e": f"{user_id}@example.com"},
+        )
+        conn.execute(text("INSERT INTO families (id, name) VALUES (:i, 'F')"), {"i": family_id})
+        conn.execute(
+            text(
+                "INSERT INTO audit_events (id, family_id, actor_user_id, action, resource_type) "
+                "VALUES (:a, :f, :u, 'login', 'user')"
+            ),
+            {"a": audit_id, "f": family_id, "u": user_id},
+        )
+    command.upgrade(cfg, "head")
+    assert {"sos_incidents", "messages"} <= tables(engine)
+    with engine.begin() as conn:
+        assert (
+            conn.execute(
+                text("SELECT count(*) FROM audit_events WHERE id = :a"), {"a": audit_id}
+            ).scalar()
+            == 1
+        )
+        assert (
+            conn.execute(text("SELECT count(*) FROM users WHERE id = :u"), {"u": user_id}).scalar()
+            == 1
+        )
+        conn.execute(  # the widened constraint now accepts the new action
+            text(
+                "INSERT INTO audit_events (id, family_id, actor_user_id, action, resource_type) "
+                "VALUES (:a, :f, :u, 'sos_acknowledged', 'incident')"
+            ),
+            {"a": uuid.uuid4(), "f": family_id, "u": user_id},
+        )
+    with pytest.raises(Exception, match="check"), engine.begin() as conn:
+        conn.execute(
+            text(
+                "INSERT INTO audit_events (id, action, resource_type) VALUES (:a, 'bogus', 'incident')"
+            ),
+            {"a": uuid.uuid4()},
+        )
 
 
 def test_upgrade_is_idempotent_and_downgrades_cleanly(scratch: tuple[Settings, Engine]) -> None:
@@ -85,6 +137,10 @@ def test_upgrade_is_idempotent_and_downgrades_cleanly(scratch: tuple[Settings, E
     cfg = alembic_config(s)
     command.upgrade(cfg, "head")
     command.upgrade(cfg, "head")  # no-op, no error
+    command.downgrade(cfg, "0004")
+    assert tables(engine) == PHASE2_TABLES | PHASE3_TABLES | INVITATION_TABLES | SAFETY_TABLES
+    command.downgrade(cfg, "0003")
+    assert tables(engine) == PHASE2_TABLES | PHASE3_TABLES | INVITATION_TABLES
     command.downgrade(cfg, "0002")
     assert tables(engine) == PHASE2_TABLES | PHASE3_TABLES
     command.downgrade(cfg, "0001")

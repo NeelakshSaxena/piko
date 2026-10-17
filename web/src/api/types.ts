@@ -147,3 +147,68 @@ export type ErrorCode =
   | 'CONFLICT'
   | 'SERVICE_UNAVAILABLE'
   | 'INTERNAL_ERROR'
+
+// ---- SOS and messages (Phase 6, ADR-022) ----
+/** Server states. "open" means the server stored it and no parent has acknowledged it yet. */
+export type SosStatus = 'open' | 'acknowledged' | 'resolved'
+
+export interface SosLocation {
+  latitude: number
+  longitude: number
+  accuracy_meters: number | null
+  /** When the position was measured. */
+  captured_at: string
+  /** True: the last position the server knew, not one sent with the SOS. */
+  is_latest_known: boolean
+}
+
+export interface Incident {
+  incident_id: string
+  device_id: string
+  family_id: string
+  status: SosStatus
+  /** The phone's claim of when the SOS was raised. */
+  triggered_at: string
+  /** When the server stored it. */
+  received_at: string
+  message: string | null
+  location: SosLocation | null
+  acknowledged_at: string | null
+  resolved_at: string | null
+  parent_notes: string | null
+}
+
+export interface IncidentPage {
+  incidents: Incident[]
+  total_count: number
+  has_more: boolean
+}
+
+export interface ChatMessage {
+  message_id: string
+  device_id: string
+  sender: 'device' | 'parent'
+  body: string
+  sent_at: string
+  received_at: string
+  /** delivered: stored by the server. acknowledged: the other side pressed "seen". */
+  status: 'delivered' | 'acknowledged'
+  acknowledged_at: string | null
+}
+
+export interface MessagePage {
+  messages: ChatMessage[]
+  total_count: number
+  has_more: boolean
+}
+
+// ---- push (ADR-023) ----
+export interface PushConfig {
+  web_push_enabled: boolean
+  vapid_public_key: string | null
+}
+
+export interface WebPushSubscriptionBody {
+  endpoint: string
+  keys: { p256dh: string; auth: string }
+}

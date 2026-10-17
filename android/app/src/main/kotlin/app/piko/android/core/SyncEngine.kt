@@ -98,10 +98,6 @@ class SyncEngine(
     /** Exponential backoff with equal jitter: half the delay is fixed, half is random. */
     private fun retryAfter(reason: RetryReason, retryAfterSeconds: Long?): SyncOutcome.RetryAfter {
         consecutiveFailures++
-        val exponent = minOf(consecutiveFailures - 1, 30)
-        val ceiling = minOf(config.maxBackoffMs, config.baseBackoffMs shl exponent)
-        val jittered = ceiling / 2 + random.nextLong(ceiling / 2 + 1)
-        val server = retryAfterSeconds?.let { (it * 1000).coerceIn(1_000, config.maxBackoffMs) } ?: 0
-        return SyncOutcome.RetryAfter(maxOf(jittered, server), reason)
+        return SyncOutcome.RetryAfter(Backoff.delayMs(consecutiveFailures, config, random, retryAfterSeconds), reason)
     }
 }

@@ -1,11 +1,12 @@
 """HTTP routes (/api/v1). Thin: parse, rate-limit, call a service, map to a DTO."""
 
+import hmac
 import logging
 import uuid
 from datetime import UTC, datetime, timedelta
 from typing import Annotated, Literal
 
-from fastapi import APIRouter, Depends, Query, Request, Response
+from fastapi import APIRouter, BackgroundTasks, Depends, Header, Query, Request, Response
 from sqlalchemy import text
 
 from app.api import schemas as s
@@ -20,10 +21,13 @@ from app.api.deps import (
 )
 from app.core.errors import ApiError
 from app.core.security import password_is_acceptable_length
+from app.db.models import Message, SosIncident
 from app.services import families as family_service
 from app.services import history, locations
 from app.services.auth import AuthService
 from app.services.devices import DeviceService, PairRequest
+from app.services.principals import UserPrincipal
+from app.services.sos import SosCreate, SosLocation, SosService
 from app.services.telemetry import RawEvent, TelemetryService
 
 log = logging.getLogger("piko.api")
@@ -321,3 +325,292 @@ def ingest_batch(
             for r in result.rejected_events
         ],
     )
+
+
+def _kick_outbox(request: Request, background: BackgroundTasks) -> None:
+    """Best-effort immediate delivery after the response. Not the delivery guarantee: the committed
+    outbox row is, and the scheduler / CLI / next request will pick it up if this never runs."""
+    notifier = request.app.state.notifier
+    background.add_task(notifier.drain, request.app.state.session_factory, 10)
+
+
+# ---- SOS ----
+def _incident_out(row: SosIncident, *, for_family: bool) -> s.IncidentOut:
+    location = None
+    if (
+        row.location_latitude is not None
+        and row.location_longitude is not None
+        and row.location_captured_at is not None
+    ):
+        location = s.SosLocationOut(
+            latitude=float(row.location_latitude),
+            longitude=float(row.location_longitude),
+            accuracy_meters=(
+                None
+                if row.location_accuracy_meters is None
+                else float(row.location_accuracy_meters)
+            ),
+            captured_at=row.location_captured_at,
+            is_latest_known=row.location_is_latest_known,
+        )
+    return s.IncidentOut(
+        incident_id=row.id,
+        device_id=row.device_id,
+        family_id=row.family_id,
+        status=row.status,
+        triggered_at=row.triggered_at,
+        received_at=row.received_at,
+        message=row.message,
+        location=location,
+        acknowledged_at=row.acknowledged_at,
+        resolved_at=row.resolved_at,
+        parent_notes=row.parent_notes if for_family else None,
+    )
+
+
+@router.post("/sos/incidents", response_model=s.IncidentOut)
+def create_sos(
+    body: s.SosCreateRequest,
+    request: Request,
+    response: Response,
+    background: BackgroundTasks,
+    db: Db,
+    device: CurrentDevice,
+) -> object:
+    rate_limit(request, response, "sos-create", str(device.device_id), 10)
+    if body.device_id != device.device_id:
+        raise ApiError("FORBIDDEN", "A device can only raise an SOS for itself.")
+    service: SosService = request.app.state.sos
+    location = (
+        SosLocation(body.location.latitude, body.location.longitude, body.location.accuracy_meters)
+        if body.location
+        else None
+    )
+    incident, created = service.create(
+        db, device, SosCreate(body.incident_id, body.triggered_at, body.message, location)
+    )
+    response.status_code = 201 if created else 200  # 200: a replay of an incident already stored
+    if created:
+        _kick_outbox(request, background)
+    return _incident_out(incident, for_family=False)
+
+
+@router.get("/sos/incidents", response_model=s.IncidentListResponse)
+def list_sos(
+    request: Request,
+    response: Response,
+    db: Db,
+    principal: AnyPrincipal,
+    status: Literal["open", "acknowledged", "resolved"] | None = None,
+    limit: Annotated[int, Query(ge=1, le=500)] = 50,
+    offset: Annotated[int, Query(ge=0, le=100_000)] = 0,
+) -> object:
+    rate_limit(request, response, "sos-list", _principal_key(principal), 60)
+    page = request.app.state.sos.list(db, principal, status=status, limit=limit, offset=offset)
+    family_view = isinstance(principal, UserPrincipal)
+    return s.IncidentListResponse(
+        incidents=[_incident_out(i, for_family=family_view) for i in page.incidents],
+        total_count=page.total_count,
+        has_more=page.has_more,
+    )
+
+
+@router.get("/sos/incidents/{incident_id}", response_model=s.IncidentOut)
+def get_sos(
+    incident_id: uuid.UUID, request: Request, response: Response, db: Db, principal: AnyPrincipal
+) -> object:
+    rate_limit(request, response, "sos-get", _principal_key(principal), 60)
+    incident = request.app.state.sos.get(db, principal, incident_id)
+    return _incident_out(incident, for_family=isinstance(principal, UserPrincipal))
+
+
+@router.put("/sos/incidents/{incident_id}", response_model=s.IncidentOut)
+def update_sos(
+    incident_id: uuid.UUID,
+    body: s.SosUpdateRequest,
+    request: Request,
+    response: Response,
+    background: BackgroundTasks,
+    db: Db,
+    user: CurrentUser,
+) -> object:
+    rate_limit(request, response, "sos-update", str(user.user_id), 30)
+    incident = request.app.state.sos.transition(db, user, incident_id, body.status, body.notes)
+    _kick_outbox(request, background)
+    return _incident_out(incident, for_family=True)
+
+
+# ---- messages ----
+def _message_out(row: Message) -> s.MessageOut:
+    return s.MessageOut(
+        message_id=row.id,
+        device_id=row.device_id,
+        sender=row.sender,
+        body=row.body,
+        sent_at=row.sent_at,
+        received_at=row.received_at,
+        status=row.status,
+        acknowledged_at=row.acknowledged_at,
+    )
+
+
+def _principal_key(principal: AnyPrincipal) -> str:
+    if isinstance(principal, UserPrincipal):
+        return str(principal.user_id)
+    return str(principal.device_id)
+
+
+@router.post("/messages", response_model=s.MessageOut)
+def send_message(
+    body: s.MessageSendRequest,
+    request: Request,
+    response: Response,
+    background: BackgroundTasks,
+    db: Db,
+    principal: AnyPrincipal,
+) -> object:
+    rate_limit(request, response, "message-send", _principal_key(principal), 30)
+    message, created = request.app.state.messages.send(
+        db,
+        principal,
+        message_id=body.message_id,
+        body=body.body,
+        sent_at=body.sent_at,
+        device_id=body.device_id,
+    )
+    response.status_code = 201 if created else 200
+    if created:
+        _kick_outbox(request, background)
+    return _message_out(message)
+
+
+@router.get("/messages", response_model=s.MessageListResponse)
+def list_messages(
+    request: Request,
+    response: Response,
+    db: Db,
+    principal: AnyPrincipal,
+    device_id: uuid.UUID | None = None,
+    sender: Literal["device", "parent"] | None = None,
+    limit: Annotated[int, Query(ge=1, le=200)] = 50,
+    offset: Annotated[int, Query(ge=0, le=100_000)] = 0,
+) -> object:
+    rate_limit(request, response, "message-list", _principal_key(principal), 60)
+    page = request.app.state.messages.list(
+        db, principal, device_id=device_id, sender=sender, limit=limit, offset=offset
+    )
+    return s.MessageListResponse(
+        messages=[_message_out(m) for m in page.messages],
+        total_count=page.total_count,
+        has_more=page.has_more,
+    )
+
+
+@router.post("/messages/{message_id}/ack", response_model=s.MessageOut)
+def acknowledge_message(
+    message_id: uuid.UUID, request: Request, response: Response, db: Db, principal: AnyPrincipal
+) -> object:
+    rate_limit(request, response, "message-ack", _principal_key(principal), 60)
+    return _message_out(request.app.state.messages.acknowledge(db, principal, message_id))
+
+
+# ---- push registration (ADR-023) ----
+@router.put("/push/device-token", status_code=204)
+def register_device_token(
+    body: s.PushTokenRequest, request: Request, response: Response, db: Db, device: CurrentDevice
+) -> Response:
+    rate_limit(request, response, "push-token", str(device.device_id), 20, 3600)
+    request.app.state.push.register_device_token(db, device, body.token)
+    return Response(status_code=204)
+
+
+@router.delete("/push/device-token", status_code=204)
+def remove_device_token(request: Request, db: Db, device: CurrentDevice) -> Response:
+    request.app.state.push.remove_device_token(db, device)
+    return Response(status_code=204)
+
+
+@router.get("/push/config", response_model=s.PushConfigResponse)
+def push_config(request: Request, user: CurrentUser) -> object:
+    settings = request.app.state.settings
+    enabled = "web_subscription" in request.app.state.notifier.transports and bool(
+        settings.vapid_public_key
+    )
+    return s.PushConfigResponse(
+        web_push_enabled=enabled, vapid_public_key=settings.vapid_public_key if enabled else None
+    )
+
+
+@router.put("/push/web-subscription", status_code=204)
+def register_web_subscription(
+    body: s.WebPushSubscriptionRequest,
+    request: Request,
+    response: Response,
+    db: Db,
+    user: CurrentUser,
+) -> Response:
+    rate_limit(request, response, "push-sub", str(user.user_id), 20, 3600)
+    request.app.state.push.register_web_subscription(
+        db, user, body.endpoint, body.keys.p256dh, body.keys.auth
+    )
+    return Response(status_code=204)
+
+
+@router.post("/push/web-subscription/remove", status_code=204)
+def remove_web_subscription(
+    body: s.WebPushRemoveRequest, request: Request, response: Response, db: Db, user: CurrentUser
+) -> Response:
+    rate_limit(request, response, "push-sub", str(user.user_id), 20, 3600)
+    request.app.state.push.remove_web_subscription(db, user, body.endpoint)
+    return Response(status_code=204)
+
+
+# ---- outbox operations: for an external scheduler, authenticated by a shared secret ----
+def _require_outbox_token(request: Request, presented: str | None) -> None:
+    expected: bytes | None = request.app.state.outbox_token
+    if expected is None:
+        raise ApiError("SERVICE_UNAVAILABLE", "Outbox operations are not enabled.")
+    if presented is None or not hmac.compare_digest(presented.encode(), expected):
+        raise ApiError("AUTH_INVALID")
+
+
+@router.post("/internal/outbox/run", response_model=s.OutboxRunResponse)
+def run_outbox(
+    request: Request,
+    response: Response,
+    x_piko_outbox_token: Annotated[str | None, Header()] = None,
+) -> object:
+    _require_outbox_token(request, x_piko_outbox_token)
+    rate_limit(request, response, "outbox-run", client_ip(request), 30)
+    result = request.app.state.notifier.drain(request.app.state.session_factory)
+    return s.OutboxRunResponse(
+        accepted=result.accepted, retried=result.retried, dead=result.dead, skipped=result.skipped,
+        expired=result.expired, waiting_for_transport=result.waiting_for_transport,
+    )  # fmt: skip
+
+
+@router.get("/internal/outbox/health")
+def outbox_health(
+    request: Request,
+    response: Response,
+    db: Db,
+    x_piko_outbox_token: Annotated[str | None, Header()] = None,
+) -> object:
+    _require_outbox_token(request, x_piko_outbox_token)
+    rate_limit(request, response, "outbox-health", client_ip(request), 30)
+    return request.app.state.notifier.health(db)
+
+
+@router.post("/internal/retention/run", response_model=s.RetentionRunResponse)
+def run_retention(
+    request: Request,
+    response: Response,
+    x_piko_outbox_token: Annotated[str | None, Header()] = None,
+) -> object:
+    """Deletes data past its retention period, in bounded batches (an external scheduler calls this)."""
+    _require_outbox_token(request, x_piko_outbox_token)
+    rate_limit(request, response, "retention-run", client_ip(request), 6)
+    report = request.app.state.retention.run(
+        request.app.state.session_factory, apply=True, max_batches=10
+    )
+    return s.RetentionRunResponse(deleted=report.counts, more_remaining=report.more_remaining)

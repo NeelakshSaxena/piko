@@ -1,7 +1,8 @@
 """Central authorization. Every family-scoped read or write resolves access through here.
 
 Unauthorized and nonexistent resources are indistinguishable (NOT_FOUND_OR_NOT_VISIBLE) so IDs
-cannot be enumerated. A caller who is a member of the family but lacks the role gets FORBIDDEN.
+cannot be enumerated; that includes members whose membership was revoked. A caller who is an active
+member of the family but lacks the role gets FORBIDDEN.
 """
 
 import uuid
@@ -32,10 +33,10 @@ def require_family_role(
             Family.status == "active",
         )
     )
-    if membership is None or membership.status == "pending":
+    # A pending or revoked member is indistinguishable from a non-member: a guessed id of a family you
+    # no longer belong to must not reveal that it exists (audit L-4, ADR-023 addendum).
+    if membership is None or membership.status in ("pending", "revoked"):
         raise ApiError("NOT_FOUND_OR_NOT_VISIBLE")
-    if membership.status == "revoked":
-        raise ApiError("FORBIDDEN")
     if membership.role not in roles:
         raise ApiError("FORBIDDEN")
     return membership
@@ -75,6 +76,25 @@ def primary_family_id(db: Session, user_id: uuid.UUID) -> uuid.UUID | None:
         .order_by(FamilyMembership.joined_at, FamilyMembership.id)
         .limit(1)
     )
+
+
+def view_family_id(db: Session, user_id: uuid.UUID) -> uuid.UUID:
+    """The one family in which the caller may read safety data (parent, family_admin, guardian)."""
+    family_id = db.scalar(
+        select(FamilyMembership.family_id)
+        .join(Family, Family.id == FamilyMembership.family_id)
+        .where(
+            FamilyMembership.user_id == user_id,
+            FamilyMembership.status == "active",
+            FamilyMembership.role.in_(VIEW_ROLES),
+            Family.status == "active",
+        )
+        .order_by(FamilyMembership.joined_at, FamilyMembership.id)
+        .limit(1)
+    )
+    if family_id is None:
+        raise ApiError("FORBIDDEN")
+    return family_id
 
 
 def visible_device(db: Session, principal: Principal, device_id: uuid.UUID) -> Device:

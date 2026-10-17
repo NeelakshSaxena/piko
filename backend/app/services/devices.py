@@ -4,7 +4,7 @@ import uuid
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 
-from sqlalchemy import select, update
+from sqlalchemy import delete, select, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
@@ -22,6 +22,7 @@ from app.db.models import (
     Device,
     DeviceCredential,
     DeviceLatestState,
+    DevicePushToken,
     Family,
     FamilyMembership,
     PairingInvitation,
@@ -254,6 +255,8 @@ class DeviceService:
                 .where(DeviceCredential.device_id == device.id)
                 .values(status="revoked", revoked_at=now)
             )
+            # A revoked phone must stop receiving notifications immediately.
+            db.execute(delete(DevicePushToken).where(DevicePushToken.device_id == device.id))
             audit.record(
                 db, action="device_revoked", resource_type="device", family_id=device.family_id,
                 actor_user_id=principal.user_id, resource_id=device.id,

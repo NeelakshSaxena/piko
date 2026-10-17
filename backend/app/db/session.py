@@ -17,6 +17,8 @@ def make_engine(settings: Settings) -> Engine:
         url,
         pool_size=5,
         max_overflow=5,
+        # Statement errors must never carry bind values (coordinates, code hashes) into logs (audit L-1).
+        hide_parameters=True,
         pool_pre_ping=True,
         pool_recycle=1800,
         connect_args={

@@ -198,3 +198,45 @@ describe('errors and requests', () => {
     expect(api.hasSession).toBe(false)
   })
 })
+
+describe('SOS and message calls', () => {
+  const ready = { 'POST /auth/session/refresh': json({ access_token: 'a1', refresh_token: 'r1', expires_in: 3600 }) }
+
+  it('sends the status change and the message id exactly as given', async () => {
+    const bodies: unknown[] = []
+    const { api } = setup({
+      ...ready,
+      'PUT /sos/incidents/i1': ({ body }) => (bodies.push(body), json({ incident_id: 'i1' })),
+      'POST /messages': ({ body }) => (bodies.push(body), json({ message_id: 'm-fixed' })),
+      'POST /messages/m1/ack': json({ message_id: 'm1' }),
+    })
+    await api.updateSos('i1', 'resolved', 'fine')
+    await api.updateSos('i1', 'acknowledged')
+    await api.sendMessage({ messageId: 'm-fixed', deviceId: 'd1', body: 'hi', sentAt: '2026-10-17T00:00:00Z' })
+    await api.acknowledgeMessage('m1')
+    expect(bodies).toEqual([
+      { status: 'resolved', notes: 'fine' },
+      { status: 'acknowledged' },
+      { message_id: 'm-fixed', device_id: 'd1', body: 'hi', sent_at: '2026-10-17T00:00:00Z' },
+    ])
+  })
+
+  it('treats a reply of the wrong shape as an error, never as an empty list', async () => {
+    const wrong = [json({}), json({ incidents: 'none' }), json(null as unknown as object), new Response('<html>proxy error</html>', { status: 200 })]
+    for (const reply of wrong) {
+      const { api } = setup({ ...ready, 'GET /sos/incidents': reply, 'GET /messages': reply })
+      await expect(api.sosIncidents()).rejects.toBeInstanceOf(ApiError)
+      await expect(api.messages('d1')).rejects.toBeInstanceOf(ApiError)
+    }
+  })
+
+  it('passes filters as query parameters and does not send a body on reads', async () => {
+    const seen: string[] = []
+    const { api } = setup({
+      ...ready,
+      'GET /sos/incidents': ({ url, init }) => (seen.push(url.search, String(init.body)), json({ incidents: [], total_count: 0, has_more: false })),
+    })
+    await api.sosIncidents({ status: 'open', limit: 5 })
+    expect(seen).toEqual(['?status=open&limit=5', 'undefined'])
+  })
+})

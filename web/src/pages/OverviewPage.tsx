@@ -4,6 +4,7 @@ import type { HistoryItem } from '../api/types'
 import { useAuth } from '../auth/AuthContext'
 import { useFamily } from '../auth/FamilyContext'
 import { useFleet, type FleetEntry } from '../auth/FleetContext'
+import { useSos } from '../auth/SosContext'
 import { Icon } from '../components/Icon'
 import { FleetMap, TileNotice, type MapMarker } from '../components/Map'
 import { Avatar, Card, Chip, Empty, ErrorState, FreshnessBadge, Loading, PageTitle, StatusBadge, Tile } from '../components/ui'
@@ -161,6 +162,7 @@ export function OverviewPage() {
   const { canManage } = useAuth()
   const { family, reload } = useFamily()
   const { entries, loading, reload: reloadFleet } = useFleet()
+  const { openCount } = useSos()
   const now = useNow(15_000)
 
   const markers = useMemo(() => markersOf(entries, now), [entries, now])
@@ -219,8 +221,14 @@ export function OverviewPage() {
               tone="peach"
               icon={<Icon name="sos" />}
               label="SOS"
-              value="Not available yet"
-              note="SOS is planned for a later version. Do not rely on Piko to call for help."
+              value={openCount === null ? 'Unknown' : openCount > 0 ? `${openCount} open` : 'None open'}
+              note={
+                openCount === null
+                  ? 'SOS status could not be read. Do not assume there are none.'
+                  : openCount > 0
+                    ? 'Not yet acknowledged. Open the SOS Centre.'
+                    : 'No SOS has reached Piko. That is not proof anyone is safe. Piko does not call emergency services.'
+              }
             />
           </div>
 

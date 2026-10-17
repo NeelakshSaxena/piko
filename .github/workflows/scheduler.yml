@@ -1,0 +1,44 @@
+name: scheduler
+
+# Calls the backend's protected maintenance endpoints on a schedule. Needed because a serverless host has no
+# long-running worker: the notification outbox is durable, and this is the fallback that drains it when no
+# request has done so. GitHub's schedule is best-effort (runs can be delayed by many minutes) and is NOT the
+# only path: each SOS/message request also drains the outbox after it responds, and Supabase pg_cron can call
+# the same endpoint every 30 seconds (docs/DEPLOYMENT.md). Does nothing until configured.
+#
+# Configure in the repository: Variable PIKO_API_URL (for example https://piko-api.example.app) and
+# Secret PIKO_OUTBOX_RUN_TOKEN (the same value as the backend's outbox run token).
+on:
+  schedule:
+    - cron: "*/5 * * * *" # outbox
+    - cron: "17 3 * * *" # retention, once a day
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  outbox:
+    if: ${{ vars.PIKO_API_URL != '' && github.event.schedule != '17 3 * * *' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Drain the notification outbox
+        env:
+          URL: ${{ vars.PIKO_API_URL }}
+          TOKEN: ${{ secrets.PIKO_OUTBOX_RUN_TOKEN }}
+        run: |
+          curl --fail --silent --show-error --max-time 60 -X POST \
+            -H "X-Piko-Outbox-Token: ${TOKEN}" "${URL}/api/v1/internal/outbox/run"
+
+  retention:
+    if: ${{ vars.PIKO_API_URL != '' && (github.event.schedule == '17 3 * * *' || github.event_name == 'workflow_dispatch') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Delete data past its retention period
+        env:
+          URL: ${{ vars.PIKO_API_URL }}
+          TOKEN: ${{ secrets.PIKO_OUTBOX_RUN_TOKEN }}
+        run: |
+          curl --fail --silent --show-error --max-time 120 -X POST \
+            -H "X-Piko-Outbox-Token: ${TOKEN}" "${URL}/api/v1/internal/retention/run"

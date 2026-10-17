@@ -58,6 +58,26 @@ class Settings(BaseSettings):
     telemetry_max_batch_events: int = 500
     telemetry_future_skew_seconds: int = 60
 
+    # Push (ADR-023). Everything is optional: unset means "not configured" and nothing is sent.
+    fcm_project_id: str | None = None
+    fcm_service_account_file: Path | None = None  # secret file, never in env dumps or the repo
+    vapid_private_key_file: Path | None = None
+    vapid_public_key: str | None = None  # public, handed to browsers
+    vapid_subject: str = "mailto:operator@example.invalid"
+    outbox_run_token_file: Path | None = None  # shared secret for the external scheduler endpoint
+    outbox_max_attempts: int = 8
+    outbox_batch_size: int = 25
+    outbox_backoff_base_seconds: int = 10
+    outbox_backoff_cap_seconds: int = 3600
+    sos_notification_ttl_seconds: int = 24 * 3600
+    message_notification_ttl_seconds: int = 24 * 3600
+    # Volume caps and retention (audit F-04, backlog item 11).
+    sos_max_unresolved_per_device: int = 50
+    messages_max_per_device_per_day: int = 500
+    message_retention_days: int = 90
+    audit_retention_days: int = 365
+    outbox_retention_days: int = 30
+
     @field_validator("db_schema")
     @classmethod
     def _schema_is_safe_identifier(cls, v: str) -> str:

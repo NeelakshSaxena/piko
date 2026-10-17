@@ -4,5 +4,22 @@
     <!-- Debug builds only: allow cleartext HTTP to the emulator's host loopback (see the XML). -->
     <application
         android:networkSecurityConfig="@xml/network_security_config_debug"
-        tools:replace="android:networkSecurityConfig" />
+        tools:replace="android:networkSecurityConfig">
+
+        <!--
+          Debug builds only. Lets `adb shell am broadcast` stand in for the two callbacks Firebase makes
+          (onMessageReceived / onNewToken) so the push-handling path can be exercised on an emulator that has
+          no Firebase project. Only a caller holding android.permission.DUMP (the adb shell) can reach it,
+          and it is absent from release builds. It does NOT test Google's delivery leg.
+        -->
+        <receiver
+            android:name=".debug.SimulatePushReceiver"
+            android:exported="true"
+            android:permission="android.permission.DUMP">
+            <intent-filter>
+                <action android:name="app.piko.android.debug.SIMULATE_PUSH" />
+                <action android:name="app.piko.android.debug.SIMULATE_TOKEN" />
+            </intent-filter>
+        </receiver>
+    </application>
 </manifest>

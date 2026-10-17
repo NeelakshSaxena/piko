@@ -1,7 +1,19 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
 }
+
+// Firebase client settings are not secrets (they ship in every Firebase app) but they are specific to one
+// Firebase project, so they come from android/local.properties (git-ignored) or -P properties, never from
+// source. Unset means "push not configured on this build": the app builds, runs and falls back to polling.
+val localProps = Properties().apply {
+    val f = rootProject.file("local.properties")
+    if (f.exists()) f.inputStream().use { load(it) }
+}
+fun firebaseSetting(name: String): String =
+    (providers.gradleProperty(name).orNull ?: localProps.getProperty(name) ?: "").replace("\"", "")
 
 android {
     namespace = "app.piko.android"
@@ -14,6 +26,10 @@ android {
         versionCode = 1
         versionName = "0.4.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        buildConfigField("String", "FIREBASE_PROJECT_ID", "\"${firebaseSetting("piko.firebase.projectId")}\"")
+        buildConfigField("String", "FIREBASE_APP_ID", "\"${firebaseSetting("piko.firebase.appId")}\"")
+        buildConfigField("String", "FIREBASE_API_KEY", "\"${firebaseSetting("piko.firebase.apiKey")}\"")
+        buildConfigField("String", "FIREBASE_SENDER_ID", "\"${firebaseSetting("piko.firebase.senderId")}\"")
     }
 
     buildTypes {
@@ -53,6 +69,8 @@ dependencies {
     implementation(libs.androidx.compose.foundation)
     implementation(libs.androidx.compose.material3)
     implementation(libs.kotlinx.coroutines.android)
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.messaging)
 
     testImplementation(libs.junit)
     testImplementation(libs.org.json)

@@ -17,10 +17,13 @@ import app.piko.android.collect.BatteryCollector
 import app.piko.android.collect.ConnectivityMonitor
 import app.piko.android.collect.LocationCollector
 import app.piko.android.collect.hasLocationPermission
+import app.piko.android.comms.CommsRunner
 import app.piko.android.core.BatteryThrottle
 import app.piko.android.core.ConnectivityThrottle
 import app.piko.android.core.EventData
+import app.piko.android.core.InvalidComm
 import app.piko.android.core.InvalidEvent
+import app.piko.android.core.SosPoint
 import app.piko.android.core.ModePlan
 import app.piko.android.core.SyncEngine
 import app.piko.android.core.SyncOutcome
@@ -135,9 +138,17 @@ class SharingService : Service() {
         val accuracy = if (fix.hasAccuracy()) fix.accuracy.toDouble() else null
         try {
             record(EventData.Location(fix.latitude, fix.longitude, accuracy), capturedAtMs = fix.time)
-            app.update { it.copy(lastLocationAtMs = fix.time.coerceAtMost(app.clock.nowMs()), lastLocationAccuracyM = accuracy) }
+            app.update {
+                it.copy(
+                    lastLocationAtMs = fix.time.coerceAtMost(app.clock.nowMs()),
+                    lastLocationAccuracyM = accuracy,
+                    lastFix = SosPoint(fix.latitude, fix.longitude, accuracy),
+                )
+            }
         } catch (_: InvalidEvent) {
             // A malformed reading from the platform is dropped, never queued.
+        } catch (_: InvalidComm) {
+            // Same for the in-memory copy kept for SOS.
         }
     }
 
@@ -166,6 +177,8 @@ class SharingService : Service() {
             delay((MIN_ATTEMPT_SPACING_MS - (app.clock.nowMs() - lastAttemptMs)).coerceAtLeast(0))
             lastAttemptMs = app.clock.nowMs()
             setSync(SyncStatus.Syncing)
+            // An SOS or message waiting in the outbox goes before routine telemetry.
+            CommsRunner.runOnce(applicationContext)
             when (val outcome = engine.syncOnce()) {
                 is SyncOutcome.Done -> {
                     setSync(SyncStatus.Idle)

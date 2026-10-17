@@ -1,0 +1,8 @@
+﻿.\.venv\Scripts\python.exe : No known vulnerabilities found
+At line:1 char:323
++ ... :\Projects\piko; .\.venv\Scripts\python.exe -m pip_audit 2>&1 | Out-F ...
++                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (No known vulnerabilities found:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+pip-audit exit 0

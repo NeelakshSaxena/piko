@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
 import { ApiClient, ApiError } from '../api/client'
 import type { FamilySummary, Role } from '../api/types'
+import { disablePush } from '../lib/push'
 
 export type AuthState =
   | { status: 'loading' }
@@ -67,6 +68,12 @@ export function AuthProvider({ api, children }: { api: ApiClient; children: Reac
   )
 
   const signOut = useCallback(async () => {
+    // Stop pushes to this browser before the session ends: afterwards the server could not authorise it.
+    try {
+      await disablePush(api)
+    } catch {
+      /* best effort: a stale subscription is also dropped when the push service reports it gone */
+    }
     await api.logout()
     setState({ status: 'anonymous', notice: 'signed-out' })
   }, [api])

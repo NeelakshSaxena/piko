@@ -1,5 +1,9 @@
 # Phase 2-3 gate backlog (come back here to close the gate)
 
+> Status 2026-10-17: see `docs/verification/phase-02-03-backlog-closure.md` for the per-item result. Items 2, 4, 5, 6 are
+> done; 3 (0003 already applied, 0004 pending approval), 9 are partly done; 1, 7, 8, 10, 11, 13 need an operator decision or
+> physical work; 12 is Phase 8. The gate is not closed.
+
 Created 2026-10-16 at the operator's instruction. Phases 2 and 3 are implemented and tested but the
 formal gate (AGENTS.md section 10) is **deliberately left open** while Phases 4-5 proceed. Phase 4/5
 work must not be reported as gated-complete on top of an open Phase 2-3 gate.

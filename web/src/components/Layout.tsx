@@ -3,6 +3,7 @@ import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-do
 import { useAuth } from '../auth/AuthContext'
 import { useFamily } from '../auth/FamilyContext'
 import { useFleet } from '../auth/FleetContext'
+import { useSos } from '../auth/SosContext'
 import { ageSeconds, formatAge } from '../lib/format'
 import { useNow } from '../lib/useAsync'
 import { Icon, type IconName } from './Icon'
@@ -12,19 +13,17 @@ interface NavItem {
   to: string
   label: string
   icon: IconName
-  /** A badge means "this part of the product does not exist yet", never a live count. */
-  soon?: boolean
 }
 
 export const NAV: NavItem[] = [
   { to: '/', label: 'Overview', icon: 'overview' },
   { to: '/map', label: 'Live Map', icon: 'map' },
   { to: '/family', label: 'Family Members', icon: 'people' },
-  { to: '/sos', label: 'SOS Centre', icon: 'sos', soon: true },
-  { to: '/messages', label: 'Messages', icon: 'message', soon: true },
+  { to: '/sos', label: 'SOS Centre', icon: 'sos' },
+  { to: '/messages', label: 'Messages', icon: 'message' },
   { to: '/activity', label: 'Activity & History', icon: 'activity' },
   { to: '/health', label: 'Device Health', icon: 'device' },
-  { to: '/alerts', label: 'Alerts', icon: 'bell', soon: true },
+  { to: '/alerts', label: 'Alerts', icon: 'bell' },
   { to: '/settings', label: 'Settings', icon: 'settings' },
 ]
 
@@ -119,8 +118,32 @@ function SearchBox() {
   )
 }
 
+/** Always visible when an SOS is waiting, and also when the check itself is failing (never silently "none"). */
+function SosBanner() {
+  const { state, openCount } = useSos()
+  if (openCount !== null && openCount > 0) {
+    return (
+      <div className="sos-banner" role="alert" key={openCount}>
+        <strong>
+          {openCount} SOS {openCount === 1 ? 'alert is' : 'alerts are'} open and not yet acknowledged.
+        </strong>{' '}
+        <Link to="/sos">Open the SOS Centre</Link>
+      </div>
+    )
+  }
+  if (state.status === 'error') {
+    return (
+      <div className="banner" role="status">
+        Piko could not check for SOS alerts{state.data ? ' just now; the last check may be out of date' : ''}. Do not assume there are none.
+      </div>
+    )
+  }
+  return null
+}
+
 export function Layout() {
   const { state, signOut } = useAuth()
+  const { openCount } = useSos()
   const { family, children } = useFamily()
   const location = useLocation()
   if (state.status !== 'authenticated') return null
@@ -157,7 +180,12 @@ export function Layout() {
                 <NavLink to={item.to} end={item.to === '/'} className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}>
                   <Icon name={item.icon} />
                   <span>{item.label}</span>
-                  {item.soon && <span className="soon">Soon</span>}
+                  {item.to === '/sos' && openCount !== null && openCount > 0 && (
+                    <span className="soon soon-alert">
+                      {openCount}
+                      <span className="sr-only"> open SOS</span>
+                    </span>
+                  )}
                 </NavLink>
               </li>
             ))}
@@ -186,6 +214,7 @@ export function Layout() {
           <span className="chip chip-lavender role-chip">{ROLE_LABEL[state.role] ?? state.role}</span>
         </header>
         <OfflineBanner />
+        <SosBanner />
         <main id="main" className="page">
           <Outlet />
         </main>

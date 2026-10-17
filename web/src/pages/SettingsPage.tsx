@@ -1,5 +1,6 @@
 import { useAuth } from '../auth/AuthContext'
 import { useFamily } from '../auth/FamilyContext'
+import { PushSetup } from '../components/PushSetup'
 import { Card, PageTitle } from '../components/ui'
 import { config } from '../config'
 
@@ -32,10 +33,11 @@ export function SettingsPage() {
             <li>
               Map tiles: {config.tileUrl ? 'loaded from the configured tile server, which can see roughly which area is viewed.' : 'switched off by the operator; positions are shown as markers only.'}
             </li>
-            <li>Password changes, retention changes and notification settings are not available in this version.</li>
+            <li>Password changes and retention changes are not available in this version.</li>
           </ul>
         </Card>
       </div>
+      <PushSetup />
     </>
   )
 }

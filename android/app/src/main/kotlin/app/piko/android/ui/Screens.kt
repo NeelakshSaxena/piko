@@ -37,6 +37,7 @@ import app.piko.android.BuildConfig
 import app.piko.android.RuntimeSnapshot
 import app.piko.android.SharingState
 import app.piko.android.SyncStatus
+import app.piko.android.core.CommItem
 import app.piko.android.core.QueueCounts
 import app.piko.android.core.ServerUrl
 import app.piko.android.core.SyncMode
@@ -176,7 +177,7 @@ private const val SHARED_SUMMARY =
     "Your location (with how accurate it is and when it was taken), battery level and whether you are charging, " +
         "and whether you are on Wi-Fi or mobile data. Not shared: contacts, messages, photos, apps or microphone."
 
-/** screens/drishti_child_safety_home, limited to features that exist (no SOS, check-ins or chat yet). */
+/** screens/drishti_child_safety_home, limited to features that exist (no check-ins yet). */
 @Composable
 fun HomeScreen(
     enrollment: Enrollment,
@@ -191,10 +192,29 @@ fun HomeScreen(
     onTransparency: () -> Unit,
     onRelink: () -> Unit,
     onOpenSettings: () -> Unit,
+    comms: List<CommItem>,
+    unreadMessages: Int,
+    canSend: Boolean,
+    onSos: (String?) -> Unit,
+    onMessages: () -> Unit,
 ) = Page {
     val running = runtime.sharing is SharingState.Running
     Text("Child Home", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
     Text("Hello, ${enrollment.deviceName}", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+
+    SosCard(comms, nowMs, canSend && !(revoked || runtime.sharing is SharingState.CredentialRevoked), onSos)
+    ClayCard(tint = Clay.Sky) {
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+            Column(Modifier.weight(1f)) {
+                Text("Family messages", fontWeight = FontWeight.Bold)
+                Text(
+                    if (unreadMessages > 0) "$unreadMessages message(s) from your family to confirm" else "Write to your parents",
+                    style = MaterialTheme.typography.bodySmall,
+                )
+            }
+            TextButton(onClick = onMessages) { Text("Open") }
+        }
+    }
 
     if (revoked || runtime.sharing is SharingState.CredentialRevoked) {
         ClayCard(tint = Clay.CriticalSoft) {
@@ -327,8 +347,12 @@ fun TransparencyScreen(enrollment: Enrollment, onBack: () -> Unit, onUnlink: () 
             Label("Your controls")
             Text("Stop sharing any time from the home screen or the notification. When sharing is off, nothing new is collected.")
             VGap(4)
-            Label("Not available in this version")
-            Text("SOS, check-ins and chat are not part of this version. Do not rely on this app to call for help.")
+            Label("SOS and messages")
+            Text(
+                "An SOS or a message goes to the parents and guardians in your family through the Piko server. " +
+                    "It does not call emergency services. If you have no connection, it is saved on this phone and " +
+                    "sent when you reconnect; the app tells you whether it was only saved, delivered, or seen.",
+            )
         }
     }
     ClayCard(tint = Clay.Sky) {
@@ -343,7 +367,7 @@ fun TransparencyScreen(enrollment: Enrollment, onBack: () -> Unit, onUnlink: () 
         AlertDialog(
             onDismissRequest = { confirm = false },
             title = { Text("Unlink this phone?") },
-            text = { Text("Sharing stops and readings still waiting on this phone are deleted. A parent must create a new pairing code to link it again.") },
+            text = { Text("Sharing stops and anything still waiting on this phone (readings, and any SOS or message not yet delivered) is deleted. A parent must create a new pairing code to link it again.") },
             confirmButton = { TextButton(onClick = { confirm = false; onUnlink() }) { Text("Unlink") } },
             dismissButton = { TextButton(onClick = { confirm = false }) { Text("Cancel") } },
         )

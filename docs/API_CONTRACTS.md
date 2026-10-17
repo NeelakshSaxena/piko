@@ -496,6 +496,31 @@ superseded, wrong email, email already registered, issuer no longer authorised),
 
 ## SOS & Messaging
 
+> **As built in Phase 6 (ADR-022, decisions pending operator approval) — this note overrides the
+> original text below where they differ:**
+> - `POST /sos/incidents` is **device-only**. Body: `incident_id` (device-generated UUID),
+>   `device_id` (must equal the authenticated device), `triggered_at` (UTC, not in the future),
+>   optional `message` (<=280), optional `location {latitude, longitude, accuracy_meters}`.
+>   `201` on first store, `200` with the stored incident on a replay, `409 CONFLICT` if the id
+>   belongs to another device. Response: `incident_id, device_id, family_id, status, triggered_at,
+>   received_at, message, location {…, captured_at, is_latest_known} | null, acknowledged_at,
+>   resolved_at, parent_notes` (`parent_notes` is never sent to a device). `delivery_status` is not
+>   used: `status=open` means durably stored by the server, nothing more.
+> - `triggered_at` / `sent_at` are the phone's claim. A claim in the future is **capped at the server's
+>   receipt time** (never refused); a claim in the past is stored as claimed. Both `triggered_at` and
+>   `received_at` are returned. Free text (`message`, `notes`, message `body`) may not contain control
+>   characters other than newline, carriage return and tab (400).
+> - `GET /sos/incidents[?status&limit&offset]` and `GET /sos/incidents/{id}`: parent, family_admin
+>   and guardian see the family's incidents; a device sees only its own. Reads are audited (a list read at
+>   most once a minute per user; a detail read every time; detail reads are limited to 60/min/user).
+> - `PUT /sos/incidents/{id}`: parent/family_admin only (guardian `403`). `open->acknowledged`,
+>   `open|acknowledged->resolved`; repeating the current state is a `200` no-op; anything else is
+>   `409`. Notes <=500.
+> - Messages: `POST /messages {message_id, body(1..500), sent_at, device_id?}` (device: own
+>   conversation, `device_id` optional; parent/family_admin: `device_id` required; guardian `403`),
+>   `GET /messages[?device_id&sender=device|parent&limit&offset]`, `POST /messages/{id}/ack` (recipient side only).
+>   States: `delivered` (stored by the server) and `acknowledged`.
+
 ### `POST /api/v1/sos/incidents`
 
 **Purpose:** Create SOS incident (device or parent).

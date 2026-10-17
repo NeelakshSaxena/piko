@@ -1,6 +1,16 @@
 package app.piko.android.net
 
 import app.piko.android.core.Batch
+import app.piko.android.core.CommCodec
+import app.piko.android.core.CommItem
+import app.piko.android.core.CommKind
+import app.piko.android.core.CommResult
+import app.piko.android.core.CommTransport
+import app.piko.android.core.Fetch
+import app.piko.android.core.PushCall
+import app.piko.android.core.RemoteMessage
+import app.piko.android.core.RemoteMessageStatus
+import app.piko.android.core.RemoteSos
 import app.piko.android.core.BatchCodec
 import app.piko.android.core.SendResult
 import app.piko.android.core.ServerUrl
@@ -38,7 +48,7 @@ class ApiClient(
     private val deviceId: String? = null,
     private val credential: String? = null,
     private val onPayload: (PayloadSize) -> Unit = {},
-) : Transport {
+) : Transport, CommTransport {
 
     override fun send(batch: Batch): SendResult {
         val id = requireNotNull(deviceId) { "device id required" }
@@ -84,22 +94,129 @@ class ApiClient(
         }
     }
 
+    // ---- push registration (ADR-023) ----
+
+    fun putPushToken(token: String): PushCall {
+        // The server accepts only this alphabet; refusing here also keeps the JSON trivially safe.
+        if (!PUSH_TOKEN.matches(token)) return PushCall.Refused(0)
+        val body = """{"token":"$token","platform":"fcm"}""".toByteArray(Charsets.UTF_8)
+        return pushCall("PUT", body)
+    }
+
+    fun deletePushToken(): PushCall = pushCall("DELETE", null)
+
+    private fun pushCall(method: String, body: ByteArray?): PushCall = try {
+        val r = call(method, "/push/device-token", body, gzip = false, bearer = requireNotNull(credential))
+        when {
+            r.status == 204 || r.status == 200 -> PushCall.Ok
+            r.status == 401 -> PushCall.Unauthorized
+            r.status == 408 || r.status == 429 || r.status >= 500 -> PushCall.Retry
+            else -> PushCall.Refused(r.status)
+        }
+    } catch (_: IOException) {
+        PushCall.Retry
+    }
+
+    // ---- SOS and messages (Phase 6) ----
+
+    override fun deliver(item: CommItem): CommResult {
+        val id = requireNotNull(deviceId) { "device id required" }
+        val token = requireNotNull(credential) { "credential required" }
+        val (path, json) = when (item.kind) {
+            CommKind.SOS -> "/sos/incidents" to CommCodec.sos(id, item)
+            CommKind.MESSAGE -> "/messages" to CommCodec.message(item)
+        }
+        return try {
+            toResult(post(path, json.toByteArray(Charsets.UTF_8), gzip = false, bearer = token))
+        } catch (e: IOException) {
+            CommResult.Network(e.javaClass.simpleName)
+        }
+    }
+
+    override fun acknowledgeMessage(id: String): CommResult = try {
+        toResult(post("/messages/$id/ack", ByteArray(0), gzip = false, bearer = requireNotNull(credential)))
+    } catch (e: IOException) {
+        CommResult.Network(e.javaClass.simpleName)
+    }
+
+    override fun fetchSos(): Fetch<List<RemoteSos>> = fetch("/sos/incidents?limit=50") { json ->
+        val array = json.getJSONArray("incidents")
+        List(array.length()) { i ->
+            val o = array.getJSONObject(i)
+            RemoteSos(o.getString("incident_id"), o.getString("status"), o.optStringOrNull("acknowledged_at"), o.optStringOrNull("resolved_at"))
+        }
+    }
+
+    override fun fetchParentMessages(): Fetch<List<RemoteMessage>> = fetch("/messages?sender=parent&limit=50") { json ->
+        val array = json.getJSONArray("messages")
+        buildList {
+            for (i in 0 until array.length()) {
+                val o = array.getJSONObject(i)
+                if (o.getString("sender") != "parent") continue
+                add(RemoteMessage(o.getString("message_id"), o.getString("body"), o.getString("sent_at"), o.getString("received_at"), o.getString("status")))
+            }
+        }
+    }
+
+    override fun fetchOwnMessages(): Fetch<List<RemoteMessageStatus>> = fetch("/messages?sender=device&limit=50") { json ->
+        val array = json.getJSONArray("messages")
+        List(array.length()) { i ->
+            val o = array.getJSONObject(i)
+            RemoteMessageStatus(o.getString("message_id"), o.getString("status"), o.optStringOrNull("acknowledged_at"))
+        }
+    }
+
+    private fun <T> fetch(path: String, parse: (JSONObject) -> T): Fetch<T> = try {
+        val response = call("GET", path, null, gzip = false, bearer = requireNotNull(credential))
+        when {
+            response.status == 401 -> Fetch.Unauthorized
+            response.status == 200 -> try {
+                Fetch.Ok(parse(JSONObject(response.body)))
+            } catch (_: JSONException) {
+                Fetch.Unavailable
+            }
+            else -> Fetch.Unavailable
+        }
+    } catch (_: IOException) {
+        Fetch.Unavailable
+    }
+
+    private fun toResult(response: Response): CommResult = when {
+        response.status == 200 || response.status == 201 -> try {
+            val json = JSONObject(response.body)
+            CommResult.Delivered(json.getString("status"), json.optStringOrNull("acknowledged_at"), json.optStringOrNull("resolved_at"))
+        } catch (_: JSONException) {
+            CommResult.ServerError(response.status) // stored or not, we cannot tell: it is re-sent by id
+        }
+        response.status == 401 -> CommResult.Unauthorized
+        response.status == 429 -> CommResult.RateLimited(response.retryAfter)
+        response.status == 408 || response.status == 413 || response.status >= 500 -> CommResult.ServerError(response.status)
+        else -> CommResult.Refused(response.status, errorCode(response.body))
+    }
+
+    private fun JSONObject.optStringOrNull(name: String): String? = if (isNull(name)) null else optString(name).takeIf { it.isNotEmpty() }
+
     private class Response(val status: Int, val body: String, val retryAfter: Long?)
 
-    private fun post(path: String, body: ByteArray, gzip: Boolean, bearer: String?): Response {
+    private fun post(path: String, body: ByteArray, gzip: Boolean, bearer: String?): Response =
+        call("POST", path, body, gzip, bearer)
+
+    private fun call(method: String, path: String, body: ByteArray?, gzip: Boolean, bearer: String?): Response {
         val connection = URL(ServerUrl.apiBase(serverBase) + path).openConnection() as HttpURLConnection
         try {
-            connection.requestMethod = "POST"
+            connection.requestMethod = method
             connection.connectTimeout = CONNECT_TIMEOUT_MS
             connection.readTimeout = READ_TIMEOUT_MS
             connection.instanceFollowRedirects = false
-            connection.doOutput = true
-            connection.setFixedLengthStreamingMode(body.size)
-            connection.setRequestProperty("Content-Type", "application/json")
             connection.setRequestProperty("Accept", "application/json")
-            if (gzip) connection.setRequestProperty("Content-Encoding", "gzip")
             if (bearer != null) connection.setRequestProperty("Authorization", "Bearer $bearer")
-            connection.outputStream.use { it.write(body) }
+            if (body != null) {
+                connection.doOutput = true
+                connection.setFixedLengthStreamingMode(body.size)
+                connection.setRequestProperty("Content-Type", "application/json")
+                if (gzip) connection.setRequestProperty("Content-Encoding", "gzip")
+                connection.outputStream.use { it.write(body) }
+            }
             val status = connection.responseCode
             val stream = if (status in 200..399) connection.inputStream else connection.errorStream
             return Response(status, stream?.use { readCapped(it) }.orEmpty(), connection.getHeaderField("Retry-After")?.toLongOrNull())
@@ -146,6 +263,7 @@ class ApiClient(
         private const val READ_TIMEOUT_MS = 20_000
         private const val MAX_RESPONSE_BYTES = 256 * 1024
         private const val GZIP_THRESHOLD = 1024
+        private val PUSH_TOKEN = Regex("^[A-Za-z0-9_:.-]{20,4096}$")
 
         /** Only ids the server explicitly lists count; anything malformed means "not acknowledged". */
         fun parseAck(body: String): SendResult.Ack? = try {

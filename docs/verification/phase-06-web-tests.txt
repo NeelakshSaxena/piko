@@ -1,0 +1,141 @@
+﻿== tsc --noEmit ==
+tsc exit 0
+== vitest run ==
+
+ RUN  v5.0.5 G:/Projects/piko/web
+
+ ✓ src/lib/lib.test.ts > freshness > is fresh only within five minutes and never "live" 2ms
+ ✓ src/lib/lib.test.ts > freshness > treats a missing or unparsable time as unknown, not as fresh 0ms
+ ✓ src/lib/lib.test.ts > freshness > a time in the future is age zero, not negative 0ms
+ ✓ src/lib/lib.test.ts > formatting > shows unavailable data as unknown, never zero 0ms
+ ✓ src/lib/lib.test.ts > formatting > words ages sensibly 0ms
+ ✓ src/lib/lib.test.ts > route building > orders newest-first history oldest to newest and ignores non-location events 1ms
+ ✓ src/lib/lib.test.ts > route building > splits at gaps instead of drawing a line through missing time 1ms
+ ✓ src/lib/lib.test.ts > route building > does not report a gap at exactly the threshold and handles an empty route 0ms
+ ✓ src/lib/lib.test.ts > route building > skips events whose coordinates are not numbers 0ms
+ ✓ src/api/client.test.ts > login > keeps the access token in memory and only the refresh token in storage 4ms
+ ✓ src/api/client.test.ts > login > maps a wrong password to AUTH_INVALID with the request id 2ms
+ ✓ src/api/client.test.ts > login > reports an unreachable server as NETWORK rather than throwing a raw error 1ms
+ ✓ src/api/client.test.ts > refresh and rotation > refreshes once on a 401, stores the ROTATED token, and retries the request 2ms
+ ✓ src/api/client.test.ts > refresh and rotation > shares ONE refresh between concurrent callers (a second use of a rotated token would revoke the session) 31ms
+ ✓ src/api/client.test.ts > refresh and rotation > never reuses a token: a later refresh sends the rotated one 1ms
+ ✓ src/api/client.test.ts > refresh and rotation > ends the session when the refresh token is refused, and clears it 1ms
+ ✓ src/api/client.test.ts > refresh and rotation > keeps the refresh token when the server is merely unreachable (it may still be valid) 1ms
+ ✓ src/api/client.test.ts > refresh and rotation > a page reload with a still-valid access token does NOT refresh (a reload mid-rotation would replay the old token and end the session) 1ms
+ ✓ src/api/client.test.ts > refresh and rotation > refreshes after a reload only when the saved access token has expired, and saves the new pair 1ms
+ ✓ src/api/client.test.ts > refresh and rotation > signing out and a lost session both erase the saved access token 1ms
+ ✓ src/api/client.test.ts > refresh and rotation > does not loop: a second 401 after a successful refresh is surfaced 1ms
+ ✓ src/api/client.test.ts > refresh and rotation > restore() without any stored token reports signed out and does not call the server 1ms
+ ✓ src/api/client.test.ts > errors and requests > surfaces 403 as denied and 429 with Retry-After 1ms
+ ✓ src/api/client.test.ts > errors and requests > never sends credentials as cookies and refuses redirects 0ms
+ ✓ src/api/client.test.ts > errors and requests > serialises history queries and skips undefined parameters 0ms
+ ✓ src/api/client.test.ts > errors and requests > logout revokes server-side and always clears local state 0ms
+ ✓ src/api/client.test.ts > SOS and message calls > sends the status change and the message id exactly as given 1ms
+ ✓ src/api/client.test.ts > SOS and message calls > treats a reply of the wrong shape as an error, never as an empty list 2ms
+ ✓ src/api/client.test.ts > SOS and message calls > passes filters as query parameters and does not send a body on reads 0ms
+ ✓ src/pages/comms.test.tsx > SOS Centre > lists an open incident without calling it acknowledged, and says where the position came from 320ms
+ ✓ src/pages/comms.test.tsx > SOS Centre > labels a last-known position as such and a stale one as not current 34ms
+ ✓ src/pages/comms.test.tsx > SOS Centre > shows an old recorded position as a record, never as a current one 28ms
+ ✓ src/pages/comms.test.tsx > SOS Centre > says plainly when there is no position, and when the SOS waited offline on the phone 28ms
+ ✓ src/pages/comms.test.tsx > SOS Centre > shows an app-wide banner and a navigation count while an SOS is open, on any page 50ms
+ ✓ src/pages/comms.test.tsx > SOS Centre > shows no banner when nothing is open or only acknowledged incidents exist 66ms
+ ✓ src/pages/comms.test.tsx > SOS Centre > does not treat a failed check as "no SOS" 42ms
+ ✓ src/pages/comms.test.tsx > SOS Centre > acknowledges without resolving, and keeps the resolve action available 119ms
+ ✓ src/pages/pages.test.tsx > sign in > shows an accessible form and explains a wrong password without saying which part 739ms
+ ✓ src/pages/pages.test.tsx > sign in > redirects anonymous visitors from protected pages to the sign-in page 29ms
+ ✓ src/pages/pages.test.tsx > sign in > returns to sign-in when the stored session is refused 10ms
+ ✓ src/pages/pages.test.tsx > sign in > reports rate limiting with the wait time 381ms
+ ✓ src/pages/comms.test.tsx > SOS Centre > requires an explicit confirmation to resolve, and Cancel changes nothing 561ms
+ ✓ src/pages/comms.test.tsx > SOS Centre > closes the confirmation once the incident is resolved, leaving no live buttons on it 187ms
+ ✓ src/pages/comms.test.tsx > SOS Centre > offers no actions on a resolved incident 43ms
+ ✓ src/pages/comms.test.tsx > SOS Centre > explains a conflict instead of pretending the change worked, and refreshes 112ms
+ ✓ src/pages/comms.test.tsx > SOS Centre > gives guardians a read-only view, and shows the server refusal if the API is called anyway 34ms
+ ✓ src/pages/comms.test.tsx > SOS Centre > shows a server refusal as a refusal 69ms
+ ✓ src/pages/comms.test.tsx > SOS Centre > keeps showing the last incidents with a warning when a refresh fails 110ms
+ ✓ src/pages/comms.test.tsx > SOS Centre > has an honest empty state 28ms
+ ✓ src/pages/comms.test.tsx > SOS Centre > shows a loading state, then an error with retry, when nothing has loaded 22ms
+ ✓ src/pages/comms.test.tsx > SOS Centre > does not put incident text in browser storage 33ms
+ ✓ src/pages/comms.test.tsx > SOS Centre > selects the incident named in the link 30ms
+ ✓ src/pages/comms.test.tsx > Messages > shows a conversation with wording that claims only what the server recorded 121ms
+ ✓ src/pages/pages.test.tsx > join with an invite code > is accessible and explains a refused invitation without revealing which part was wrong 1058ms
+ ✓ src/pages/comms.test.tsx > Messages > sends once with a stable id and shows it only after the server stored it 358ms
+ ✓ src/pages/pages.test.tsx > join with an invite code > rejects a short password before calling the server 558ms
+ ✓ src/pages/comms.test.tsx > Messages > keeps a failed message visible and retries with the same id, so it cannot be stored twice 357ms
+ ✓ src/pages/comms.test.tsx > Messages > does not put message text in browser storage 43ms
+ ✓ src/pages/comms.test.tsx > Messages > marks a child message as seen only when a parent presses the button 96ms
+ ✓ src/pages/comms.test.tsx > Messages > shows guardians the conversation without a composer or seen button 49ms
+ ✓ src/pages/pages.test.tsx > shell > has a labelled sidebar with every design page and no "Soon" placeholders 210ms
+ ✓ src/pages/pages.test.tsx > shell > shows when data was last refreshed, and says so when a refresh fails 40ms
+ ✓ src/pages/comms.test.tsx > Messages > notes messages that reached Piko late and rejects an empty draft 46ms
+ ✓ src/pages/comms.test.tsx > Messages > shows an error with retry when messages cannot load 28ms
+ ✓ src/pages/comms.test.tsx > Messages > says so when no phone is linked 10ms
+ ✓ src/pages/comms.test.tsx > Messages > explains that the phone is not pushed to 26ms
+ ✓ src/pages/pages.test.tsx > shell > searches people and pages and navigates with the keyboard 297ms
+ ✓ src/pages/pages.test.tsx > shell > says plainly when nothing matches 111ms
+ ✓ src/pages/pages.test.tsx > overview > shows a fresh location as "Updated", with battery, network and no claim of being live 58ms
+ ✓ src/pages/pages.test.tsx > overview > never labels a stale location as current 35ms
+ ✓ src/pages/pages.test.tsx > overview > shows unavailable data as unknown, not zero 54ms
+ ✓ src/pages/pages.test.tsx > overview > counts phones that are reporting, and never turns "no SOS received" into "safe" 40ms
+ ✓ src/pages/pages.test.tsx > overview > lists recent activity from real events in the safety timeline 57ms
+ ✓ src/pages/pages.test.tsx > overview > has an empty state that points a parent to pairing 64ms
+ ✓ src/pages/pages.test.tsx > overview > shows an error with the request reference and a retry when the family cannot be loaded 35ms
+ ✓ src/pages/pages.test.tsx > overview > tells a guardian they are view-only 41ms
+ ✓ src/pages/pages.test.tsx > live map > draws a fresh position as current and a stale one faded with a warning 37ms
+ ✓ src/pages/pages.test.tsx > live map > withholds a position the server would not give and says why 32ms
+ ✓ src/pages/pages.test.tsx > live map > is accessible and offers people as toggle buttons, with the selection marked 105ms
+ ✓ src/pages/pages.test.tsx > live map > shows breadcrumbs only when asked, with gaps kept visible 78ms
+ ✓ src/pages/comms.test.tsx > Alerts > combines SOS, unseen child messages and derived phone notices, most urgent first, with links 1105ms
+ ✓ src/pages/comms.test.tsx > Alerts > says what failed instead of dropping a source silently 84ms
+ ✓ src/pages/pages.test.tsx > live map > filters people by name 194ms
+ ✓ src/pages/pages.test.tsx > live map > shows "denied" when the server refuses the location (the page never decides access) 42ms
+ ✓ src/pages/comms.test.tsx > Alerts > has an empty state that does not claim safety 37ms
+ ✓ src/pages/comms.test.tsx > Alerts > shows an error when SOS cannot be read 23ms
+ ✓ src/pages/comms.test.tsx > safety helpers > sorts unresolved first, open before acknowledged, then newest 0ms
+ ✓ src/pages/comms.test.tsx > safety helpers > classifies fresh, stale, historical and missing positions against now 1ms
+ ✓ src/pages/comms.test.tsx > safety helpers > measures how long an SOS waited before reaching the server, never negative 0ms
+ ✓ src/pages/comms.test.tsx > safety helpers > derives notices only from what the phone reported 0ms
+ ✓ src/pages/comms.test.tsx > safety helpers > makes a v4 id even where crypto.randomUUID is unavailable (plain http) 0ms
+ ✓ src/pages/comms.test.tsx > banner is not computed from a truncated page (audit F-03) > counts an open SOS that is older than the newest hundred 26ms
+ ✓ src/pages/comms.test.tsx > banner is not computed from a truncated page (audit F-03) > tells the person when older incidents are not loaded 26ms
+ ✓ src/pages/pages.test.tsx > activity > shows a visible gap in the timeline and in the route 86ms
+ ✓ src/pages/comms.test.tsx > banner is not computed from a truncated page (audit F-03) > shows the server count when there are more open incidents than one page holds 33ms
+ ✓ src/pages/comms.test.tsx > XSS and control text in the pages > renders markup in a note or message as inert text 22ms
+ ✓ src/pages/comms.test.tsx > XSS and control text in the pages > renders markup in a message body as inert text 37ms
+ ✓ src/pages/comms.test.tsx > XSS and control text in the pages > keeps message and note text out of every browser storage key and value 31ms
+ ✓ src/pages/comms.test.tsx > Messages: who can read > tells parents that guardians can read the conversation 24ms
+ ✓ src/pages/pages.test.tsx > activity > loads older events with the next offset 112ms
+ ✓ src/pages/pages.test.tsx > activity > has an empty state 20ms
+ ✓ src/pages/pages.test.tsx > activity > marks events that arrived long after they happened 39ms
+ ✓ src/pages/pages.test.tsx > activity > explains rate limiting 32ms
+ ✓ src/pages/pages.test.tsx > device health > shows telemetry, with unreported values as Unknown and no invented sensors 127ms
+ ✓ src/pages/pages.test.tsx > device health > lists recent events in a table and says when they arrived late 45ms
+ ✓ src/pages/pages.test.tsx > device health > offers a CSV export of the events on screen 79ms
+ ✓ src/pages/pages.test.tsx > device health > lets a parent unlink only after confirmation, and a guardian not at all 234ms
+ ✓ src/pages/pages.test.tsx > device health > shows the server refusal if a request the page allowed is denied anyway 122ms
+ ✓ src/pages/pages.test.tsx > device health > says there is nothing to show when no phone is linked 11ms
+ ✓ src/pages/pages.test.tsx > csv export > quotes every cell and neutralises spreadsheet formulas 0ms
+ ✓ src/pages/pages.test.tsx > family members > shows a pairing code once, with a countdown, to a parent 160ms
+ ✓ src/pages/pages.test.tsx > family members > creates an invite code and shows it once 360ms
+ ✓ src/pages/pages.test.tsx > family members > shows a guardian the family read-only, with no controls 41ms
+ ✓ src/pages/pages.test.tsx > family members > lets the server refuse even a parent-looking action 109ms
+ ✓ src/pages/pages.test.tsx > family members > keeps the old /manage address working 32ms
+ ✓ src/pages/pages.test.tsx > settings > shows only facts the dashboard knows, and signs out 72ms
+
+ Test Files  4 passed (4)
+      Tests  116 passed (116)
+   Start at  14:56:46
+   Duration  7.77s (tests 63%, environment 25%, setup 6%, import 4%, transform 2%)
+
+vitest exit 0
+== vite build (production, CSP injected) ==
+vite v8.3.4 building client environment for production...
+transforming...
+✓ 53 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                   1.08 kB │ gzip:   0.57 kB
+dist/assets/index-CvLtmsBm.css   27.78 kB │ gzip:   9.48 kB
+dist/assets/index-zvn7MaN6.js   495.39 kB │ gzip: 150.19 kB
+
+✓ built in 256ms
+build exit 0

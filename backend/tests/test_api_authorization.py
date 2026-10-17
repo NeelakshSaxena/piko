@@ -27,6 +27,9 @@ PUBLIC = {
     ("POST", "/api/v1/auth/session"),  # credentials in body
     ("POST", "/api/v1/devices/pair"),  # pairing code in body
     ("POST", "/api/v1/invitations/accept"),  # invite code + invited email in body (ADR-017)
+    ("POST", "/api/v1/internal/outbox/run"),  # shared-secret header (ADR-023), tested separately
+    ("GET", "/api/v1/internal/outbox/health"),  # same
+    ("POST", "/api/v1/internal/retention/run"),  # same
 }
 
 
@@ -148,9 +151,11 @@ def test_revoked_membership_loses_access_immediately(make_family, db: Session) -
     )
     db.commit()
     resp = a.client.get(f"/api/v1/families/{a.family_id}", headers=a.headers)
-    assert resp.status_code == 403 and resp.json()["error"]["code"] == "FORBIDDEN"
+    # L-4: a revoked member sees the same 404 as a stranger, so ids of a former family do not leak.
+    assert resp.status_code == 404 and resp.json()["error"]["code"] == "NOT_FOUND_OR_NOT_VISIBLE"
     assert a.client.get("/api/v1/families", headers=a.headers).json() == {"families": []}
-    assert a.client.post("/api/v1/devices/pairing-code", headers=a.headers).status_code == 403
+    # no family is visible to a revoked member, so there is nothing to create a code in (L-4)
+    assert a.client.post("/api/v1/devices/pairing-code", headers=a.headers).status_code == 404
 
 
 def test_archived_family_is_not_visible(make_family, db: Session) -> None:  # type: ignore[no-untyped-def]

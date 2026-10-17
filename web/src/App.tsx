@@ -3,6 +3,7 @@ import type { ApiClient } from './api/client'
 import { AuthProvider, useAuth } from './auth/AuthContext'
 import { FamilyProvider } from './auth/FamilyContext'
 import { FleetProvider } from './auth/FleetContext'
+import { SosProvider } from './auth/SosContext'
 import { Layout } from './components/Layout'
 import { Loading } from './components/ui'
 import { ActivityPage } from './pages/ActivityPage'
@@ -10,10 +11,12 @@ import { FamilyPage } from './pages/FamilyPage'
 import { HealthPage } from './pages/HealthPage'
 import { JoinPage } from './pages/JoinPage'
 import { LoginPage } from './pages/LoginPage'
-import { AlertsPage, MessagesPage, SosPage } from './pages/LaterPages'
+import { AlertsPage } from './pages/AlertsPage'
 import { MapPage } from './pages/MapPage'
+import { MessagesPage } from './pages/MessagesPage'
 import { OverviewPage } from './pages/OverviewPage'
 import { SettingsPage } from './pages/SettingsPage'
+import { SosPage } from './pages/SosPage'
 
 /** Hiding pages is only convenience: every request is authorised again by the API. */
 function Protected() {
@@ -23,7 +26,9 @@ function Protected() {
   return (
     <FamilyProvider familyId={state.family.id}>
       <FleetProvider>
-        <Layout />
+        <SosProvider>
+          <Layout />
+        </SosProvider>
       </FleetProvider>
     </FamilyProvider>
   )

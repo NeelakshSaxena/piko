@@ -2,7 +2,9 @@
   "permissions": {
     "allow": [
       "Edit(/.claude/skills/piko-android-adb/**)",
-      "Bash(git check-ignore *)"
+      "Bash(git check-ignore *)",
+      "mcp__claude-in-chrome__tabs_context_mcp",
+      "ClaudeInChromeDomain(127.0.0.1:4173)"
     ]
   }
 }

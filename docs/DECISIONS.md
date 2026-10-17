@@ -293,3 +293,121 @@ into .gradle-home); the rest is implementation detail recorded here.
 ## ADR-020 addendum: dashboard follows the four parent-web designs (2026-10-16)
 Status: Approved (human operator: complete the web development from `screens/`).
 The sidebar/top-bar shell, Command Centre, Live Map, Device Health and SOS pages follow the designs. Every figure is real API data. Elements with no backing data are omitted, and the SOS Centre, Messages and Alerts are pages that say "Not available in this version" (badge "Soon"), because SOS and messaging are Phase 6 and a simulated incident would be a false safety claim. The top-bar chip says "Synced" (dashboard refresh), never a location age. `GET /devices/{id}` gained `battery_is_charging`, `network_type` and `network_updated_at`. Detail and gaps: `docs/verification/phase-05-web.md`. The font is not bundled until a dependency is approved.
+
+## ADR-022: SOS and messaging lifecycle (Phase 6, backend part)
+Status: Proposed by the implementing agent; NOT yet approved by the operator (the points marked
+"decision needed" change the Phase 1 contract and must be confirmed). Migration `0004`.
+- **States are never collapsed.** Server-side SOS status: `open` (the server durably stored it; this is
+  what "delivered" means), `acknowledged` (a parent/family_admin explicitly confirmed), `resolved`
+  (explicit; never automatic; never reopens). The device-only states `created locally`, `queued` and
+  `submitted` live on the phone and are shown as such until the server answers. "Delivered" means
+  "stored on the Piko server and visible to the family", not "a parent has seen it": there is no push
+  channel yet, so parents learn of it when a dashboard polls. No emergency-service dispatch exists and
+  no screen may imply one.
+- **Idempotency:** the device generates `incident_id` / `message_id` before the first send. The
+  insert is `ON CONFLICT DO NOTHING` on that id, so concurrent or replayed sends produce one row
+  (201 first time, 200 on replay with the stored content, never rewritten). An id already owned by a
+  different device/sender returns 409 CONFLICT.
+- **Only a paired device raises an SOS** (contract deviation, decision needed): Phase 1 let parents
+  create one on a child's behalf. That has no Phase 6 requirement and a mistaken or malicious
+  parent-created SOS is a false safety event, so it is not built.
+- **Guardian (decision needed, closes the ADR-017 open point):** may read incidents and messages;
+  may NOT acknowledge, resolve, or send messages.
+- **Location:** an SOS carries the position the device attached (stamped with `triggered_at`), or, if
+  none, the latest known position when it is at most 24 h old, flagged `is_latest_known: true` with
+  its own capture time. Stale-beyond-24h positions are not attached.
+- **Messages:** text only, 1..500 chars, one conversation per child device (family parents <-> that
+  device). Server states `delivered` (stored) and `acknowledged` (the recipient side confirmed). A
+  sender cannot acknowledge its own message. `failed` exists only on the sender's phone (a permanent
+  rejection). Bodies are stored as plain text, not encrypted at rest (diverges from the DATA_MODEL
+  sketch, which left this as an open question); they are never logged or audited.
+- **Audit:** `sos_created` (device), `sos_acknowledged` and `sos_resolved` (user), and
+  `location_accessed` (resource `incident`) on every read of incidents, as for locations. Metadata
+  only: ids and actor, never message text, notes or coordinates (tested).
+- **Rate limits:** SOS create 10/min per device; update 30/min per user; message send 30/min,
+  list/ack 60/min per principal.
+- **Not built / limitations:** no push or SMS to parents (contract text "notify immediately" cannot
+  be met; dashboard polling only); messages have no retention job yet (documented default 90 days is
+  not enforced); no SOS location history; Android and web parts of Phase 6 are separate work items.
+
+### ADR-022 addendum: Android part (2026-10-17)
+- The phone generates the id and stores the SOS/message in a durable outbox (`piko-comms.db`,
+  separate from the telemetry queue) before any network call. Delivery state on the phone:
+  queued -> submitted (in doubt after a lost answer; the same id is re-sent) -> delivered (server
+  stored it) -> remote status acknowledged / resolved. Wording lives only in `CommLabels`; queued or
+  submitted can never read as delivered, and delivered never reads as seen.
+- Retry without the app: a `JobScheduler` job (any network, persisted, system exponential backoff)
+  runs `OutboxJobService`. `RECEIVE_BOOT_COMPLETED` is requested only so that job survives a reboot.
+  No WorkManager (extra dependency not needed). The job collects nothing.
+- SOS location: a phone fix younger than 2 minutes is attached; otherwise none, and the server
+  attaches its latest known position flagged `is_latest_known` with its own capture time, because the
+  server stamps a client-supplied position with the SOS time.
+- Replies and SOS status are pulled (no push channel): while the app is visible (30 s), in the
+  sharing service's loop, and after sends. With the app closed and sharing off nothing is fetched,
+  and the Messages screen says so. Notifications never contain message text (lock screen privacy);
+  if the permission is denied the app says it cannot alert and shows replies on opening.
+- Unlinking or re-pairing deletes unsent SOS/messages with the telemetry queue (the dialog says so).
+- Not verified: physical phone, Doze, reboot persistence, OEM background limits.
+
+### ADR-022 addendum 2: operator policy, independent-audit remediation, web part (2026-10-17)
+**Operator policy (instruction of 2026-10-17; recorded here as the decision):**
+- **A. Only a paired child device raises an SOS.** The Phase 1 contract text let a parent create one for a
+  child; the operator's policy supersedes it (contract note in `API_CONTRACTS.md` revised). A parent cannot
+  speak as the child, so there is no false SOS and no forged "the child pressed it". The server checks it:
+  the endpoint accepts only a device credential, the body `device_id` must equal the authenticated device, the
+  family comes from enrolment. Consequence: a parent who needs to ask for help for a child has no SOS path;
+  that is a separate future requirement (a parent-initiated "check on child" request with its own wording,
+  consent and audit), **not** a reuse of this endpoint. Affected: `POST /sos/incidents`.
+- **B. Guardians read, never act.** A guardian can list/read incidents and read the conversation; cannot
+  acknowledge, resolve, send, or mark messages seen. Enforced in `services/sos.py` and `services/messages.py`
+  with `ADMIN_ROLES`; the dashboard hides the controls and says why, but the API refuses direct calls (tested).
+  Affected: `PUT /sos/incidents/{id}`, `POST /messages`, `POST /messages/{id}/ack`. The web conversation page
+  now says that guardians can read it (audit F-06). Message reads are not audited (no audit action exists);
+  recorded as an accepted limitation pending an operator decision.
+**Independent audit (`docs/verification/phase-06-independent-audit.md`), remediation:**
+- F-01 clock skew: a claimed time in the future is **capped at the server's receipt time** instead of refused
+  (SOS and messages), so a fast clock can never lose an SOS. Contract change: `triggered_at` / `sent_at` are
+  "claims, capped at receipt". Old claimed times are still stored as claimed and both times are shown.
+- F-02 control characters: NUL and other C0 controls (except newline/CR/tab) and DEL are a 400 in SOS note,
+  parent note and message body; the Android app sanitises them out (an SOS must not fail over an invisible
+  character) and the outbox no longer lets one failing item block the rest: after 3 server failures an item
+  goes behind all others but is never dropped.
+- F-03 banner truncation: the dashboard reads the newest 100 incidents **and** all open ones, uses the
+  server's count when more than a page is open, and shows a warning whenever older incidents are not loaded.
+- F-05 detail reads are rate limited (60/min/user). F-07 `GET /messages?sender=parent|device` so a phone is
+  not starved by its own messages; the phone now also pulls the status of its own messages, so "Seen by a
+  parent" is reachable (found in the live run; before this the label could never appear).
+- F-04 (no per-device volume cap / retention): **accepted, open**. Mitigations: 10 SOS/min and 30 messages/min
+  per device, pagination caps. A cap on open incidents per device and a retention job need a product decision.
+- F-06 (audit of conversation reads): open, decision needed. F-08 (login lock held through bcrypt, success
+  resets the counter): accepted trade-off, documented in `test_phase6_hardening.py`. F-09/F-12 info, accepted.
+- F-10 clickjacking: the dashboard authenticates with a bearer token in sessionStorage (no cookies), and
+  sessionStorage is per-origin, so a page framing the dashboard from another origin has no session. A
+  `frame-ancestors`/`X-Frame-Options` header belongs to the static host (Phase 8); recorded as a gap.
+- F-11 comment corrected: both tokens are in sessionStorage (CSP is the XSS mitigation).
+**Audit volume:** listing incidents is audited at most once a minute per user (a dashboard polls every 30 s);
+reading one incident is always audited and rate limited. This narrows the earlier statement "every read".
+**Web part (parent dashboard):** SOS Centre, Messages and Alerts are real pages over the same API; no new
+dependency. Rules implemented and tested: "open" is never worded as acknowledged, "acknowledged" never as
+resolved, a resolved incident has no actions, resolving needs a confirmation; a position older than 5 minutes
+is "Not current", a last-known position is labelled as such with its own time, a position older than 24 hours
+is shown as a record; a failed SOS check is never shown as "none"; message text and notes are never written to
+browser storage and are rendered as inert text; a retry of a message reuses its id; Alerts is built from what
+the server holds plus notices derived in the browser (labelled "derived") and says it is not a push channel.
+**Phase 2-3 backlog items closed with this work:** L-1 (`hide_parameters=True`; note PostgreSQL itself may quote
+an offending value in its own error text, the app logs only exception types), L-2 (failures count since the last
+success; per-email advisory lock), L-3 (`Cache-Control: no-store` on every `/api/` response), L-6 partly (three
+inert `.env.example` keys removed, ADR reference fixed). **Still open and needing the operator:** L-4 (403 vs 404 for
+revoked members; the current 403 is deliberate and tested), L-5 (trust in device clocks; the 60 s skew applies to
+telemetry, SOS and messages now cap instead), lock-file split/hash pinning and the dependency bumps (ADR-016),
+the retention job (ADR-011), the independent re-review of ADR-017/018/019 fixes.
+
+## ADR-023: Background push, closure of Phase 2-3 findings, serverless deployment shape (2026-10-17)
+Status: Proposed by the implementing agent; NOT approved by the operator. Migration `0005` (UNAPPLIED to any persistent schema).
+- **Push**: durable transactional outbox; FCM for the child phone, W3C Web Push for parent browsers; payload `{v,type,id}` only; "accepted" is never reported as "delivered". Details: `docs/PUSH_NOTIFICATIONS.md`.
+- **No persistent worker**: drained after the request, by a token-guarded internal endpoint called by an external scheduler, or by the CLI. Vercel Hobby cron (daily) is not relied on.
+- **L-4**: a revoked/removed member gets 404 (not 403) on family resources, so membership is not disclosed. **L-5**: security headers on all API responses (see F-10). Both have regression tests.
+- **F-04**: per-device caps (50 unresolved SOS, 500 messages/day) and a retention job (messages 90 d, audit 365 d, outbox 30 d; SOS incidents never deleted). Dry-run by default; `apply` is explicit.
+- **F-06**: reading messages is audited (`message_read`), without content.
+- **F-10**: clickjacking headers (`X-Frame-Options: DENY`, CSP `frame-ancestors 'none'`) on API and web.
+- **Deployment**: secrets are env values materialized to files at start-up (`app/deploy_env.py`); Vercel Hobby is non-commercial only (operator must accept or choose another host). See `docs/DEPLOYMENT.md`.

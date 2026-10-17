@@ -186,3 +186,24 @@ input:focus, select:focus { border-color: var(--primary); outline: none; }
   .two-col, .two-col.even, .map-layout { grid-template-columns: 1fr; }
   .tiles.two { grid-template-columns: 1fr 1fr; }
 }
+
+/* ---- SOS, messages, alerts (Phase 6) ---- */
+.sos-banner { background: var(--critical); color: #fff; padding: 12px 16px; font-weight: 700; text-align: center; }
+.sos-banner a { color: #fff; }
+.soon-alert { background: var(--critical); color: #fff; }
+.nav-link.active .soon-alert { background: #fff; color: var(--critical); }
+.incident { display: flex; flex-direction: column; gap: 10px; border-left: 8px solid transparent; }
+.incident-open { border-left-color: var(--critical); }
+.incident-acknowledged { border-left-color: #b87a2c; }
+.incident-resolved { border-left-color: var(--forest); }
+.incident.selected { outline: 2px solid var(--primary); outline-offset: 2px; }
+.row.actions { flex-wrap: wrap; gap: 8px; }
+.confirm { display: flex; flex-direction: column; gap: 10px; padding: 12px 16px; border-radius: 16px; background: var(--rose); }
+.user-text { white-space: pre-wrap; overflow-wrap: anywhere; }
+.chat { max-width: 720px; }
+.bubble { padding: 12px 16px; border-radius: 20px; display: flex; flex-direction: column; gap: 6px; box-shadow: var(--shadow), var(--rim); }
+.bubble-device { background: var(--sky); margin-right: 48px; }
+.bubble-parent { background: var(--primary-soft); margin-left: 48px; }
+.bubble-pending { background: var(--well); }
+textarea { font: inherit; width: 100%; padding: 10px 14px; border-radius: 16px; border: 1px solid #cfcad9; background: var(--surface); }
+@media (max-width: 600px) { .bubble-device { margin-right: 8px; } .bubble-parent { margin-left: 8px; } }

@@ -4,13 +4,20 @@ import type {
   ErrorCode,
   FamilyDetail,
   FamilySummary,
+  ChatMessage,
   HistoryPage,
+  Incident,
+  IncidentPage,
   InvitableRole,
+  MessagePage,
+  PushConfig,
+  SosStatus,
   InviteResult,
   MemberLocation,
   PairingCode,
   RefreshResponse,
   SessionResponse,
+  WebPushSubscriptionBody,
 } from './types'
 
 export class ApiError extends Error {
@@ -37,7 +44,7 @@ export interface StoredAccess {
 }
 
 /**
- * Where tokens live. Per-tab on purpose: refresh tokens rotate, so two tabs sharing one would revoke
+ * Where tokens live: both tokens are in sessionStorage (per tab), so a script running on the page could read them; the CSP is the mitigation. Per-tab on purpose: refresh tokens rotate, so two tabs sharing one would revoke
  * each other. The short-lived access token is kept too, so a page reload does not need a refresh;
  * refreshing on every load meant a reload that interrupted a refresh replayed a rotated token and
  * ended the session.
@@ -90,12 +97,20 @@ export const sessionRefreshStore: RefreshStore = {
   },
 }
 
+/** A reply of the wrong shape is an error, never "nothing there": an empty list would read as "no incidents". */
+function requireList<T extends object>(page: T, key: keyof T): T {
+  if (typeof page !== 'object' || page === null || !Array.isArray(page[key])) {
+    throw new ApiError(200, 'UNKNOWN', 'The server sent a reply Piko did not understand.')
+  }
+  return page
+}
+
 type Query = Record<string, string | number | undefined>
 
 const REQUEST_TIMEOUT_MS = 15_000
 
 /**
- * Typed fetch wrapper. The access token is kept only in memory. A 401 triggers exactly one refresh
+ * Typed fetch wrapper. The access token is held in memory and copied to sessionStorage (see RefreshStore). A 401 triggers exactly one refresh
  * (shared by all concurrent callers, because a second use of a rotated refresh token would revoke the
  * session) and one retry of the original request.
  */
@@ -300,6 +315,33 @@ export class ApiClient {
     q: { limit?: number; offset?: number; start_time?: string; end_time?: string; event_type?: string },
   ): Promise<HistoryPage> {
     return this.request('GET', `/members/${memberId}/history`, { query: q })
+  }
+  async sosIncidents(q: { status?: SosStatus; limit?: number; offset?: number } = {}): Promise<IncidentPage> {
+    const page = await this.request<IncidentPage>('GET', '/sos/incidents', { query: q })
+    return requireList(page, 'incidents')
+  }
+  updateSos(id: string, status: 'acknowledged' | 'resolved', notes?: string): Promise<Incident> {
+    return this.request('PUT', `/sos/incidents/${id}`, { body: { status, ...(notes ? { notes } : {}) } })
+  }
+  async messages(deviceId: string, q: { limit?: number; offset?: number } = {}): Promise<MessagePage> {
+    const page = await this.request<MessagePage>('GET', '/messages', { query: { device_id: deviceId, ...q } })
+    return requireList(page, 'messages')
+  }
+  /** `messageId` is chosen by the caller and reused on retry, so a retry can never create a second message. */
+  sendMessage(m: { messageId: string; deviceId: string; body: string; sentAt: string }): Promise<ChatMessage> {
+    return this.request('POST', '/messages', { body: { message_id: m.messageId, device_id: m.deviceId, body: m.body, sent_at: m.sentAt } })
+  }
+  acknowledgeMessage(id: string): Promise<ChatMessage> {
+    return this.request('POST', `/messages/${id}/ack`)
+  }
+  pushConfig(): Promise<PushConfig> {
+    return this.request('GET', '/push/config')
+  }
+  registerWebPush(subscription: WebPushSubscriptionBody): Promise<void> {
+    return this.request('PUT', '/push/web-subscription', { body: subscription })
+  }
+  removeWebPush(endpoint: string): Promise<void> {
+    return this.request('POST', '/push/web-subscription/remove', { body: { endpoint } })
   }
   createPairingCode(): Promise<PairingCode> {
     return this.request('POST', '/devices/pairing-code')

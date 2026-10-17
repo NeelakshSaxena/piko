@@ -101,14 +101,13 @@ describe('join with an invite code', () => {
 })
 
 describe('shell', () => {
-  it('has a labelled sidebar with every design page, and marks unbuilt areas "Soon" rather than live', async () => {
+  it('has a labelled sidebar with every design page and no "Soon" placeholders', async () => {
     const view = renderApp('/', childRoutes())
     const nav = await screen.findByRole('navigation', { name: 'Main' })
     for (const name of ['Overview', 'Live Map', 'Family Members', 'SOS Centre', 'Messages', 'Activity & History', 'Device Health', 'Alerts', 'Settings']) {
       expect(within(nav).getByRole('link', { name: new RegExp(name.replace('&', '&')) })).toBeInTheDocument()
     }
-    expect(within(nav).getByRole('link', { name: /SOS Centre/ })).toHaveTextContent('Soon')
-    expect(within(nav).getByRole('link', { name: /SOS Centre/ })).not.toHaveTextContent(/live/i)
+    expect(nav).not.toHaveTextContent('Soon')
     await screen.findByRole('heading', { name: "Aarav's phone" })
     expect(await a11yViolations(view.container)).toEqual([])
   })
@@ -166,13 +165,14 @@ describe('overview', () => {
     expect(screen.queryByText('0%')).toBeNull()
   })
 
-  it('counts phones that are reporting, and says SOS is not available rather than "no emergencies"', async () => {
+  it('counts phones that are reporting, and never turns "no SOS received" into "safe"', async () => {
     renderApp('/', childRoutes())
     const tile = await screen.findByRole('region', { name: 'Phones reporting now' })
     await waitFor(() => expect(tile).toHaveTextContent('1 / 1'))
     const sos = screen.getByRole('region', { name: 'SOS' })
-    expect(sos).toHaveTextContent('Not available yet')
-    expect(sos).not.toHaveTextContent(/no emergenc|all clear|safe/i)
+    await waitFor(() => expect(sos).toHaveTextContent('None open'))
+    expect(sos).toHaveTextContent(/not proof/i)
+    expect(sos).not.toHaveTextContent(/all clear|no emergenc/i)
   })
 
   it('lists recent activity from real events in the safety timeline', async () => {
@@ -386,25 +386,6 @@ describe('family members', () => {
   it('keeps the old /manage address working', async () => {
     renderApp('/manage', sessionRoutes('parent'))
     expect(await screen.findByRole('heading', { name: 'Family Members' })).toBeInTheDocument()
-  })
-})
-
-describe('areas that do not exist yet', () => {
-  it.each([
-    ['/sos', 'SOS Emergency Centre'],
-    ['/messages', 'Messages'],
-    ['/alerts', 'Alerts'],
-  ])('%s says it is not available and shows nothing simulated', async (path, title) => {
-    const view = renderApp(path, sessionRoutes())
-    expect(await screen.findByRole('heading', { name: title })).toBeInTheDocument()
-    expect(screen.getByText('Not available in this version')).toBeInTheDocument()
-    expect(screen.queryByText(/incident #|SOS-d|responding|parent acknowledged/i)).toBeNull()
-    expect(await a11yViolations(view.container)).toEqual([])
-  })
-
-  it('tells people to call the emergency number, not to rely on Piko', async () => {
-    renderApp('/sos', sessionRoutes())
-    expect(await screen.findByText(/call your local emergency number/i)).toBeInTheDocument()
   })
 })
 

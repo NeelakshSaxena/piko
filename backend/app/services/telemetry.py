@@ -8,7 +8,7 @@ so concurrent batches cannot regress it. Acknowledgement is built only after COM
 
 import uuid
 from collections.abc import Callable
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from datetime import UTC, datetime, timedelta
 from decimal import Decimal
 from typing import Any
@@ -102,7 +102,7 @@ class TelemetryService:
                 continue  # the first copy decides the outcome; each id is reported exactly once
             seen.add(raw.event_id)
             try:
-                valid[raw.event_id] = validate_event(
+                checked = validate_event(
                     event_type=raw.event_type,
                     occurred_at=raw.occurred_at,
                     sequence_number=raw.sequence_number,
@@ -111,6 +111,10 @@ class TelemetryService:
                     max_age=max_age,
                     future_skew=self._skew,
                 )
+                # Device clocks are advisory (audit L-5): a reading dated up to 60 s ahead is capped at
+                # the moment the server received it, so it can neither block real readings that follow
+                # nor look fresher than it is.
+                valid[raw.event_id] = replace(checked, occurred_at=min(checked.occurred_at, now))
             except EventRejected as exc:
                 result.rejected_events.append(
                     Rejection(raw.event_id, "VALIDATION_ERROR", exc.reason)

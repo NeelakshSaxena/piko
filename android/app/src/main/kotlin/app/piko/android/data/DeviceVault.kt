@@ -56,7 +56,7 @@ class DeviceVault(context: Context, file: String = FILE) {
     @Synchronized
     fun clearEnrollment() {
         prefs.edit().remove("device_id").remove("family_id").remove("server_base")
-            .remove("device_name").remove("credential").putBoolean("sharing", false)
+            .remove("device_name").remove("credential").remove("announced").remove("push_confirmed").putBoolean("sharing", false)
             .putBoolean("revoked", false).commit()
     }
 
@@ -73,6 +73,25 @@ class DeviceVault(context: Context, file: String = FILE) {
     var mode: SyncMode
         get() = runCatching { SyncMode.valueOf(prefs.getString("mode", null) ?: "") }.getOrDefault(SyncMode.POLLING)
         set(value) { prefs.edit().putString("mode", value.name).commit() }
+
+    /** Parent messages already announced by a notification, so each is announced once. */
+    @Synchronized
+    fun announcedMessages(): Set<String> = prefs.getStringSet("announced", emptySet()) ?: emptySet()
+
+    @Synchronized
+    fun markAnnounced(ids: Collection<String>) {
+        val merged = (announcedMessages() + ids).toList().takeLast(200).toSet()
+        prefs.edit().putStringSet("announced", merged).commit()
+    }
+
+    /** The FCM token Firebase gave this install, and the one the server last confirmed (ADR-023). */
+    var pushToken: String?
+        @Synchronized get() = prefs.getString("push_token", null)
+        @Synchronized set(value) { prefs.edit().apply { if (value == null) remove("push_token") else putString("push_token", value) }.commit() }
+
+    var pushConfirmed: String?
+        @Synchronized get() = prefs.getString("push_confirmed", null)
+        @Synchronized set(value) { prefs.edit().apply { if (value == null) remove("push_confirmed") else putString("push_confirmed", value) }.commit() }
 
     var consentAccepted: Boolean
         get() = prefs.getBoolean("consent", false)

@@ -56,9 +56,11 @@ class AuthService:
         now = datetime.now(UTC)
         email = email.strip().lower()
         email_key = keyed_digest(self._hmac_key, "login-email", email)
-        self._reject_if_locked(db, email_key, now)
-
+        # One login attempt per email at a time (held until commit/rollback), so a burst of parallel
+        # guesses cannot overshoot the failure limit between the count and the insert (audit L-2).
+        db.execute(select(func.pg_advisory_xact_lock(func.hashtextextended(email_key, 0))))
         user = db.scalar(select(User).where(User.email == email, User.status == "active"))
+        self._reject_if_locked(db, email_key, now, user.id if user else None)
         ok = verify_password(password, user.password_hash if user else self._dummy_hash)
         if user is None or not ok:
             audit.record(
@@ -159,8 +161,24 @@ class AuthService:
         )  # fmt: skip
         db.commit()
 
-    def _reject_if_locked(self, db: Session, email_key: str, now: datetime) -> None:
+    def _reject_if_locked(
+        self, db: Session, email_key: str, now: datetime, user_id: uuid.UUID | None
+    ) -> None:
         window = self._settings.login_failure_window_seconds
+        since = now - timedelta(seconds=window)
+        if user_id is not None:
+            # Failures before the last successful login no longer count: a typo after a correct
+            # password must not push a legitimate user into a lockout. (A locked account cannot
+            # log in, so success can never be produced by guessing.)
+            last_ok = db.scalar(
+                select(func.max(AuditEvent.created_at)).where(
+                    AuditEvent.action == "login",
+                    AuditEvent.outcome == "success",
+                    AuditEvent.actor_user_id == user_id,
+                )
+            )
+            if last_ok is not None and last_ok > since:
+                since = last_ok
         failures = db.scalar(
             select(func.count())
             .select_from(AuditEvent)
@@ -168,7 +186,7 @@ class AuthService:
                 AuditEvent.action == "login",
                 AuditEvent.outcome == "failure",
                 AuditEvent.meta["email_key"].astext == email_key,
-                AuditEvent.created_at > now - timedelta(seconds=window),
+                AuditEvent.created_at > since,
             )
         )
         if (failures or 0) >= self._settings.login_failure_limit:

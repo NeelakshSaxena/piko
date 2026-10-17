@@ -112,6 +112,7 @@ export function sessionRoutes(role: Role = 'parent', withChild = true): Routes {
     'POST /auth/session/refresh': json({ access_token: 'a1', refresh_token: 'r1', expires_in: 3600 }),
     'GET /families': json({ families: [summary(role)] }),
     [`GET /families/${FAMILY_ID}`]: json(detail(role, withChild)),
+    'GET /sos/incidents': json({ incidents: [], total_count: 0, has_more: false }),
   }
 }
 

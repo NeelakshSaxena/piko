@@ -11,6 +11,7 @@ from app.api.routes import router
 from app.core.config import Settings, get_settings
 from app.core.errors import install_error_handlers
 from app.core.middleware import (
+    ApiHeadersMiddleware,
     BodyLimitMiddleware,
     HostMiddleware,
     OriginMiddleware,
@@ -22,7 +23,30 @@ from app.db.session import make_engine, make_session_factory
 from app.services.auth import AuthService
 from app.services.devices import DeviceService
 from app.services.invitations import InvitationService
+from app.services.messages import MessageService
+from app.services.notifications import NotificationService, PushTransport
+from app.services.push import PushRegistry
+from app.services.retention import RetentionService
+from app.services.sos import SosService
 from app.services.telemetry import TelemetryService
+
+
+def build_transports(settings: Settings) -> dict[str, PushTransport]:
+    """Only what is configured. A missing credential means that kind of push is simply off."""
+    transports: dict[str, PushTransport] = {}
+    if settings.fcm_project_id and settings.fcm_service_account_file:
+        from app.services.push_transports import FcmTransport
+
+        transports["device_token"] = FcmTransport.from_file(
+            settings.fcm_project_id, settings.fcm_service_account_file
+        )
+    if settings.vapid_private_key_file and settings.vapid_public_key:
+        from app.services.push_transports import WebPushTransport
+
+        transports["web_subscription"] = WebPushTransport(
+            settings.vapid_private_key_file, settings.vapid_subject
+        )
+    return transports
 
 
 def create_app(settings: Settings | None = None) -> FastAPI:
@@ -55,10 +79,23 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.state.devices = DeviceService(settings, hmac_key)
     app.state.invitations = InvitationService(settings, hmac_key)
     app.state.telemetry = TelemetryService(settings)
+    app.state.push = PushRegistry(settings, hmac_key)
+    app.state.notifier = NotificationService(settings, app.state.push, build_transports(settings))
+    outbox_token = (
+        settings.outbox_run_token_file.read_bytes().strip()
+        if settings.outbox_run_token_file
+        else None
+    )
+    if outbox_token is not None and len(outbox_token) < 32:
+        raise RuntimeError("The outbox run token must be at least 32 bytes; regenerate it.")
+    app.state.outbox_token = outbox_token
+    app.state.retention = RetentionService(settings)
+    app.state.sos = SosService(settings, app.state.notifier)
+    app.state.messages = MessageService(settings, app.state.notifier)
 
     install_error_handlers(app)
     app.include_router(router)
-    # Added last = outermost. Order outermost-first: context, host, origin, body limit, CORS, gzip.
+    # Added last = outermost. Order outermost-first: no-store, context, host, origin, body limit, CORS, gzip.
     app.add_middleware(GZipMiddleware, minimum_size=1024)
     app.add_middleware(
         CORSMiddleware,
@@ -71,5 +108,6 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.add_middleware(OriginMiddleware, allowed=settings.allowed_origin_set)
     app.add_middleware(HostMiddleware, allowed=settings.allowed_host_set)
     app.add_middleware(RequestContextMiddleware)
+    app.add_middleware(ApiHeadersMiddleware)
 
     return app

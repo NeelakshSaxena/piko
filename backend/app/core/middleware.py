@@ -50,6 +50,44 @@ class RequestContextMiddleware:
             )
 
 
+class ApiHeadersMiddleware:
+    """Headers every browser-reachable response should carry.
+
+    `/api/` responses (tokens, pairing and invite codes, coordinates, message text) must never sit in a
+    browser or proxy cache (audit L-3), and must not be framed, sniffed or leak a referrer (audit F-10).
+    The interactive docs page (development only) gets the non-caching-neutral subset."""
+
+    API_HEADERS = (
+        (b"cache-control", b"no-store"),
+        (b"pragma", b"no-cache"),
+        (b"content-security-policy", b"default-src 'none'; frame-ancestors 'none'"),
+    )
+    COMMON_HEADERS = (
+        (b"x-content-type-options", b"nosniff"),
+        (b"x-frame-options", b"DENY"),
+        (b"referrer-policy", b"no-referrer"),
+    )
+
+    def __init__(self, app: ASGIApp) -> None:
+        self.app = app
+
+    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
+        if scope["type"] != "http":
+            await self.app(scope, receive, send)
+            return
+        is_api = scope["path"].startswith("/api/")
+        added = (self.API_HEADERS if is_api else ()) + self.COMMON_HEADERS
+        names = {name for name, _ in added}
+
+        async def send_wrapper(message: Message) -> None:
+            if message["type"] == "http.response.start":
+                kept = [(k, v) for k, v in message.get("headers", []) if k.lower() not in names]
+                message["headers"] = [*kept, *added]
+            await send(message)
+
+        await self.app(scope, receive, send_wrapper)
+
+
 class HostMiddleware:
     """Rejects requests whose Host header is not an expected name (Host-header attacks)."""
 

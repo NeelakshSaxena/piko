@@ -20,4 +20,6 @@ export const config = {
   gapSeconds: 15 * 60,
   /** How often visible pages re-read data. Each location read is recorded in the audit log. */
   refreshMs: 60_000,
+  /** SOS data is re-read more often while a tab is visible. Dashboards are not pushed anything. */
+  sosRefreshMs: 30_000,
 } as const

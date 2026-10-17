@@ -26,12 +26,13 @@ import java.util.zip.GZIPInputStream
 import kotlin.concurrent.thread
 
 /** A one-connection-at-a-time HTTP server on loopback that replays a scripted response. */
-private class MiniServer(private val status: Int, private val body: String, private val headers: Map<String, String> = emptyMap()) {
+internal class MiniServer(private val status: Int, private val body: String, private val headers: Map<String, String> = emptyMap()) {
     private val socket = ServerSocket(0, 1, java.net.InetAddress.getByName("127.0.0.1"))
     val base = "http://127.0.0.1:${socket.localPort}"
     @Volatile var requestHeaders: Map<String, String> = emptyMap()
     @Volatile var requestBody: ByteArray = ByteArray(0)
     @Volatile var requests = 0
+    @Volatile var requestLine = ""
 
     init {
         thread(isDaemon = true) {
@@ -40,6 +41,7 @@ private class MiniServer(private val status: Int, private val body: String, priv
                     socket.accept().use { client ->
                         val input = client.getInputStream()
                         val head = readHead(input)
+                        requestLine = head.lines().first()
                         requestHeaders = head.lines().drop(1).filter { ":" in it }.associate { it.substringBefore(":").lowercase() to it.substringAfter(":").trim() }
                         val length = requestHeaders["content-length"]?.toInt() ?: 0
                         requestBody = ByteArray(length).also { buf -> var read = 0; while (read < length) read += input.read(buf, read, length - read) }

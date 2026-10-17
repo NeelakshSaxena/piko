@@ -1,0 +1,23 @@
+﻿Android Phase 6 FINAL test results (2026-10-17)
+== JVM unit tests (gradle :app:testDebugUnitTest) ==
+app.piko.android.core.AckParsingTest: run=2 failures=0 errors=0
+app.piko.android.core.BatchCodecTest: run=2 failures=0 errors=0
+app.piko.android.core.CommEngineTest: run=15 failures=0 errors=0
+app.piko.android.core.CommModelTest: run=7 failures=0 errors=0
+app.piko.android.core.CommPoisonTest: run=1 failures=0 errors=0
+app.piko.android.core.EventDataTest: run=3 failures=0 errors=0
+app.piko.android.core.InMemoryCommStoreContractTest: run=14 failures=0 errors=0
+app.piko.android.core.InMemoryEventStoreContractTest: run=16 failures=0 errors=0
+app.piko.android.core.RecorderTest: run=3 failures=0 errors=0
+app.piko.android.core.ServerUrlTest: run=3 failures=0 errors=0
+app.piko.android.core.SosLocationPolicyTest: run=5 failures=0 errors=0
+app.piko.android.core.SyncEngineTest: run=15 failures=0 errors=0
+app.piko.android.core.ThrottleAndModeTest: run=4 failures=0 errors=0
+== Instrumented, emulator Piko_Test_Device (AVD) Android 16 (gradle :app:connectedDebugAndroidTest), final code ==
+app.piko.android.ApiClientTest: run=6 failures=0 errors=0
+app.piko.android.CommApiClientTest: run=8 failures=0 errors=0
+app.piko.android.CommDurabilityTest: run=4 failures=0 errors=0
+app.piko.android.DeviceVaultTest: run=3 failures=0 errors=0
+app.piko.android.QueueDurabilityTest: run=5 failures=0 errors=0
+app.piko.android.SqliteCommStoreContractTest: run=14 failures=0 errors=0
+app.piko.android.SqliteEventStoreContractTest: run=16 failures=0 errors=0

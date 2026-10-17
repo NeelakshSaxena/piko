@@ -1,0 +1,16 @@
+# Runtime dependencies for a serverless deployment (Vercel installs this file). Direct dependencies only,
+# pinned to the versions in the repository's requirements.lock; their dependencies resolve from these.
+# Development tools (pytest, ruff, mypy, pip-audit) are intentionally absent.
+fastapi==0.143.2
+starlette==1.8.0
+pydantic==2.14.1
+pydantic-settings==2.16.0
+SQLAlchemy==2.1.4
+alembic==1.20.0
+psycopg[binary]==3.3.6
+PyJWT[crypto]==2.15.1
+cryptography==50.0.2
+bcrypt==4.3.0
+httpx==0.28.1
+pywebpush==2.5.0
+email-validator==2.3.0
