@@ -79,11 +79,9 @@ First time only: set up the emulator and install the app:
 
 In another terminal:
 ```powershell
-. .\scripts\android\env-android.ps1
-cd android
-& (Get-PikoTool gradle) :app:assembleDebug --no-daemon
-& (Get-PikoTool adb) install -r app\build\outputs\apk\debug\app-debug.apk
-& (Get-PikoTool adb) shell am start -n app.piko.android/.ui.MainActivity
+.\scripts\android\install-app.ps1                    # Assembles and installs debug APK, then launches app
+# Or to skip Gradle rebuild:
+.\scripts\android\install-app.ps1 -SkipBuild
 ```
 
 In the app:

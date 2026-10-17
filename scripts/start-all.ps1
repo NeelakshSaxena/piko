@@ -80,7 +80,7 @@ try {
         Write-Host "Starting Android emulator (first boot can take a few minutes) ..." -ForegroundColor Cyan
         $emu = Join-Path $root 'scripts\android\start-emulator.ps1'
         if ($Headless) { & $emu -Headless } else { & $emu }
-        Write-Host "  install the app with: see docs\RUNNING_LOCALLY.md section 3" -ForegroundColor Yellow
+        Write-Host "  install the app with: .\scripts\android\install-app.ps1" -ForegroundColor Yellow
     }
 
     Write-Host ""
