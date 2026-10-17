@@ -3,8 +3,7 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import './LandingPage.css'
 
-const MASCOT_URL =
-  'https://lh3.googleusercontent.com/aida-public/AB6AXuAvTLgr06odlkhjcwjrlTm32o2x3_HhOWwhx5CbnhQ9qacmglcc5hn3TztBFFxcGWCLkDKmPbzNVxZG2U5EuhNofxwukDeoL9v57fdVYL0lPFtcK10pU5klSXEqvR_vw5Shb2drUZ-p6A2H0MI9WE9kWQD46R6RvJ1weZKvjIGzcigFbRZ4XUUOwKrJzbzRfZLmZ8RMtnHraqOrkudjiNiIXoIXWYDret7E9U9d9qGMKKD_MDO9PAo3E6vb73qp2TrCS18'
+const MASCOT_URL = '/mascot.png'
 
 export function LandingPage() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
