@@ -194,6 +194,11 @@ cd android
 & (Get-PikoTool gradle) :app:connectedDebugAndroidTest
 ```
 
+## GitHub Actions
+
+- `Build Android APK` runs on every push commit (and manually via workflow dispatch).
+- It builds `:app:assembleDebug` and uploads `app-debug.apk` as a workflow artifact.
+
 ---
 
 ## Local test credentials
