@@ -23,6 +23,8 @@ from app.core.config import Settings
 DEVICE_TOKEN_PREFIX = "pkd_"
 ACCESS_AUDIENCE = "piko-api"
 REFRESH_AUDIENCE = "piko-refresh"
+MCP_AUDIENCE = "piko-mcp"  # accepted only by the MCP adapter; never by the API (ADR-024)
+MCP_SCOPE = "mcp:read"
 PASSWORD_MAX_BYTES = 72  # bcrypt silently truncates beyond this; reject instead
 UNUSABLE_PASSWORD = "!"  # stored for child identities, which can never log in
 # 32 symbols, no I/O/0/1; 9 symbols = 45 bits of entropy. See ADR-008.
@@ -110,6 +112,8 @@ class TokenService:
         }
         if claims.family_hint is not None:
             payload["fam"] = str(claims.family_hint)
+        if kind == "mcp":
+            payload["scope"] = MCP_SCOPE
         return jwt.encode(payload, self._private_key, algorithm="RS256")  # type: ignore[arg-type]
 
     def issue_access(self, claims: TokenClaims, now: datetime | None = None) -> str:
@@ -118,8 +122,15 @@ class TokenService:
     def issue_refresh(self, claims: TokenClaims, now: datetime | None = None) -> str:
         return self._encode("refresh", REFRESH_AUDIENCE, self._refresh_ttl, claims, now or _now())
 
-    def verify(self, token: str, kind: Literal["access", "refresh"]) -> TokenClaims | None:
-        audience = ACCESS_AUDIENCE if kind == "access" else REFRESH_AUDIENCE
+    def issue_mcp(self, claims: TokenClaims, ttl_seconds: int, now: datetime | None = None) -> str:
+        """Read-only token for the local MCP adapter. Its own audience and scope mean the API rejects
+        it and the adapter rejects API tokens."""
+        return self._encode("mcp", MCP_AUDIENCE, ttl_seconds, claims, now or _now())
+
+    def verify(self, token: str, kind: Literal["access", "refresh", "mcp"]) -> TokenClaims | None:
+        audience = {"access": ACCESS_AUDIENCE, "refresh": REFRESH_AUDIENCE, "mcp": MCP_AUDIENCE}[
+            kind
+        ]
         try:
             data = jwt.decode(
                 token,
@@ -130,6 +141,8 @@ class TokenService:
                 options={"require": ["exp", "iat", "iss", "aud", "sub", "sid", "typ"]},
             )
             if data["typ"] != kind:
+                return None
+            if kind == "mcp" and data.get("scope") != MCP_SCOPE:
                 return None
             fam = data.get("fam")
             return TokenClaims(

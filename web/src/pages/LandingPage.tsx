@@ -4,12 +4,19 @@ import { Link } from 'react-router-dom'
 import './LandingPage.css'
 
 const MASCOT_URL = '/mascot.png'
+// Placeholder until billing exists: checked in the browser only, so it is not a secret and grants nothing by itself.
+const EARLY_BIRD_CODE = 'EARLYBIRDOFF3R'
 
 export function LandingPage() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [coupon, setCoupon] = useState('')
+  const [couponState, setCouponState] = useState<'idle' | 'applied' | 'invalid'>('idle')
 
   return (
     <div className="piko-landing">
+      <a className="skip" href="#main">
+        Skip to content
+      </a>
       {/* 1. Header / Navigation */}
       <header className="piko-landing-header">
         <div className="piko-landing-header-inner">
@@ -31,6 +38,7 @@ export function LandingPage() {
             <a href="#how-it-works">How it works</a>
             <a href="#hosting-options">Hosting &amp; Pricing</a>
             <a href="#matrix">Comparison</a>
+            <a href="#self-host">Deploy yourself</a>
             <a href="#privacy">Privacy</a>
             <a href="#faq">FAQ</a>
           </nav>
@@ -73,11 +81,15 @@ export function LandingPage() {
             <a href="#how-it-works" onClick={() => setMobileMenuOpen(false)}>How it works</a>
             <a href="#hosting-options" onClick={() => setMobileMenuOpen(false)}>Hosting &amp; Pricing</a>
             <a href="#matrix" onClick={() => setMobileMenuOpen(false)}>Comparison</a>
+            <a href="#self-host" onClick={() => setMobileMenuOpen(false)}>Deploy yourself</a>
             <a href="#privacy" onClick={() => setMobileMenuOpen(false)}>Privacy</a>
             <a href="#faq" onClick={() => setMobileMenuOpen(false)}>FAQ</a>
+            <Link to="/login">Sign in</Link>
           </div>
         )}
       </header>
+
+      <main id="main">
 
       {/* 2. Hero Section */}
       <section className="piko-hero" id="hero">
@@ -115,7 +127,7 @@ export function LandingPage() {
 
             <div className="piko-hero-footnote">
               <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--lp-mint-dark)' }} />
-              <span>Your family. Your choice. Zero vendor lock-in.</span>
+              <span>Your family. Your choice. Run it yourself any time.</span>
             </div>
           </motion.div>
 
@@ -129,6 +141,9 @@ export function LandingPage() {
               <motion.img
                 src={MASCOT_URL}
                 alt="Piko official friendly mascot"
+                width={512}
+                height={475}
+                fetchPriority="high"
                 className="piko-mascot-img"
                 animate={{ rotate: [0, 1.5, 0, -1.5, 0] }}
                 transition={{ duration: 7, repeat: Infinity, ease: 'easeInOut' }}
@@ -144,8 +159,8 @@ export function LandingPage() {
                   ✓
                 </div>
                 <div>
-                  <div className="piko-chip-title">Safe Zone Verified</div>
-                  <div className="piko-chip-sub">Greenwood Campus · Synced</div>
+                  <div className="piko-chip-title">Sample: location shared</div>
+                  <div className="piko-chip-sub">Always shown with its age</div>
                 </div>
               </motion.div>
 
@@ -159,8 +174,8 @@ export function LandingPage() {
                   📱
                 </div>
                 <div>
-                  <div className="piko-chip-title">Aarav · At School</div>
-                  <div className="piko-chip-sub">84% Battery · Fresh 12s ago</div>
+                  <div className="piko-chip-title">Sample: Aarav&apos;s phone</div>
+                  <div className="piko-chip-sub">84% battery · updated 12 s ago</div>
                 </div>
               </motion.div>
             </motion.div>
@@ -202,7 +217,7 @@ export function LandingPage() {
             </div>
             <h3 className="piko-card-title">Choose your setup</h3>
             <p className="piko-card-desc">
-              Zero lock-in. Subscribe to managed Piko Hosted, or self-host your own server on your personal homelab hardware whenever you want.
+              Use managed Piko Hosted, or run your own server on your own hardware whenever you want.
             </p>
           </div>
         </div>
@@ -223,10 +238,10 @@ export function LandingPage() {
             <div className="piko-step-num">01</div>
             <h3 className="piko-card-title">Set up your family</h3>
             <p className="piko-card-desc">
-              Create your private family space. Pair devices with a transparent, mutual QR code or invite link so everyone understands what is shared.
+              Create your private family space. Pair a child&apos;s phone with a one-time code from the dashboard. The child sees, and agrees to, what is shared.
             </p>
             <div style={{ marginTop: 'auto', paddingTop: 16, fontSize: '0.8rem', fontWeight: 700, color: 'var(--lp-mint-dark)' }}>
-              ✓ Takes under 2 minutes
+              ✓ Takes a few minutes
             </div>
           </div>
 
@@ -234,10 +249,10 @@ export function LandingPage() {
             <div className="piko-step-num">02</div>
             <h3 className="piko-card-title">Stay connected gently</h3>
             <p className="piko-card-desc">
-              View battery status, transparent location freshness, geofence updates, and quick reassuring check-ins like "I'm okay" or "Arrived safely".
+              View battery status and location freshness, get SOS alerts, and exchange short text messages with the phone.
             </p>
             <div style={{ marginTop: 'auto', paddingTop: 16, fontSize: '0.8rem', fontWeight: 700, color: 'var(--lp-primary)' }}>
-              ✓ Offline-aware sync
+              ✓ Works through offline gaps
             </div>
           </div>
 
@@ -245,10 +260,10 @@ export function LandingPage() {
             <div className="piko-step-num">03</div>
             <h3 className="piko-card-title">Choose how it runs</h3>
             <p className="piko-card-desc">
-              Let us maintain the cloud and updates with Piko Hosted, or run your own instance via Docker on home hardware with our self-hosted stack.
+              Let us maintain the cloud and updates with Piko Hosted, or run your own server (Python and PostgreSQL) by following the self-hosting guide.
             </p>
             <div style={{ marginTop: 'auto', paddingTop: 16, fontSize: '0.8rem', fontWeight: 700, color: 'var(--lp-blue)' }}>
-              ✓ Switch anytime
+              ✓ Your choice
             </div>
           </div>
         </div>
@@ -275,7 +290,7 @@ export function LandingPage() {
               Piko Hosted
             </h3>
             <p style={{ fontSize: '0.925rem', color: 'var(--lp-muted)', marginBottom: 12 }}>
-              Zero server administration. High-availability cloud, automatic security patches, and instant onboarding.
+              No server to run: the operator hosts and updates it for you.
             </p>
 
             {/* Pricing Tag */}
@@ -284,10 +299,42 @@ export function LandingPage() {
               <span className="piko-price-period">/ family / month</span>
             </div>
 
+            <form
+              className="piko-coupon"
+              onSubmit={(e) => {
+                e.preventDefault()
+                setCouponState(coupon.trim().toUpperCase() === EARLY_BIRD_CODE ? 'applied' : 'invalid')
+              }}
+            >
+              <label htmlFor="piko-coupon-input">Have a coupon code?</label>
+              <div className="piko-coupon-row">
+                <input
+                  id="piko-coupon-input"
+                  value={coupon}
+                  onChange={(e) => {
+                    setCoupon(e.target.value)
+                    setCouponState('idle')
+                  }}
+                  autoComplete="off"
+                  autoCapitalize="characters"
+                  spellCheck={false}
+                  aria-describedby="piko-coupon-status"
+                />
+                <button type="submit" className="piko-btn-secondary" disabled={!coupon.trim()}>
+                  Apply
+                </button>
+              </div>
+              <p id="piko-coupon-status" role="status" className={`piko-coupon-status ${couponState}`}>
+                {couponState === 'applied' &&
+                  'Early-bird code applied: your first month of Piko Hosted is free. Online signup and billing are not open yet, so nothing is charged or activated today.'}
+                {couponState === 'invalid' && 'That code is not valid. Check it and try again.'}
+              </p>
+            </form>
+
             <ul className="piko-feature-list">
               <li className="piko-feature-item">
                 <span className="piko-feature-check">✓</span>
-                <span>Fully managed cloud infrastructure &amp; automatic upgrades</span>
+                <span>Managed hosting and upgrades</span>
               </li>
               <li className="piko-feature-item">
                 <span className="piko-feature-check">✓</span>
@@ -295,19 +342,19 @@ export function LandingPage() {
               </li>
               <li className="piko-feature-item">
                 <span className="piko-feature-check">✓</span>
-                <span>Instant Android device pairing via authenticated QR codes</span>
+                <span>Android pairing with a one-time code</span>
               </li>
               <li className="piko-feature-item">
                 <span className="piko-feature-check">✓</span>
-                <span>Pre-configured push notifications &amp; priority battery alerts</span>
+                <span>Push notifications for SOS and messages</span>
               </li>
               <li className="piko-feature-item">
                 <span className="piko-feature-check">✓</span>
-                <span>Redundant point-in-time telemetry backups</span>
+                <span>Database backups handled by the operator</span>
               </li>
               <li className="piko-feature-item">
                 <span className="piko-feature-check">✓</span>
-                <span>Transparent subscription billing (cancel anytime in 1 click)</span>
+                <span>One simple price per family</span>
               </li>
             </ul>
 
@@ -316,7 +363,7 @@ export function LandingPage() {
               <span aria-hidden="true">→</span>
             </Link>
             <p style={{ textAlign: 'center', fontSize: '0.75rem', color: 'var(--lp-muted)', marginTop: 10 }}>
-              Ready in under 2 minutes · No lock-in
+              Set up in minutes
             </p>
           </div>
 
@@ -335,7 +382,7 @@ export function LandingPage() {
             {/* Pricing Tag */}
             <div className="piko-price-tag">
               <span className="piko-price-amount">Free</span>
-              <span className="piko-price-period">Open Source (AGPL-3.0)</span>
+              <span className="piko-price-period">Run it on your own server</span>
             </div>
 
             <ul className="piko-feature-list">
@@ -393,12 +440,12 @@ export function LandingPage() {
             <tbody>
               <tr>
                 <td><strong>Setup Duration</strong></td>
-                <td>Under 2 minutes via QR scan</td>
-                <td>~15 minutes (Docker Compose)</td>
+                <td>A few minutes, with a pairing code</td>
+                <td>Allow an hour or more (Python, PostgreSQL, HTTPS)</td>
               </tr>
               <tr>
                 <td><strong>Data Custody</strong></td>
-                <td>Dedicated tenant, encrypted at rest</td>
+                <td>Your family&apos;s data on the operator&apos;s server</td>
                 <td>100% on your personal hardware</td>
               </tr>
               <tr>
@@ -408,13 +455,13 @@ export function LandingPage() {
               </tr>
               <tr>
                 <td><strong>Push Relays</strong></td>
-                <td>Pre-configured high-priority relays</td>
-                <td>Bring your own FCM / APNS keys</td>
+                <td>Push already set up</td>
+                <td>Bring your own Firebase / Web Push keys</td>
               </tr>
               <tr>
-                <td><strong>Automated Backups</strong></td>
-                <td>Multi-region managed snapshots</td>
-                <td>Self-managed volume backups</td>
+                <td><strong>Backups</strong></td>
+                <td>Managed by the operator</td>
+                <td>Backups you run (built-in backup command)</td>
               </tr>
               <tr>
                 <td><strong>Mobile App Parity</strong></td>
@@ -424,7 +471,7 @@ export function LandingPage() {
               <tr>
                 <td><strong>Pricing</strong></td>
                 <td><strong>₹300 / family / month</strong></td>
-                <td><strong>Free &amp; Open Source</strong></td>
+                <td><strong>Free to run yourself</strong></td>
               </tr>
             </tbody>
           </table>
@@ -445,24 +492,24 @@ export function LandingPage() {
           {/* Feature 1: Live Family Map */}
           <div className="piko-clay-card piko-bento-col-8">
             <span style={{ fontSize: '0.75rem', fontWeight: 800, textTransform: 'uppercase', color: 'var(--lp-blue)' }}>
-              Live &amp; Geofenced
+              Location with its age
             </span>
-            <h3 className="piko-card-title">Live Family Map &amp; Safe Zones</h3>
+            <h3 className="piko-card-title">Family Map</h3>
             <p className="piko-card-desc">
-              Real-time spatial awareness with circular precision uncertainty (±5m), arrival safe-zone notifications, and transparent freshness indicators. Never guess if data is stale.
+              Each position is shown with its accuracy and how old it is, and a position that is no longer current is marked as such. Never guess if data is stale.
             </p>
 
             <div className="piko-mockup-well">
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', fontWeight: 700, marginBottom: 10 }}>
-                <span>Bengaluru Safe Corridor · 2 Active Nodes</span>
+                <span>Sample map card</span>
                 <span style={{ color: 'var(--lp-muted)' }}>Updated 18s ago</span>
               </div>
               <div style={{ height: 80, borderRadius: 14, background: 'linear-gradient(90deg, #e7f0fd, #f3eeff, #e4f5eb)', display: 'flex', alignItems: 'center', justifyContent: 'space-around', padding: '0 12px' }}>
                 <span style={{ background: '#fff', padding: '6px 12px', borderRadius: 10, fontSize: '0.75rem', fontWeight: 700, boxShadow: '0 2px 6px rgba(0,0,0,0.06)' }}>
-                  🔵 Aarav · School (Gate 2)
+                  🔵 Aarav · sample
                 </span>
                 <span style={{ background: '#fff', padding: '6px 12px', borderRadius: 10, fontSize: '0.75rem', fontWeight: 700, boxShadow: '0 2px 6px rgba(0,0,0,0.06)' }}>
-                  🟢 Diya · Art Studio
+                  🟢 Diya · sample
                 </span>
               </div>
             </div>
@@ -480,10 +527,10 @@ export function LandingPage() {
             <div className="piko-mockup-well" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <div>
                 <div style={{ fontSize: '1.75rem', fontWeight: 900, color: 'var(--lp-text)' }}>84%</div>
-                <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--lp-mint-dark)' }}>Fast Charging</div>
+                <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--lp-mint-dark)' }}>Charging status</div>
               </div>
               <span style={{ background: 'var(--lp-softblue)', color: 'var(--lp-blue)', padding: '4px 10px', borderRadius: 8, fontSize: '0.75rem', fontWeight: 700 }}>
-                5G Active
+                Network type
               </span>
             </div>
           </div>
@@ -495,35 +542,35 @@ export function LandingPage() {
             </span>
             <h3 className="piko-card-title">Instant Emergency SOS</h3>
             <p className="piko-card-desc">
-              A 3-second hold trigger guards against accidental taps while ensuring rapid alert delivery and siren activation when it counts.
+              The child raises an SOS from the app. It is kept on the phone and sent as soon as there is a connection, and it is never shown as delivered until the server confirms it. Piko does not call emergency services.
             </p>
             <div className="piko-mockup-well" style={{ background: '#fdf2f2', border: '1px solid #fed7d7', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <span style={{ width: 10, height: 10, borderRadius: '50%', background: 'var(--lp-critical)' }} />
-                <span style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--lp-critical)' }}>Priority Link Ready</span>
+                <span style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--lp-critical)' }}>Sent when connected</span>
               </div>
-              <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--lp-muted)' }}>Hold 3s</span>
+              <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--lp-muted)' }}>Sample</span>
             </div>
           </div>
 
           {/* Feature 4: Reassurance Messaging */}
           <div className="piko-clay-card piko-bento-col-8">
             <span style={{ fontSize: '0.75rem', fontWeight: 800, textTransform: 'uppercase', color: 'var(--lp-mint-dark)' }}>
-              Gentle Intercom
+              Messages
             </span>
-            <h3 className="piko-card-title">Reassurance Intercom &amp; Quick Check-Ins</h3>
+            <h3 className="piko-card-title">Short messages</h3>
             <p className="piko-card-desc">
-              Pre-configured tactile check-ins like "I'm okay" or "At soccer practice" make communication seamless without typing long messages.
+              Parents and the child exchange short text messages. Each shows whether it was delivered to the server and whether the phone has seen it.
             </p>
             <div className="piko-mockup-well" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
               <div style={{ background: '#fff', padding: 10, borderRadius: 12, textAlign: 'center', fontSize: '0.8rem', fontWeight: 700 }}>
-                👋 I'm Okay
+                Sent
               </div>
               <div style={{ background: '#fff', padding: 10, borderRadius: 12, textAlign: 'center', fontSize: '0.8rem', fontWeight: 700 }}>
-                🏫 At School
+                Delivered
               </div>
               <div style={{ background: '#fff', padding: 10, borderRadius: 12, textAlign: 'center', fontSize: '0.8rem', fontWeight: 700 }}>
-                🚗 Heading Home
+                Seen
               </div>
             </div>
           </div>
@@ -534,7 +581,7 @@ export function LandingPage() {
       <section className="piko-section" id="privacy">
         <div className="piko-clay-card" style={{ padding: '48px 40px', textAlign: 'center' }}>
           <div className="piko-landing-brand-logo" style={{ margin: '0 auto 16px auto', width: 48, height: 48 }}>
-            <img src={MASCOT_URL} alt="Piko logo" />
+            <img src={MASCOT_URL} alt="Piko logo" loading="lazy" />
           </div>
           <h2 style={{ fontSize: '2.25rem', fontWeight: 800, marginBottom: 12, color: 'var(--lp-text)' }}>
             Built around families, not fear.
@@ -566,6 +613,76 @@ export function LandingPage() {
       </section>
 
       {/* 9. FAQ Accordion */}
+      {/* Self-hosting guide */}
+      <section className="piko-section" id="self-host">
+        <div className="piko-section-header">
+          <span className="piko-section-tag">Free &amp; open to run yourself</span>
+          <h2 className="piko-section-title">How to deploy Piko yourself</h2>
+          <p className="piko-section-desc">
+            You need Python 3.11+, a PostgreSQL database you control, and (to reach it from outside your home) a domain with HTTPS. Nothing
+            here sends data to the Piko team, and no account with us is required.
+          </p>
+        </div>
+
+        <ol className="piko-selfhost-steps">
+          <li>
+            <h3>1. Get the code and install</h3>
+            <pre tabIndex={0}>
+              <code>{`python -m venv .venv
+.venv\Scripts\pip install -e ".[dev,api,test]"   # Linux/macOS: .venv/bin/pip
+copy .env.example .env                          # then set PIKO_DATABASE_URL`}</code>
+            </pre>
+          </li>
+          <li>
+            <h3>2. Create keys and the database tables</h3>
+            <pre tabIndex={0}>
+              <code>{`cd backend
+python -m app.cli generate-keys --dir ../.data/keys
+python -m alembic upgrade head
+python -m app.cli doctor      # read-only check: must show no [FAIL]`}</code>
+            </pre>
+          </li>
+          <li>
+            <h3>3. Create the first parent and start the server</h3>
+            <pre tabIndex={0}>
+              <code>{`python -m app.cli create-family --email you@example.com --family-name "Home"
+python -m app          # http://127.0.0.1:8000 (loopback only by default)`}</code>
+            </pre>
+            <p>The password is typed at a prompt (12+ characters). There is no default account.</p>
+          </li>
+          <li>
+            <h3>4. Put HTTPS in front, then open it up deliberately</h3>
+            <p>
+              Run a reverse proxy (Caddy, nginx or Traefik) with a certificate, open only port 443, and set PIKO_PUBLIC_BASE_URL (https),
+              PIKO_ALLOWED_ORIGINS and PIKO_ALLOWED_HOSTS. Piko refuses a public bind unless you also set PIKO_ALLOW_PUBLIC_BIND=true.
+            </p>
+          </li>
+          <li>
+            <h3>5. Link your family</h3>
+            <p>
+              Sign in to the dashboard (build it with <code>npm run build</code> in <code>web</code> and serve <code>web/dist</code>), follow
+              the welcome guide, create a pairing code, then install the Android app and choose &ldquo;Continue as Child&rdquo;. Set the
+              server address to your own domain.
+            </p>
+          </li>
+          <li>
+            <h3>6. Back up before you rely on it</h3>
+            <pre tabIndex={0}>
+              <code>{`python -m app.cli backup --out ../.data/backups/piko.gz
+python -m app.cli restore --file ../.data/backups/piko.gz   # into an EMPTY, migrated schema`}</code>
+            </pre>
+            <p>A backup only counts once you have restored it somewhere. Back up the key files separately.</p>
+          </li>
+        </ol>
+
+        <div className="piko-selfhost-note">
+          <strong>You are responsible for:</strong> TLS certificates and renewal, firewall, OS and dependency updates, monitoring, secret
+          storage, backups and restore drills, and data retention. The full guide, upgrade and rollback steps and the optional read-only AI
+          (MCP) adapter are in <code>docs/SELF_HOSTING.md</code> and <code>docs/MCP.md</code> in the repository. Prefer zero maintenance?{' '}
+          <a href="#hosting-options">Piko Hosted</a> is ₹300 per family per month.
+        </div>
+      </section>
+
       <section className="piko-section" id="faq">
         <div className="piko-section-header">
           <span className="piko-section-tag">Questions &amp; Answers</span>
@@ -600,8 +717,7 @@ export function LandingPage() {
               <span className="piko-faq-arrow">▼</span>
             </summary>
             <div className="piko-faq-content">
-              Piko Hosted is <strong>300 INR / family / month</strong> (₹300/mo). This covers your entire household with unlimited family members and devices, high-availability hosting, automated backups, and push notification relays.
-            </div>
+              Piko Hosted is <strong>300 INR / family / month</strong> (₹300/mo). This covers one family and its linked phones. The operator hosts and updates the server, and handles backups and push notifications.</div>
           </details>
 
           <details className="piko-faq-item">
@@ -610,7 +726,7 @@ export function LandingPage() {
               <span className="piko-faq-arrow">▼</span>
             </summary>
             <div className="piko-faq-content">
-              Yes, self-hosting requires familiarity with Docker, reverse proxies, and server maintenance. You will also manage your own backups and system updates. If you prefer zero maintenance, Piko Hosted is ready instantly.
+              Yes, self-hosting requires familiarity with Python, PostgreSQL, a reverse proxy with HTTPS, and server maintenance (Docker images are not provided). You will also manage your own backups and system updates. If you prefer zero maintenance, Piko Hosted is ready instantly.
             </div>
           </details>
 
@@ -620,7 +736,7 @@ export function LandingPage() {
               <span className="piko-faq-arrow">▼</span>
             </summary>
             <div className="piko-faq-content">
-              Yes. Piko uses standardized family export formats so you can take your family configuration and telemetry history with you if you decide to switch hosting models.
+              Piko includes a backup and restore command, so a self-hoster can move their data between servers of the same version. There is no one-click export between Hosted and Self-Hosted yet.
             </div>
           </details>
 
@@ -658,12 +774,14 @@ export function LandingPage() {
         </div>
       </section>
 
+      </main>
+
       {/* 11. Footer */}
       <footer className="piko-landing-footer">
         <div className="piko-footer-inner">
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <div className="piko-landing-brand-logo" style={{ width: 32, height: 32 }}>
-              <img src={MASCOT_URL} alt="Piko icon" />
+              <img src={MASCOT_URL} alt="Piko icon" loading="lazy" />
             </div>
             <span style={{ fontWeight: 800, color: 'var(--lp-text)' }}>Piko</span>
             <span style={{ fontSize: '0.75rem', color: 'var(--lp-muted)' }}>· Connected by care. Protected by choice.</span>
@@ -673,6 +791,7 @@ export function LandingPage() {
             <a href="#features">Features</a>
             <a href="#how-it-works">How it works</a>
             <a href="#hosting-options">Pricing</a>
+            <a href="#self-host">Deploy yourself</a>
             <a href="#privacy">Privacy</a>
             <a href="#faq">FAQ</a>
             <Link to="/login">Sign in</Link>

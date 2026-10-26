@@ -96,7 +96,7 @@ fun RoleScreen(onChild: () -> Unit) = Page {
 
 @Composable
 fun PairScreen(onBack: () -> Unit, onPaired: (Enrollment, discardedEvents: Int) -> Unit, pair: suspend (String, String, String) -> PairOutcome) = Page {
-    var server by rememberSaveable { mutableStateOf("") }
+    var server by rememberSaveable { mutableStateOf(BuildConfig.DEFAULT_SERVER) }
     var code by rememberSaveable { mutableStateOf("") }
     var name by rememberSaveable { mutableStateOf(Build.MODEL ?: "My phone") }
     var consent by rememberSaveable { mutableStateOf(false) }
@@ -106,7 +106,11 @@ fun PairScreen(onBack: () -> Unit, onPaired: (Enrollment, discardedEvents: Int) 
 
     TextButton(onClick = onBack) { Text("Back") }
     Text("Link this phone", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
-    Text("Ask a parent for the server address and a pairing code. Codes work once and expire after 15 minutes.", color = Clay.TextSecondary)
+    Text(
+        if (BuildConfig.DEFAULT_SERVER.isNotEmpty()) "Ask a parent for a pairing code (Family Members page on the dashboard). Codes work once and expire after 15 minutes. Change the server address only if your family runs its own."
+        else "Ask a parent for the server address and a pairing code. Codes work once and expire after 15 minutes.",
+        color = Clay.TextSecondary,
+    )
     OutlinedTextField(
         server, { server = it; error = null }, Modifier.fillMaxWidth(), label = { Text("Server address") },
         placeholder = { Text(if (BuildConfig.DEBUG) "http://10.0.2.2:8000" else "https://piko.example.com") },
@@ -175,7 +179,7 @@ suspend fun runPair(base: String, code: String, name: String, appVersion: String
 
 private const val SHARED_SUMMARY =
     "Your location (with how accurate it is and when it was taken), battery level and whether you are charging, " +
-        "and whether you are on Wi-Fi or mobile data. Not shared: contacts, messages, photos, apps or microphone."
+        "and whether you are on Wi-Fi or mobile data. Not shared: your contacts, your phone's own text messages, photos, apps or microphone. Messages you send through Piko go to your parents."
 
 /** screens/drishti_child_safety_home, limited to features that exist (no check-ins yet). */
 @Composable

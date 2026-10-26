@@ -194,7 +194,7 @@ All endpoints are hosted at `https://piko-api-ten.vercel.app/api/v1`.
 - **Triggers:** Push to `main` or `deployment`, tags `v*`, or manual `workflow_dispatch`.
 - **JDK:** OpenJDK 17 (Eclipse Temurin)
 - **Gradle:** 9.8.1 wrapper
-- **Artifact Name:** `piko-android-debug-apk`
+- **Artifact Name:** `piko-android-debug-apk-<commit sha>` (every push, any branch); `main`/`deployment` also refresh the `android-latest` release (`piko-latest.apk`). See `docs/ANDROID_APP.md`.
 - **Artifact Path:** `android/app/build/outputs/apk/debug/app-debug.apk`
 
 ### 2. Operator Configuration (Firebase / FCM)

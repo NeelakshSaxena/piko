@@ -46,6 +46,12 @@ On macOS/Linux, see [Platform-specific setup](#platform-specific-setup).
 
 ---
 
+## More documentation
+- Self-hosting (setup, doctor, backup/restore, upgrade): `docs/SELF_HOSTING.md`; hosted deployment: `docs/DEPLOYMENT.md`
+- Android app (latest APK, linking a child's phone, sounds, building): `docs/ANDROID_APP.md`
+- Read-only AI (MCP) adapter: `docs/MCP.md`
+- Push notifications: `docs/PUSH_NOTIFICATIONS.md`
+
 ## Architecture
 
 **Modular monolith** with strict boundaries:

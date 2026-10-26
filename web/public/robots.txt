@@ -1,0 +1,14 @@
+User-agent: *
+Allow: /$
+Disallow: /login
+Disallow: /join
+Disallow: /map
+Disallow: /activity
+Disallow: /health
+Disallow: /family
+Disallow: /sos
+Disallow: /messages
+Disallow: /alerts
+Disallow: /settings
+Disallow: /welcome
+Sitemap: https://piko-web-jade.vercel.app/sitemap.xml

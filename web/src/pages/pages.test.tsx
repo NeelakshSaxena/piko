@@ -181,9 +181,11 @@ describe('overview', () => {
   })
 
   it('has an empty state that points a parent to pairing', async () => {
+    window.sessionStorage.setItem('piko.onboarding.shown', '1') // the setup guide was already offered this session
     renderApp('/', sessionRoutes('parent', false))
     expect(await screen.findByText('No one is sharing yet')).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Create a pairing code' })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'setup guide' })).toHaveAttribute('href', '/welcome')
   })
 
   it('shows an error with the request reference and a retry when the family cannot be loaded', async () => {

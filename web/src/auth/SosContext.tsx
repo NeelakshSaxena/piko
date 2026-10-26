@@ -1,6 +1,7 @@
-import { createContext, useContext, useMemo, type ReactNode } from 'react'
+import { createContext, useContext, useEffect, useMemo, useRef, type ReactNode } from 'react'
 import type { Incident } from '../api/types'
 import { config } from '../config'
+import { playSound } from '../lib/sound'
 import { useAsync, type AsyncState } from '../lib/useAsync'
 import { useAuth } from './AuthContext'
 
@@ -58,6 +59,14 @@ export function SosProvider({ children }: { children: ReactNode }) {
     config.sosRefreshMs,
   )
   const openCount = state.data ? state.data.openCount : null
+  // Sound only for an open SOS that was not there on the previous read; the first read just records what exists.
+  const knownOpen = useRef<Set<string> | null>(null)
+  useEffect(() => {
+    if (!state.data) return
+    const open = new Set(state.data.incidents.filter((i) => i.status === 'open').map((i) => i.incident_id))
+    if (knownOpen.current && [...open].some((id) => !knownOpen.current?.has(id))) playSound('sos')
+    knownOpen.current = open
+  }, [state.data])
   const value = useMemo(() => ({ state, reload, openCount }), [state, reload, openCount])
   return <SosContext.Provider value={value}>{children}</SosContext.Provider>
 }

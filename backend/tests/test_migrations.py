@@ -79,7 +79,7 @@ def test_upgrade_from_previous_schema_preserves_data(scratch: tuple[Settings, En
             conn.execute(text("SELECT count(*) FROM users WHERE id = :i"), {"i": user_id}).scalar()
             == 1
         )
-        assert conn.execute(text("SELECT version_num FROM alembic_version")).scalar() == "0005"
+        assert conn.execute(text("SELECT version_num FROM alembic_version")).scalar() == "0006"
 
 
 def test_0004_applies_to_a_populated_0003_schema_without_touching_existing_rows(  # type: ignore[no-untyped-def]

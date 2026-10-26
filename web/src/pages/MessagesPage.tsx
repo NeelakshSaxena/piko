@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { ApiError } from '../api/client'
 import type { ChatMessage } from '../api/types'
@@ -7,6 +7,7 @@ import { useFamily } from '../auth/FamilyContext'
 import { Card, Chip, Empty, ErrorState, Loading, PageTitle } from '../components/ui'
 import { formatDateTime, formatDuration } from '../lib/format'
 import { newId } from '../lib/newId'
+import { playSound } from '../lib/sound'
 import { useAsync } from '../lib/useAsync'
 
 const MAX_BODY = 500
@@ -64,6 +65,15 @@ export function MessagesPage() {
   const [seenError, setSeenError] = useState<{ id: string; message: string } | null>(null)
 
   const stored = state.data?.messages ?? []
+  // A chime for a message from the phone that was not in the previous read of this conversation.
+  const knownFromPhone = useRef<{ deviceId: string | undefined; ids: Set<string> } | null>(null)
+  useEffect(() => {
+    if (!state.data) return
+    const ids = new Set(state.data.messages.filter((m) => m.sender === 'device').map((m) => m.message_id))
+    const before = knownFromPhone.current
+    if (before && before.deviceId === deviceId && [...ids].some((id) => !before.ids.has(id))) playSound('general')
+    knownFromPhone.current = { deviceId, ids }
+  }, [state.data, deviceId])
   const storedIds = new Set(stored.map((m) => m.message_id))
   const visiblePending = pending.filter((p) => p.deviceId === deviceId && !storedIds.has(p.id))
   const chronological = [...stored].reverse()

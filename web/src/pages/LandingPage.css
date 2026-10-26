@@ -100,7 +100,7 @@
 }
 
 .piko-landing-brand-badge {
-  font-size: 0.65rem;
+  font-size: 0.75rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -423,7 +423,7 @@
 }
 
 .piko-chip-sub {
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   color: var(--lp-muted);
   font-weight: 500;
 }
@@ -582,7 +582,7 @@
   right: 24px;
   background: var(--lp-primary);
   color: #ffffff;
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -823,3 +823,70 @@
 .piko-footer-links a:hover {
   color: var(--lp-primary);
 }
+
+/* Self-hosting guide */
+.piko-selfhost-steps {
+  list-style: none;
+  margin: 0 auto 28px auto;
+  padding: 0;
+  max-width: 820px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.piko-selfhost-steps li {
+  background: var(--lp-surface-elevated);
+  border: 1px solid var(--lp-border);
+  border-radius: 20px;
+  padding: 20px 24px;
+}
+.piko-selfhost-steps h3 {
+  margin: 0 0 8px 0;
+  font-size: 1.05rem;
+  color: var(--lp-text);
+}
+.piko-selfhost-steps p {
+  margin: 8px 0 0 0;
+  color: var(--lp-muted);
+  line-height: 1.55;
+}
+.piko-selfhost-steps pre {
+  margin: 0;
+  padding: 14px 16px;
+  background: var(--lp-well);
+  border-radius: 14px;
+  overflow-x: auto;
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+.piko-selfhost-note {
+  max-width: 820px;
+  margin: 0 auto;
+  padding: 18px 22px;
+  border-radius: 20px;
+  background: var(--lp-softblue);
+  color: var(--lp-text);
+  line-height: 1.55;
+}
+
+/* Small screens: keep the header on one line and make every tap target at least 44px tall. */
+@media (max-width: 600px) {
+  .piko-landing-brand-badge { display: none; }
+  .piko-landing-header-actions a.piko-btn-secondary { display: none; }
+  .piko-landing-header-actions a, .piko-landing-header-actions button { white-space: nowrap; min-height: 44px; display: inline-flex; align-items: center; justify-content: center; }
+  .piko-footer-links a { display: inline-block; padding: 12px 8px; }
+  .piko-faq-summary { min-height: 44px; }
+}
+
+/* Coupon box on the Hosted card */
+.piko-coupon { margin: 4px 0 16px 0; }
+.piko-coupon label { display: block; font-size: 0.85rem; font-weight: 700; color: var(--lp-text); margin-bottom: 6px; }
+.piko-coupon-row { display: flex; gap: 8px; }
+.piko-coupon-row input {
+  flex: 1; min-width: 0; min-height: 44px; padding: 0 14px; border-radius: 14px;
+  border: 1px solid var(--lp-border); background: var(--lp-surface-elevated); font: inherit; text-transform: uppercase;
+}
+.piko-coupon-row button { min-height: 44px; padding: 0 18px; }
+.piko-coupon-status { margin: 8px 0 0 0; font-size: 0.85rem; line-height: 1.45; }
+.piko-coupon-status.applied { color: var(--lp-mint-dark); font-weight: 700; }
+.piko-coupon-status.invalid { color: var(--lp-critical); font-weight: 700; }

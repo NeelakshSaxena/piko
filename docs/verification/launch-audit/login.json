@@ -1,0 +1,103 @@
+{
+  "mobile": {
+    "facts": {
+      "title": "Piko — Family safety, connected by care",
+      "description": "Piko shares a child's location, battery and SOS with their family, always visibly and with consent. Hosted for ₹300 per family per month, or run it yourself for free.",
+      "canonical": "https://piko-web-jade.vercel.app/",
+      "robotsMeta": null,
+      "og": true,
+      "jsonld": 1,
+      "lang": "en",
+      "h1": 1,
+      "headingSkips": 0,
+      "imgsNoAlt": 0,
+      "imgsNoSize": [],
+      "imgsLazy": 0,
+      "imgCount": 0,
+      "unnamedLinks": 0,
+      "unnamedButtons": 0,
+      "unlabelledInputs": 0,
+      "horizontalOverflow": false,
+      "smallTargets": 0,
+      "smallTargetSamples": [],
+      "smallestFont": 16,
+      "hasMain": true,
+      "hasNav": false,
+      "anchors": [],
+      "bodyTextLength": 95,
+      "mobileToggleVisible": null
+    },
+    "perf": {
+      "lcpMs": 2052,
+      "cls": 0,
+      "domContentLoadedMs": 1785,
+      "loadMs": 1786,
+      "transferKB": 220,
+      "requests": 3,
+      "biggest": [
+        "assets/index-PVfMryOK.js 198KB",
+        "assets/index-D1evMs65.css 12KB",
+        "127.0.0.1:4173/favicon.png 10KB"
+      ]
+    },
+    "consoleErrors": [],
+    "failedRequests": 0,
+    "firstTabFocus": {
+      "tag": "INPUT",
+      "text": "",
+      "outline": "none 3px",
+      "shadow": "rgba(41, 40, 58, 0.08) 2px 3px 6px 0px i"
+    }
+  },
+  "desktop": {
+    "facts": {
+      "title": "Piko — Family safety, connected by care",
+      "description": "Piko shares a child's location, battery and SOS with their family, always visibly and with consent. Hosted for ₹300 per family per month, or run it yourself for free.",
+      "canonical": "https://piko-web-jade.vercel.app/",
+      "robotsMeta": null,
+      "og": true,
+      "jsonld": 1,
+      "lang": "en",
+      "h1": 1,
+      "headingSkips": 0,
+      "imgsNoAlt": 0,
+      "imgsNoSize": [],
+      "imgsLazy": 0,
+      "imgCount": 0,
+      "unnamedLinks": 0,
+      "unnamedButtons": 0,
+      "unlabelledInputs": 0,
+      "horizontalOverflow": false,
+      "smallTargets": 1,
+      "smallTargetSamples": [
+        "a:Join with an invite code 165x21"
+      ],
+      "smallestFont": 16,
+      "hasMain": true,
+      "hasNav": false,
+      "anchors": [],
+      "bodyTextLength": 95,
+      "mobileToggleVisible": null
+    },
+    "perf": {
+      "lcpMs": 88,
+      "cls": 0,
+      "domContentLoadedMs": 56,
+      "loadMs": 56,
+      "transferKB": 1,
+      "requests": 2,
+      "biggest": [
+        "assets/index-PVfMryOK.js 0KB",
+        "assets/index-D1evMs65.css 0KB"
+      ]
+    },
+    "consoleErrors": [],
+    "failedRequests": 0,
+    "firstTabFocus": {
+      "tag": "INPUT",
+      "text": "",
+      "outline": "none 3px",
+      "shadow": "rgba(41, 40, 58, 0.08) 2px 3px 6px 0px i"
+    }
+  }
+}

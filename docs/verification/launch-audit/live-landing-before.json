@@ -1,0 +1,130 @@
+{
+  "mobile": {
+    "facts": {
+      "title": "Piko — family safety dashboard",
+      "description": null,
+      "canonical": null,
+      "robotsMeta": "noindex",
+      "og": false,
+      "jsonld": 0,
+      "lang": "en",
+      "h1": 1,
+      "headingSkips": 0,
+      "imgsNoAlt": 0,
+      "imgsNoSize": [
+        "/mascot.png",
+        "/mascot.png",
+        "/mascot.png",
+        "/mascot.png"
+      ],
+      "imgsLazy": 0,
+      "imgCount": 4,
+      "unnamedLinks": 0,
+      "unnamedButtons": 0,
+      "unlabelledInputs": 0,
+      "horizontalOverflow": false,
+      "smallTargets": 8,
+      "smallTargetSamples": [
+        "button:Toggle navigation menu 40x39",
+        "summary:What is Piko?▼ 296x32",
+        "a:Features 52x20",
+        "a:How it works 81x20",
+        "a:Pricing 43x20",
+        "a:Privacy 44x20",
+        "a:FAQ 25x20",
+        "a:Sign in 42x20"
+      ],
+      "smallestFont": 10.4,
+      "hasMain": false,
+      "hasNav": true,
+      "anchors": [],
+      "bodyTextLength": 6227,
+      "mobileToggleVisible": true
+    },
+    "perf": {
+      "lcpMs": 3968,
+      "cls": 0,
+      "domContentLoadedMs": 2561,
+      "loadMs": 2562,
+      "transferKB": 431,
+      "requests": 4,
+      "biggest": [
+        "piko-web-jade.vercel.app/mascot.png 205KB",
+        "assets/index-DJsg-FhU.js 204KB",
+        "assets/index-BPVrO2pP.css 12KB"
+      ]
+    },
+    "consoleErrors": [],
+    "failedRequests": 0,
+    "firstTabFocus": {
+      "tag": "A",
+      "text": "PikoFamily Safety",
+      "outline": "solid 3px",
+      "shadow": "none"
+    }
+  },
+  "desktop": {
+    "facts": {
+      "title": "Piko — family safety dashboard",
+      "description": null,
+      "canonical": null,
+      "robotsMeta": "noindex",
+      "og": false,
+      "jsonld": 0,
+      "lang": "en",
+      "h1": 1,
+      "headingSkips": 0,
+      "imgsNoAlt": 0,
+      "imgsNoSize": [
+        "/mascot.png",
+        "/mascot.png",
+        "/mascot.png",
+        "/mascot.png"
+      ],
+      "imgsLazy": 0,
+      "imgCount": 4,
+      "unnamedLinks": 0,
+      "unnamedButtons": 0,
+      "unlabelledInputs": 0,
+      "horizontalOverflow": false,
+      "smallTargets": 20,
+      "smallTargetSamples": [
+        "a:Features 54x21",
+        "a:How it works 83x21",
+        "a:Hosting & Pricing 112x21",
+        "a:Comparison 76x21",
+        "a:Privacy 45x21",
+        "a:FAQ 26x21",
+        "a:Sign in 82x38",
+        "a:Get started 112x36"
+      ],
+      "smallestFont": 10.4,
+      "hasMain": false,
+      "hasNav": true,
+      "anchors": [],
+      "bodyTextLength": 6288,
+      "mobileToggleVisible": false
+    },
+    "perf": {
+      "lcpMs": 1516,
+      "cls": 0,
+      "domContentLoadedMs": 662,
+      "loadMs": 662,
+      "transferKB": 0,
+      "requests": 3,
+      "biggest": [
+        "piko-web-jade.vercel.app/mascot.png 0KB",
+        "assets/index-DJsg-FhU.js 0KB",
+        "assets/index-BPVrO2pP.css 0KB"
+      ]
+    },
+    "consoleErrors": [],
+    "failedRequests": 0,
+    "firstTabFocus": {
+      "tag": "A",
+      "text": "PikoFamily Safety",
+      "outline": "solid 3px",
+      "shadow": "none"
+    }
+  }
+}

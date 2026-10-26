@@ -23,9 +23,12 @@ android {
         applicationId = "app.piko.android"
         minSdk = 31
         targetSdk = 36
-        versionCode = 1
-        versionName = "0.4.0"
+        // CI passes the run number so every build installs over the previous one; local builds stay at 1.
+        versionCode = (providers.gradleProperty("piko.versionCode").orNull ?: "1").toInt()
+        versionName = "0.5.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        // Pre-fills the server address on the link screen so a child only types the pairing code. Not a secret.
+        buildConfigField("String", "DEFAULT_SERVER", "\"${firebaseSetting("piko.defaultServer")}\"")
         buildConfigField("String", "FIREBASE_PROJECT_ID", "\"${firebaseSetting("piko.firebase.projectId")}\"")
         buildConfigField("String", "FIREBASE_APP_ID", "\"${firebaseSetting("piko.firebase.appId")}\"")
         buildConfigField("String", "FIREBASE_API_KEY", "\"${firebaseSetting("piko.firebase.apiKey")}\"")

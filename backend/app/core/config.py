@@ -71,6 +71,11 @@ class Settings(BaseSettings):
     outbox_backoff_cap_seconds: int = 3600
     sos_notification_ttl_seconds: int = 24 * 3600
     message_notification_ttl_seconds: int = 24 * 3600
+    # Read-only MCP adapter (ADR-024). Off unless the operator turns it on; there is no network listener.
+    mcp_enabled: bool = False
+    mcp_max_calls_per_minute: int = Field(default=30, ge=1, le=600)
+    mcp_call_timeout_seconds: int = Field(default=10, ge=1, le=60)
+    mcp_max_token_ttl_hours: int = Field(default=24 * 30, ge=1)
     # Volume caps and retention (audit F-04, backlog item 11).
     sos_max_unresolved_per_device: int = 50
     messages_max_per_device_per_day: int = 500
@@ -93,6 +98,16 @@ class Settings(BaseSettings):
             raise ValueError(f"bcrypt_rounds must be >= {MIN_BCRYPT_ROUNDS} outside tests")
         if self.env == "production" and self.public_base_url.startswith("http://"):
             raise ValueError("production requires an https public_base_url")
+        if (
+            self.allow_public_bind
+            and self.bind_host not in LOOPBACK_HOSTS
+            and not self.public_base_url.startswith("https://")
+        ):
+            raise ValueError(
+                "a public bind needs an https public_base_url (TLS ends at your reverse proxy)"
+            )
+        if self.env == "production" and "*" in {*self.allowed_hosts, *self.allowed_origins}:
+            raise ValueError("production does not allow wildcard hosts or origins")
         return self
 
     @property

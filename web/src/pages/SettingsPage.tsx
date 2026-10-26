@@ -1,13 +1,16 @@
+import { useState } from 'react'
 import { useAuth } from '../auth/AuthContext'
 import { useFamily } from '../auth/FamilyContext'
 import { PushSetup } from '../components/PushSetup'
 import { Card, PageTitle } from '../components/ui'
 import { config } from '../config'
+import { playSound, setSoundsMuted, soundsMuted } from '../lib/sound'
 
 /** Only facts the dashboard actually knows. Nothing here changes server data. */
 export function SettingsPage() {
   const { state, signOut } = useAuth()
   const { family } = useFamily()
+  const [muted, setMuted] = useState(soundsMuted())
   if (state.status !== 'authenticated') return null
   return (
     <>
@@ -37,6 +40,27 @@ export function SettingsPage() {
           </ul>
         </Card>
       </div>
+      <Card>
+        <h2 className="h2">Alert sounds</h2>
+        <p className="muted">
+          While this dashboard is open it plays a sound for a new SOS and for a new message from a phone. Your browser may stay silent until
+          you have clicked somewhere on the page. Sounds from browser notifications are chosen by your system.
+        </p>
+        <label className="row">
+          <input
+            type="checkbox"
+            checked={!muted}
+            onChange={(e) => {
+              setMuted(!e.target.checked)
+              setSoundsMuted(!e.target.checked)
+            }}
+          />
+          Play alert sounds on this browser
+        </label>
+        <button type="button" className="btn btn-soft" onClick={() => playSound('sos')}>
+          Test the SOS sound
+        </button>
+      </Card>
       <PushSetup />
     </>
   )

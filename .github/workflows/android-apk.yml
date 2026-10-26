@@ -1,13 +1,15 @@
 name: Android APK & CI
 
-# Builds, tests, and publishes a downloadable Android debug APK as a workflow artifact.
-# Also verifies backend, web, and contract checks on push, pull_request, or manual trigger.
+# Builds and tests the Android app on EVERY push (any branch) and uploads the debug APK as a workflow artifact
+# named with the commit. Pushes to main/deployment also refresh a rolling "android-latest" pre-release so the
+# newest APK always has one stable download link. Also verifies backend and web on push, PR, or manual trigger.
+# The APK is debug-signed (installable for testing; not a Play Store build).
 # Actions pinned to immutable commit SHAs with comments for provenance.
 
 on:
   workflow_dispatch:
   push:
-    branches: [main, deployment]
+    branches: ['**']
     tags: ['v*']
   pull_request:
     branches: [main, deployment]
@@ -22,6 +24,8 @@ concurrency:
 jobs:
   android-apk:
     name: Build & Package Android APK
+    permissions:
+      contents: write  # for the "Publish rolling latest APK" step only (creates/updates one release)
     runs-on: ubuntu-latest
     timeout-minutes: 30
     defaults:
@@ -49,7 +53,11 @@ jobs:
         run: ./gradlew :app:testDebugUnitTest --no-daemon
 
       - name: Assemble Debug APK
-        run: ./gradlew :app:assembleDebug --no-daemon
+        # versionCode = run number, so each build installs over the last; the child only types a pairing code.
+        run: >-
+          ./gradlew :app:assembleDebug --no-daemon
+          -Ppiko.versionCode=${{ github.run_number }}
+          -Ppiko.defaultServer=${{ vars.PIKO_API_URL || 'https://piko-api-ten.vercel.app' }}
 
       - name: Verify APK Artifact
         run: |
@@ -68,10 +76,27 @@ jobs:
       - name: Upload Debug APK Artifact
         uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # v4.6.1
         with:
-          name: piko-android-debug-apk
+          name: piko-android-debug-apk-${{ github.sha }}
           path: android/app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
           retention-days: 14
+
+      - name: Publish rolling latest APK (main and deployment only)
+        if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/deployment')
+        working-directory: .
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SHA: ${{ github.sha }}
+          RUN: ${{ github.run_number }}
+        run: |
+          cp android/app/build/outputs/apk/debug/app-debug.apk piko-latest.apk
+          NOTES="Debug-signed build #$RUN of commit ${SHA:0:7} from ${GITHUB_REF_NAME}. For testing; Android will ask you to allow installs from this source."
+          if gh release view android-latest >/dev/null 2>&1; then
+            gh release upload android-latest piko-latest.apk --clobber
+            gh release edit android-latest --notes "$NOTES" --target "$SHA"
+          else
+            gh release create android-latest piko-latest.apk --prerelease --title "Latest Android APK" --notes "$NOTES" --target "$SHA"
+          fi
 
       - name: Upload Test Reports
         if: always()

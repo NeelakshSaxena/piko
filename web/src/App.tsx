@@ -15,6 +15,7 @@ import { LoginPage } from './pages/LoginPage'
 import { AlertsPage } from './pages/AlertsPage'
 import { MapPage } from './pages/MapPage'
 import { MessagesPage } from './pages/MessagesPage'
+import { OnboardingPage } from './pages/OnboardingPage'
 import { OverviewPage } from './pages/OverviewPage'
 import { SettingsPage } from './pages/SettingsPage'
 import { SosPage } from './pages/SosPage'
@@ -79,6 +80,7 @@ export function AppRoutes() {
         <Route path="sos" element={<SosPage />} />
         <Route path="messages" element={<MessagesPage />} />
         <Route path="alerts" element={<AlertsPage />} />
+        <Route path="welcome" element={<OnboardingPage />} />
         <Route path="settings" element={<SettingsPage />} />
         <Route path="manage" element={<Navigate to="/family" replace />} />
       </Route>

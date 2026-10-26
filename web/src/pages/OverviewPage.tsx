@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, Navigate } from 'react-router-dom'
 import type { HistoryItem } from '../api/types'
 import { useAuth } from '../auth/AuthContext'
 import { useFamily } from '../auth/FamilyContext'
@@ -27,6 +27,19 @@ export function markersOf(entries: FleetEntry[], nowMs: number): MapMarker[] {
       },
     ]
   })
+}
+
+const FIRST_RUN_KEY = 'piko.onboarding.shown'
+
+/** True the first time it is called in a browser session. Storage may be blocked; then the guide is simply not forced. */
+export function takeFirstRun(): boolean {
+  try {
+    if (sessionStorage.getItem(FIRST_RUN_KEY)) return false
+    sessionStorage.setItem(FIRST_RUN_KEY, '1')
+    return true
+  } catch {
+    return false
+  }
 }
 
 function greeting(now: Date): string {
@@ -160,7 +173,7 @@ function Timeline({ entries }: { entries: FleetEntry[] }) {
 
 export function OverviewPage() {
   const { canManage } = useAuth()
-  const { family, reload } = useFamily()
+  const { family, reload, children: linkedKids } = useFamily()
   const { entries, loading, reload: reloadFleet } = useFleet()
   const { openCount } = useSos()
   const now = useNow(15_000)
@@ -176,6 +189,9 @@ export function OverviewPage() {
     .sort()
     .at(-1)
   const freshestAge = ageSeconds(freshest, now)
+
+  // A parent who has not linked a phone yet is shown the setup guide once per browser session.
+  if (canManage && family.data && linkedKids.length === 0 && takeFirstRun()) return <Navigate to="/welcome" replace />
 
   return (
     <>
@@ -246,7 +262,8 @@ export function OverviewPage() {
                 <Empty title="No one is sharing yet">
                   {canManage ? (
                     <>
-                      Link a child's phone to start. <Link to="/family">Create a pairing code</Link>.
+                      Link a child's phone to start. <Link to="/family">Create a pairing code</Link>, or follow the{' '}
+                      <Link to="/welcome">setup guide</Link>.
                     </>
                   ) : (
                     'A parent can link a phone from the Family Members page.'

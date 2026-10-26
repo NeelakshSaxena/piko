@@ -2,7 +2,7 @@
 
 Status: **Phases 2-5 IMPLEMENTED and tested; NO formal gate passed (see `docs/PHASE_02_03_GATE_BACKLOG.md` and `docs/verification/phase-04-05-android-and-web.md`)**
 Current phase owner: human operator (decisions below) + independent auditor
-Implementation status: backend (Phases 2-3 plus history endpoint, invitations/guardian, refresh rotation), Android node (Phase 4) and parent dashboard (Phase 5) exist and were run end to end on the project-local emulator. No gate is passed. Phase 6 is built and verified on an emulator (2026-10-17) but its gate is NOT passed (see `docs/verification/phase-06-gate-report.md`); Phases 7 and 8 have NOT been started.
+Implementation status: backend (Phases 2-3 plus history endpoint, invitations/guardian, refresh rotation), Android node (Phase 4) and parent dashboard (Phase 5) exist and were run end to end on the project-local emulator. No gate is passed. Phase 6 is built and verified on an emulator (2026-10-17) but its gate is NOT passed (see `docs/verification/phase-06-gate-report.md`); Phases 7 and 8 were built 2026-10-27 (see the update at the end); gates not passed.
 Last verified commit: none (working tree not committed)
 Open blockers: see "Gate blockers"
 
@@ -17,8 +17,8 @@ Open blockers: see "Gate blockers"
 | 4 | Android durable node and modes | 🟡 IMPLEMENTED, GATE PENDING, **development paused by the operator 2026-10-16** | `docs/verification/phase-04-05-android-and-web.md` (48 JVM + 30 emulator tests pass; no physical device) |
 | 5 | Parent web dashboard | 🟡 IMPLEMENTED (all four web designs; SOS/Messages/Alerts are honest "not available" pages), GATE PENDING | `docs/verification/phase-05-web.md` (72 tests pass; production CSP checked in a browser; no screen-reader pass) |
 | 6 | SOS and messaging | 🟠 BUILT AND VERIFIED, GATE NOT PASSED: backend (297 tests), Android (90 JVM + 56 emulator), web (116) and a live emulator+browser run pass; independent audit run (3 Medium fixed, 3 Low/Info open); **waiting for operator approvals, physical-device run and an independent re-review** | `docs/verification/phase-06-gate-report.md` |
-| 7 | Read-only MCP integration | ⏳ BLOCKED | Gates on Phase 2 & Phase 1 security approval |
-| 8 | Self-hosting and operations | ⏳ BLOCKED | Gates on Phase 5+ |
+| 7 | Read-only MCP integration | 🟠 BUILT AND TESTED, GATE NOT PASSED (no independent audit; migration 0006 unapplied) | `docs/verification/phase-07-08-report.md`, ADR-024 |
+| 8 | Self-hosting and operations | 🟠 BUILT AND TESTED, GATE NOT PASSED (no clean-checkout test) | `docs/verification/phase-07-08-report.md`, `docs/SELF_HOSTING.md` |
 | 9 | Security, privacy, reliability, battery validation | ⏳ BLOCKED | Gates on Phase 4–7 |
 | 10 | Release candidate and independent audit | ⏳ BLOCKED | Gates on all prior phases |
 
@@ -58,3 +58,9 @@ Implemented and tested: durable notification outbox, FCM + Web Push, Android mes
 - **Documentation**: Root deliverable `initial_deployment.md` created with architecture Mermaid diagram, API table, database details, Vercel config, APK automation, and DR runbook.
 - **Phase Gate**: Remains OPEN per Piko constitution (awaiting physical device baseline, live FCM credentials, and independent audit re-review). Next phase not started.
 
+
+## Update 2026-10-27: Phases 7-8 built, parent onboarding, launch review (gates OPEN, nothing deployed)
+- Phase 6 re-verified (378 backend, 136 web, 102 Android JVM pass). Gate still open for the operator items.
+- Phase 7 (read-only MCP, local stdio, ADR-024) and Phase 8 (doctor/backup/restore, unsafe-default refusal, SELF_HOSTING.md) are implemented and tested; **neither gate is passed** (no independent audit, migration 0006 unapplied, no clean-checkout test). See `docs/verification/phase-07-08-report.md`.
+- Also built: web parent onboarding, alert sounds (web + Android), landing SEO fixes and "Deploy yourself", CI APK on every push. Launch blockers still needing a decision (signup/billing path, privacy policy and contact): `docs/verification/launch-review-2026-10-27.md`.
+- Working tree is uncommitted. Live deployments (API, web) are unchanged and healthy at the 2026-10-17 state.

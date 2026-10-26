@@ -195,7 +195,7 @@ AUDIT_ACTIONS = (
     "login", "logout", "device_paired", "device_revoked", "member_invited", "member_revoked",
     "location_accessed", "sos_created", "sos_resolved", "credential_rotated", "session_revoked",
     "settings_changed", "member_joined", "sos_acknowledged", "push_registered", "push_revoked",
-    "message_read",
+    "message_read", "mcp_token_issued", "mcp_token_revoked", "mcp_tool_called",
 )  # fmt: skip
 AUDIT_RESOURCES = ("user", "family", "device", "member", "incident")
 

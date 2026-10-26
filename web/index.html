@@ -5,10 +5,40 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <!-- Origin only, never a path or query. Tile servers (OpenStreetMap's policy) require it, and it carries no family data. -->
     <meta name="referrer" content="strict-origin-when-cross-origin" />
-    <meta name="robots" content="noindex" />
     <link rel="icon" type="image/png" href="/favicon.png" />
     <link rel="apple-touch-icon" href="/icon-192.png" />
-    <title>Piko — family safety dashboard</title>
+    <meta name="theme-color" content="#5e4fa2" />
+    <title>Piko — Family safety, connected by care</title>
+    <meta
+      name="description"
+      content="Piko shares a child's location, battery and SOS with their family, always visibly and with consent. Hosted for ₹300 per family per month, or run it yourself for free."
+    />
+    <!-- The public address of the deployed site. Change it (here, in public/robots.txt and public/sitemap.xml) when a custom domain is added. -->
+    <link rel="canonical" href="https://piko-web-jade.vercel.app/" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Piko" />
+    <meta property="og:title" content="Piko — Family safety, connected by care" />
+    <meta property="og:description" content="Shared location, battery and SOS for families, visible to the child and shared with consent." />
+    <meta property="og:url" content="https://piko-web-jade.vercel.app/" />
+    <meta property="og:image" content="https://piko-web-jade.vercel.app/mascot.png" />
+    <meta name="twitter:card" content="summary" />
+    <!-- Only facts that are visible on the landing page (name, free/paid options, price). -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "SoftwareApplication",
+        "name": "Piko",
+        "applicationCategory": "LifestyleApplication",
+        "operatingSystem": "Android 12 or newer; web dashboard",
+        "description": "Family safety with shared location, battery status and SOS, visible to the child and shared with consent.",
+        "url": "https://piko-web-jade.vercel.app/",
+        "image": "https://piko-web-jade.vercel.app/mascot.png",
+        "offers": [
+          { "@type": "Offer", "name": "Piko Hosted", "price": "300", "priceCurrency": "INR", "description": "Per family per month" },
+          { "@type": "Offer", "name": "Self-hosted Piko", "price": "0", "priceCurrency": "INR" }
+        ]
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>

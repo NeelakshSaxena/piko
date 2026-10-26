@@ -8,6 +8,9 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.media.AudioAttributes
+import android.net.Uri
+import app.piko.android.R
 import app.piko.android.core.PushEvent
 import app.piko.android.core.PushType
 import app.piko.android.core.RefreshResult
@@ -20,7 +23,10 @@ import app.piko.android.ui.MainActivity
  * says so on its screens: this is a convenience, never the only place the information lives.
  */
 object CommsNotifier {
-    private const val CHANNEL_ID = "family"
+    // A channel's sound is fixed once it exists, so the sounds live on new channels and the old silent-default one is removed.
+    private const val LEGACY_CHANNEL_ID = "family"
+    private const val MESSAGE_CHANNEL_ID = "family_messages"
+    private const val SOS_CHANNEL_ID = "family_sos"
     private const val SOS_NOTIFICATION_ID = 20
     private const val MESSAGE_NOTIFICATION_ID = 21
     const val OPEN_MESSAGES = "messages"
@@ -38,11 +44,11 @@ object CommsNotifier {
         if (unseen.isNotEmpty()) graph.vault.markAnnounced(unseen.map { it.id })
         if (!canNotify(context)) return
         if (unseen.isNotEmpty()) {
-            post(context, MESSAGE_NOTIFICATION_ID, "New message from your family", "Open Piko to read it.", OPEN_MESSAGES)
+            post(context, MESSAGE_NOTIFICATION_ID, "New message from your family", "Open Piko to read it.", OPEN_MESSAGES, sos = false)
         }
         val latest = result.sosAdvanced.lastOrNull()?.second ?: return
         val text = if (latest == "resolved") "A parent marked your SOS as resolved." else "A parent saw your SOS."
-        post(context, SOS_NOTIFICATION_ID, "Update on your SOS", text, OPEN_HOME)
+        post(context, SOS_NOTIFICATION_ID, "Update on your SOS", text, OPEN_HOME, sos = true)
     }
 
     /**
@@ -55,14 +61,28 @@ object CommsNotifier {
             PushType.MESSAGE -> Triple("New message from your family", "Open Piko to read it.", OPEN_MESSAGES)
             PushType.SOS_UPDATE, PushType.SOS_CREATED -> Triple("Update on your SOS", "Open Piko to see what changed.", OPEN_HOME)
         }
-        post(context, 1000 + (event.type.wire + event.id).hashCode().and(0xFFFF), title, text, open)
+        post(
+            context, 1000 + (event.type.wire + event.id).hashCode().and(0xFFFF), title, text, open,
+            sos = event.type != PushType.MESSAGE,
+        )
     }
 
-    private fun post(context: Context, id: Int, title: String, text: String, open: String) {
+    private fun post(context: Context, id: Int, title: String, text: String, open: String, sos: Boolean) {
         val manager = context.getSystemService(NotificationManager::class.java)
+        manager.deleteNotificationChannel(LEGACY_CHANNEL_ID)
+        val channelId = if (sos) SOS_CHANNEL_ID else MESSAGE_CHANNEL_ID
         manager.createNotificationChannel(
-            NotificationChannel(CHANNEL_ID, "Family replies", NotificationManager.IMPORTANCE_HIGH)
-                .apply { description = "Replies from your family and updates on an SOS" },
+            NotificationChannel(channelId, if (sos) "SOS updates" else "Family messages", NotificationManager.IMPORTANCE_HIGH)
+                .apply {
+                    description = if (sos) "Updates on an SOS you raised" else "Replies from your family"
+                    setSound(
+                        Uri.parse("android.resource://${context.packageName}/${if (sos) R.raw.sos_notification else R.raw.general_notification}"),
+                        AudioAttributes.Builder()
+                            .setUsage(AudioAttributes.USAGE_NOTIFICATION)
+                            .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                            .build(),
+                    )
+                },
         )
         val intent = Intent(context, MainActivity::class.java)
             .putExtra(MainActivity.EXTRA_OPEN, open)
@@ -70,7 +90,7 @@ object CommsNotifier {
         val tap = PendingIntent.getActivity(context, id, intent, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
         manager.notify(
             id,
-            Notification.Builder(context, CHANNEL_ID)
+            Notification.Builder(context, channelId)
                 .setSmallIcon(android.R.drawable.ic_dialog_info)
                 .setContentTitle(title)
                 .setContentText(text)
