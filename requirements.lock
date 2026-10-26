@@ -28,13 +28,17 @@ http_ece==1.2.1
 httpcore==1.0.9
 httptools==0.9.0
 httpx==0.28.1
+httpx-sse==0.4.3
 idna==3.20
 iniconfig==2.3.1
+jsonschema==4.26.0
+jsonschema-specifications==2025.9.1
 librt==0.16.0
 license-expression==30.4.4
 Mako==1.4.3
 markdown-it-py==4.2.0
 MarkupSafe==3.0.4
+mcp==1.30.0
 mdurl==0.1.2
 msgpack==1.2.3
 multidict==7.1.0
@@ -64,13 +68,18 @@ pyparsing==3.3.3
 pytest==9.1.1
 pytest-cov==6.3.0
 python-dotenv==1.2.4
+python-multipart==0.0.32
 pywebpush==2.5.0
+pywin32==312 ; sys_platform == "win32"
 PyYAML==6.0.3
+referencing==0.37.0
 requests==2.34.2
 rich==15.0.0
+rpds-py==2026.9.1
 ruff==0.17.1
 sortedcontainers==2.4.0
 SQLAlchemy==2.1.4
+sse-starlette==3.6.0
 starlette==1.8.0
 tomli==2.5.0
 tomli_w==1.2.0
