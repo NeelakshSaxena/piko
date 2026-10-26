@@ -64,3 +64,9 @@ Implemented and tested: durable notification outbox, FCM + Web Push, Android mes
 - Phase 7 (read-only MCP, local stdio, ADR-024) and Phase 8 (doctor/backup/restore, unsafe-default refusal, SELF_HOSTING.md) are implemented and tested; **neither gate is passed** (no independent audit, migration 0006 unapplied, no clean-checkout test). See `docs/verification/phase-07-08-report.md`.
 - Also built: web parent onboarding, alert sounds (web + Android), landing SEO fixes and "Deploy yourself", CI APK on every push. Launch blockers still needing a decision (signup/billing path, privacy policy and contact): `docs/verification/launch-review-2026-10-27.md`.
 - Working tree is uncommitted. Live deployments (API, web) are unchanged and healthy at the 2026-10-17 state.
+
+## Update 2026-10-27 (later): production deploys and CI (gates still OPEN)
+- Migration 0006 applied to the persistent `piko` schema (operator-approved; pre-migration backup `.data/backups/piko-pre-0006-20261027.gz`, not restore-tested). `doctor`: migrations at head (0006).
+- `piko-web` and `piko-api` deployed to production with the Vercel CLI (project-local install in `.tools/vercel`; Vercel is NOT connected to Git, so pushes do not deploy). Live checks: API health/ready 200 with database ok, CORS preflight 200, bad login 401; web serves the new landing, `/signup`, `robots.txt`, `sitemap.xml`, WebP mascot, no console errors. Mobile LCP on the throttled profile is about 4.2 s (needs landing prerender/code splitting).
+- CI on `deployment` (commit b0d4a0e): backend, web, android-jvm and APK build all green. Backend CI had failed twice: MCP SDK missing from `requirements.lock`, then a doctor test that used group-readable key files on Linux (test fixed, code was right).
+- Still open: independent audit of the MCP adapter, physical-device checks, throwaway test schemas in the database (drops need approval), signup/billing and legal pages (see launch review).
