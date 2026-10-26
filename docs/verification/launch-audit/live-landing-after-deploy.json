@@ -1,0 +1,124 @@
+{
+  "mobile": {
+    "facts": {
+      "title": "Piko — Family safety, connected by care",
+      "description": "Piko shares a child's location, battery and SOS with their family, always visibly and with consent. Hosted for ₹300 per family per month, or run it yourself for free.",
+      "canonical": "https://piko-web-jade.vercel.app/",
+      "robotsMeta": null,
+      "og": true,
+      "jsonld": 1,
+      "lang": "en",
+      "h1": 1,
+      "headingSkips": 0,
+      "imgsNoAlt": 0,
+      "imgsNoSize": [
+        "/mascot.png",
+        "/mascot.png",
+        "/mascot.png"
+      ],
+      "imgsLazy": 2,
+      "imgCount": 4,
+      "unnamedLinks": 0,
+      "unnamedButtons": 0,
+      "unlabelledInputs": 0,
+      "horizontalOverflow": false,
+      "smallTargets": 4,
+      "smallTargetSamples": [
+        "a:Skip to content 131x40",
+        "a:Piko home 108x40",
+        "button:Toggle navigation menu 40x44",
+        "a:FAQ 41x44"
+      ],
+      "smallestFont": 12,
+      "hasMain": true,
+      "hasNav": true,
+      "anchors": [],
+      "bodyTextLength": 8211,
+      "mobileToggleVisible": true
+    },
+    "perf": {
+      "lcpMs": 4180,
+      "cls": 0,
+      "domContentLoadedMs": 2297,
+      "loadMs": 2298,
+      "transferKB": 434,
+      "requests": 4,
+      "biggest": [
+        "assets/index-rb_lO4aj.js 206KB",
+        "piko-web-jade.vercel.app/mascot.png 205KB",
+        "assets/index-Cy-XvSes.css 13KB"
+      ]
+    },
+    "consoleErrors": [],
+    "failedRequests": 0,
+    "firstTabFocus": {
+      "tag": "A",
+      "text": "Skip to content",
+      "outline": "solid 3px",
+      "shadow": "none"
+    }
+  },
+  "desktop": {
+    "facts": {
+      "title": "Piko — Family safety, connected by care",
+      "description": "Piko shares a child's location, battery and SOS with their family, always visibly and with consent. Hosted for ₹300 per family per month, or run it yourself for free.",
+      "canonical": "https://piko-web-jade.vercel.app/",
+      "robotsMeta": null,
+      "og": true,
+      "jsonld": 1,
+      "lang": "en",
+      "h1": 1,
+      "headingSkips": 0,
+      "imgsNoAlt": 0,
+      "imgsNoSize": [
+        "/mascot.png",
+        "/mascot.png",
+        "/mascot.png"
+      ],
+      "imgsLazy": 2,
+      "imgCount": 4,
+      "unnamedLinks": 0,
+      "unnamedButtons": 0,
+      "unlabelledInputs": 0,
+      "horizontalOverflow": false,
+      "smallTargets": 24,
+      "smallTargetSamples": [
+        "a:Skip to content 131x40",
+        "a:Features 54x21",
+        "a:How it works 83x21",
+        "a:Hosting & Pricing 112x21",
+        "a:Comparison 76x21",
+        "a:Deploy yourself 100x21",
+        "a:Privacy 45x21",
+        "a:FAQ 26x21"
+      ],
+      "smallestFont": 12,
+      "hasMain": true,
+      "hasNav": true,
+      "anchors": [],
+      "bodyTextLength": 8310,
+      "mobileToggleVisible": false
+    },
+    "perf": {
+      "lcpMs": 288,
+      "cls": 0,
+      "domContentLoadedMs": 187,
+      "loadMs": 187,
+      "transferKB": 0,
+      "requests": 3,
+      "biggest": [
+        "piko-web-jade.vercel.app/mascot.png 0KB",
+        "assets/index-rb_lO4aj.js 0KB",
+        "assets/index-Cy-XvSes.css 0KB"
+      ]
+    },
+    "consoleErrors": [],
+    "failedRequests": 0,
+    "firstTabFocus": {
+      "tag": "A",
+      "text": "Skip to content",
+      "outline": "solid 3px",
+      "shadow": "none"
+    }
+  }
+}

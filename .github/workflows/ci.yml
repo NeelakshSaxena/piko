@@ -59,7 +59,13 @@ jobs:
           ruff check backend
           mypy backend/app
       - name: Tests
-        run: pytest backend/tests -q
+        run: |
+          set -o pipefail
+          pytest backend/tests -q -rfE --tb=short 2>&1 | tee pytest.log
+      - name: Report failing tests as annotations
+        if: failure()
+        run: |
+          grep -E "^(FAILED|ERROR)|^E  " pytest.log | head -25 | while IFS= read -r line; do echo "::error title=pytest::${line:0:400}"; done
 
   web:
     runs-on: ubuntu-latest
