@@ -184,7 +184,25 @@ def test_a_damaged_or_truncated_backup_is_refused_and_changes_nothing(  # type: 
 # ---- doctor ------------------------------------------------------------------------------------
 
 
+def private_only(settings: Settings) -> None:
+    """Key files from the test fixtures get the runner's default mode (often 0644); doctor rightly objects."""
+    for path in (settings.jwt_private_key_file, settings.hmac_key_file):
+        path.chmod(0o600)
+
+
+@pytest.mark.skipif(os.name != "posix", reason="POSIX file modes")
+def test_doctor_fails_on_a_group_readable_key_file(settings: Settings) -> None:
+    private_only(settings)
+    settings.hmac_key_file.chmod(0o640)
+    try:
+        failed = [c for c in run_checks(settings) if c.status == "fail"]
+        assert [c.name for c in failed] == ["HMAC key permissions"]
+    finally:
+        settings.hmac_key_file.chmod(0o600)
+
+
 def test_doctor_passes_on_a_healthy_install_and_prints_no_secrets(settings: Settings) -> None:
+    private_only(settings)
     checks = run_checks(settings)
     by_name = {c.name: c for c in checks}
     assert by_name["database"].status == "ok" and by_name["migrations"].status == "ok"
