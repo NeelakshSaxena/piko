@@ -877,16 +877,3 @@
   .piko-footer-links a { display: inline-block; padding: 12px 8px; }
   .piko-faq-summary { min-height: 44px; }
 }
-
-/* Coupon box on the Hosted card */
-.piko-coupon { margin: 4px 0 16px 0; }
-.piko-coupon label { display: block; font-size: 0.85rem; font-weight: 700; color: var(--lp-text); margin-bottom: 6px; }
-.piko-coupon-row { display: flex; gap: 8px; }
-.piko-coupon-row input {
-  flex: 1; min-width: 0; min-height: 44px; padding: 0 14px; border-radius: 14px;
-  border: 1px solid var(--lp-border); background: var(--lp-surface-elevated); font: inherit; text-transform: uppercase;
-}
-.piko-coupon-row button { min-height: 44px; padding: 0 18px; }
-.piko-coupon-status { margin: 8px 0 0 0; font-size: 0.85rem; line-height: 1.45; }
-.piko-coupon-status.applied { color: var(--lp-mint-dark); font-weight: 700; }
-.piko-coupon-status.invalid { color: var(--lp-critical); font-weight: 700; }

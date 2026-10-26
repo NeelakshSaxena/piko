@@ -207,3 +207,14 @@ input:focus, select:focus { border-color: var(--primary); outline: none; }
 .bubble-pending { background: var(--well); }
 textarea { font: inherit; width: 100%; padding: 10px 14px; border-radius: 16px; border: 1px solid #cfcad9; background: var(--surface); }
 @media (max-width: 600px) { .bubble-device { margin-right: 8px; } .bubble-parent { margin-left: 8px; } }
+
+/* Coupon box (landing Hosted card and the signup page) */
+.piko-coupon { margin: 4px 0 16px 0; }
+.piko-coupon label { display: block; font-size: 0.85rem; font-weight: 700; margin-bottom: 6px; }
+.piko-coupon-row { display: flex; gap: 8px; }
+.piko-coupon-row input { flex: 1; min-width: 0; text-transform: uppercase; }
+.piko-coupon-row button { min-height: 44px; padding: 0 18px; border-radius: 999px; border: 0; font: inherit; font-weight: 700; cursor: pointer; background: var(--primary-soft); color: var(--text); }
+.piko-coupon-row button:disabled { opacity: 0.55; cursor: not-allowed; }
+.piko-coupon-status { margin: 8px 0 0 0; font-size: 0.85rem; line-height: 1.45; }
+.piko-coupon-status.applied { color: var(--forest); font-weight: 700; }
+.piko-coupon-status.invalid { color: var(--critical); font-weight: 700; }

@@ -78,7 +78,7 @@ export function LoginPage() {
         </form>
       </Card>
       <p className="muted">
-        Were you invited to a family? <Link to="/join">Join with an invite code</Link>.
+        New to Piko? <Link to="/signup">Create an account</Link>. Were you invited to a family? <Link to="/join">Join with an invite code</Link>.
       </p>
     </main>
   )

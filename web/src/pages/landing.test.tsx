@@ -20,11 +20,11 @@ describe('LandingPage', () => {
     expect(screen.getByText('₹300')).toBeInTheDocument()
     expect(screen.getByText('/ family / month')).toBeInTheDocument()
 
-    // Get started buttons link to /login
+    // Get started buttons link to the account page
     const getStartedLinks = screen.getAllByRole('link', { name: /Get started/i })
     expect(getStartedLinks.length).toBeGreaterThan(0)
     for (const link of getStartedLinks) {
-      expect(link).toHaveAttribute('href', '/login')
+      expect(link).toHaveAttribute('href', '/signup')
     }
 
     // Self-hosting tab: a nav link and a section with the real commands

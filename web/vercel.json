@@ -3,7 +3,7 @@
   "framework": "vite",
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
-  "rewrites": [{ "source": "/((?!assets/|sounds/|sw\\.js|favicon\\.png|icon-192\\.png|mascot\\.png|robots\\.txt|sitemap\\.xml).*)", "destination": "/index.html" }],
+  "rewrites": [{ "source": "/((?!assets/|sounds/|sw\\.js|favicon\\.png|icon-192\\.png|mascot[^/]*|robots\\.txt|sitemap\\.xml).*)", "destination": "/index.html" }],
   "headers": [
     {
       "source": "/(.*)",
@@ -17,7 +17,7 @@
       ]
     },
     {
-      "source": "/(login|join|map|activity|health|family|sos|messages|alerts|settings|welcome)",
+      "source": "/(login|join|signup|map|activity|health|family|sos|messages|alerts|settings|welcome)",
       "headers": [{ "key": "X-Robots-Tag", "value": "noindex, nofollow" }]
     },
     {

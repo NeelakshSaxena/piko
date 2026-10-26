@@ -17,6 +17,7 @@ import { MapPage } from './pages/MapPage'
 import { MessagesPage } from './pages/MessagesPage'
 import { OnboardingPage } from './pages/OnboardingPage'
 import { OverviewPage } from './pages/OverviewPage'
+import { SignupPage } from './pages/SignupPage'
 import { SettingsPage } from './pages/SettingsPage'
 import { SosPage } from './pages/SosPage'
 
@@ -69,6 +70,7 @@ export function AppRoutes() {
       <Route path="/landing" element={<LandingPage />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/join" element={<JoinPage />} />
+      <Route path="/signup" element={<SignupPage />} />
       <Route path="/" element={<RootRoute />}>
         <Route index element={<OverviewPage />} />
       </Route>

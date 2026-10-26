@@ -77,6 +77,31 @@ describe('sign in', () => {
   })
 })
 
+describe('create an account', () => {
+  it('is reachable from sign in, says signup is not open, and offers the real ways in', async () => {
+    const view = renderApp('/login', {}, { signedIn: false })
+    await userEvent.click(await screen.findByRole('link', { name: 'Create an account' }))
+    await screen.findByRole('heading', { name: 'Create a Piko account' })
+    expect(screen.getByText(/Online account creation is not open yet/)).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Join with an invite code' })).toHaveAttribute('href', '/join')
+    expect(screen.getByRole('link', { name: 'How to deploy it yourself' })).toHaveAttribute('href', '/#self-host')
+    expect(await a11yViolations(view.container)).toEqual([])
+  })
+
+  it('accepts the early-bird code and rejects others, without claiming anything was activated', async () => {
+    renderApp('/signup', {}, { signedIn: false })
+    const input = await screen.findByLabelText('Have a coupon code?')
+    await userEvent.type(input, 'nope')
+    await userEvent.click(screen.getByRole('button', { name: 'Apply' }))
+    expect(screen.getByRole('status')).toHaveTextContent('not valid')
+    await userEvent.clear(input)
+    await userEvent.type(input, 'earlybirdoff3r')
+    await userEvent.click(screen.getByRole('button', { name: 'Apply' }))
+    expect(screen.getByRole('status')).toHaveTextContent(/first month of Piko Hosted is free/)
+    expect(screen.getByRole('status')).toHaveTextContent(/nothing is charged or activated today/)
+  })
+})
+
 describe('join with an invite code', () => {
   it('is accessible and explains a refused invitation without revealing which part was wrong', async () => {
     const view = renderApp('/join', { 'POST /invitations/accept': apiError(401, 'AUTH_INVALID') }, { signedIn: false })

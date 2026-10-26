@@ -2,6 +2,7 @@ User-agent: *
 Allow: /$
 Disallow: /login
 Disallow: /join
+Disallow: /signup
 Disallow: /map
 Disallow: /activity
 Disallow: /health

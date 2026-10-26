@@ -1,16 +1,14 @@
 import { motion } from 'motion/react'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
+import { CouponBox } from '../components/CouponBox'
 import './LandingPage.css'
 
-const MASCOT_URL = '/mascot.png'
-// Placeholder until billing exists: checked in the browser only, so it is not a secret and grants nothing by itself.
-const EARLY_BIRD_CODE = 'EARLYBIRDOFF3R'
+const MASCOT_URL = '/mascot.webp'
+const MASCOT_SMALL_URL = '/mascot-128.webp'
 
 export function LandingPage() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  const [coupon, setCoupon] = useState('')
-  const [couponState, setCouponState] = useState<'idle' | 'applied' | 'invalid'>('idle')
 
   return (
     <div className="piko-landing">
@@ -22,7 +20,7 @@ export function LandingPage() {
         <div className="piko-landing-header-inner">
           <Link to="/" className="piko-landing-brand" aria-label="Piko home">
             <div className="piko-landing-brand-logo">
-              <img src={MASCOT_URL} alt="Piko mascot" />
+              <img src={MASCOT_SMALL_URL} alt="Piko mascot" width={40} height={37} />
             </div>
             <div>
               <span className="piko-landing-brand-title">
@@ -47,7 +45,7 @@ export function LandingPage() {
             <Link to="/login" className="piko-btn-secondary" style={{ padding: '8px 18px', fontSize: '0.85rem' }}>
               Sign in
             </Link>
-            <Link to="/login" className="piko-btn-primary" style={{ padding: '8px 20px', fontSize: '0.85rem' }}>
+            <Link to="/signup" className="piko-btn-primary" style={{ padding: '8px 20px', fontSize: '0.85rem' }}>
               Get started
             </Link>
             <button
@@ -116,7 +114,7 @@ export function LandingPage() {
             </p>
 
             <div className="piko-hero-ctas">
-              <Link to="/login" className="piko-btn-primary" style={{ padding: '14px 28px', fontSize: '1rem' }}>
+              <Link to="/signup" className="piko-btn-primary" style={{ padding: '14px 28px', fontSize: '1rem' }}>
                 <span>Get started with Piko</span>
                 <span aria-hidden="true">→</span>
               </Link>
@@ -299,37 +297,7 @@ export function LandingPage() {
               <span className="piko-price-period">/ family / month</span>
             </div>
 
-            <form
-              className="piko-coupon"
-              onSubmit={(e) => {
-                e.preventDefault()
-                setCouponState(coupon.trim().toUpperCase() === EARLY_BIRD_CODE ? 'applied' : 'invalid')
-              }}
-            >
-              <label htmlFor="piko-coupon-input">Have a coupon code?</label>
-              <div className="piko-coupon-row">
-                <input
-                  id="piko-coupon-input"
-                  value={coupon}
-                  onChange={(e) => {
-                    setCoupon(e.target.value)
-                    setCouponState('idle')
-                  }}
-                  autoComplete="off"
-                  autoCapitalize="characters"
-                  spellCheck={false}
-                  aria-describedby="piko-coupon-status"
-                />
-                <button type="submit" className="piko-btn-secondary" disabled={!coupon.trim()}>
-                  Apply
-                </button>
-              </div>
-              <p id="piko-coupon-status" role="status" className={`piko-coupon-status ${couponState}`}>
-                {couponState === 'applied' &&
-                  'Early-bird code applied: your first month of Piko Hosted is free. Online signup and billing are not open yet, so nothing is charged or activated today.'}
-                {couponState === 'invalid' && 'That code is not valid. Check it and try again.'}
-              </p>
-            </form>
+            <CouponBox id="piko-coupon" />
 
             <ul className="piko-feature-list">
               <li className="piko-feature-item">
@@ -358,7 +326,7 @@ export function LandingPage() {
               </li>
             </ul>
 
-            <Link to="/login" className="piko-btn-primary" style={{ width: '100%', padding: '14px' }}>
+            <Link to="/signup" className="piko-btn-primary" style={{ width: '100%', padding: '14px' }}>
               <span>Get started with hosted Piko</span>
               <span aria-hidden="true">→</span>
             </Link>
@@ -412,10 +380,10 @@ export function LandingPage() {
               </li>
             </ul>
 
-            <Link to="/login" className="piko-btn-secondary" style={{ width: '100%', padding: '14px' }}>
-              <span>Launch your self-hosted setup</span>
+            <a href="#self-host" className="piko-btn-secondary" style={{ width: '100%', padding: '14px' }}>
+              <span>See how to deploy it yourself</span>
               <span aria-hidden="true">→</span>
-            </Link>
+            </a>
             <p style={{ textAlign: 'center', fontSize: '0.75rem', color: 'var(--lp-muted)', marginTop: 10 }}>
               Docker ready · Full documentation included
             </p>
@@ -581,7 +549,7 @@ export function LandingPage() {
       <section className="piko-section" id="privacy">
         <div className="piko-clay-card" style={{ padding: '48px 40px', textAlign: 'center' }}>
           <div className="piko-landing-brand-logo" style={{ margin: '0 auto 16px auto', width: 48, height: 48 }}>
-            <img src={MASCOT_URL} alt="Piko logo" loading="lazy" />
+            <img src={MASCOT_SMALL_URL} alt="Piko logo" loading="lazy" width={48} height={45} />
           </div>
           <h2 style={{ fontSize: '2.25rem', fontWeight: 800, marginBottom: 12, color: 'var(--lp-text)' }}>
             Built around families, not fear.
@@ -763,7 +731,7 @@ python -m app.cli restore --file ../.data/backups/piko.gz   # into an EMPTY, mig
           </p>
 
           <div style={{ display: 'flex', gap: 16, justifyContent: 'center', flexWrap: 'wrap' }}>
-            <Link to="/login" className="piko-btn-primary" style={{ padding: '16px 32px', fontSize: '1.05rem' }}>
+            <Link to="/signup" className="piko-btn-primary" style={{ padding: '16px 32px', fontSize: '1.05rem' }}>
               <span>Get started with hosted Piko</span>
               <span aria-hidden="true">→</span>
             </Link>
@@ -781,7 +749,7 @@ python -m app.cli restore --file ../.data/backups/piko.gz   # into an EMPTY, mig
         <div className="piko-footer-inner">
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <div className="piko-landing-brand-logo" style={{ width: 32, height: 32 }}>
-              <img src={MASCOT_URL} alt="Piko icon" loading="lazy" />
+              <img src={MASCOT_SMALL_URL} alt="Piko icon" loading="lazy" width={32} height={30} />
             </div>
             <span style={{ fontWeight: 800, color: 'var(--lp-text)' }}>Piko</span>
             <span style={{ fontSize: '0.75rem', color: 'var(--lp-muted)' }}>· Connected by care. Protected by choice.</span>
