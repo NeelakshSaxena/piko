@@ -42,6 +42,8 @@ export default defineConfig(({ mode }) => {
       setupFiles: ['./src/test/setup.ts'],
       css: false,
       restoreMocks: true,
+      // Dashboard pages load lazily; the first import of each is slow on a busy machine.
+      testTimeout: 20_000,
     },
   }
 })

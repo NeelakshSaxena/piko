@@ -102,6 +102,25 @@ describe('create an account', () => {
   })
 })
 
+describe('privacy notice and contact', () => {
+  it('is public, accessible, states retention that matches the software, and shows the placeholder contact', async () => {
+    const view = renderApp('/privacy', {}, { signedIn: false })
+    await screen.findByRole('heading', { name: 'Privacy notice' })
+    expect(screen.getByText(/30 days by default/)).toBeInTheDocument()
+    expect(screen.getByText(/SOS events are safety records/)).toBeInTheDocument()
+    expect(screen.getByText(/never contains\s+coordinates or message text/)).toBeInTheDocument()
+    const mail = screen.getAllByRole('link', { name: 'your-email@example.com' })[0]
+    expect(mail).toHaveAttribute('href', 'mailto:your-email@example.com')
+    expect(await a11yViolations(view.container)).toEqual([])
+  })
+
+  it('offers a request-access email on the signup page', async () => {
+    renderApp('/signup', {}, { signedIn: false })
+    const link = await screen.findByRole('link', { name: /Email your-email@example.com/ })
+    expect(link.getAttribute('href')).toMatch(/^mailto:your-email@example.com\?subject=Piko%20Hosted%20access%20request$/)
+  })
+})
+
 describe('join with an invite code', () => {
   it('is accessible and explains a refused invitation without revealing which part was wrong', async () => {
     const view = renderApp('/join', { 'POST /invitations/accept': apiError(401, 'AUTH_INVALID') }, { signedIn: false })

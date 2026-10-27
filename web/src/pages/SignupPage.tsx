@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import { CouponBox } from '../components/CouponBox'
 import { Card, PageTitle } from '../components/ui'
+import { config } from '../config'
 
 /**
  * There is no self-service signup yet: families are created by the operator and adults join by invitation.
@@ -18,6 +19,17 @@ export function SignupPage() {
         <Link className="btn btn-primary" to="/join">
           Join with an invite code
         </Link>
+      </Card>
+
+      <Card tone="mint">
+        <h2 className="h2">Request access to Piko Hosted</h2>
+        <p>
+          Hosted families are set up by hand for now. Email the operator with your family name and the email address you want to sign in with; you
+          will get a reply with next steps. Read the <Link to="/privacy">privacy notice</Link> first.
+        </p>
+        <a className="btn btn-primary" href={`mailto:${config.contactEmail}?subject=${encodeURIComponent('Piko Hosted access request')}`}>
+          Email {config.contactEmail}
+        </a>
       </Card>
 
       <Card>

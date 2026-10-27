@@ -8,6 +8,7 @@ finer than a typical phone accuracy.
 """
 
 import re
+import unicodedata
 import uuid
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
@@ -16,11 +17,10 @@ from typing import Any, Literal
 from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy.orm import Session
 
-from app.core.errors import ApiError
 from app.domain.freshness import FRESH_SECONDS, UNKNOWN_AFTER_SECONDS
 from app.services import families as family_service
 from app.services import history, locations
-from app.services.authz import view_family_id
+from app.services.authz import view_family_id, viewable_member
 from app.services.devices import DeviceService
 from app.services.principals import UserPrincipal
 from app.services.sos import SosService
@@ -71,7 +71,9 @@ class SosArgs(_Strict):
 def _text(value: str | None) -> str | None:
     if value is None:
         return None
-    return _CONTROL.sub(" ", value).strip()[:MAX_NAME_CHARS]
+    # Control characters become spaces; invisible format characters (zero-width, bidi overrides) are dropped.
+    visible = "".join(c for c in _CONTROL.sub(" ", value) if unicodedata.category(c) != "Cf")
+    return visible.strip()[:MAX_NAME_CHARS]
 
 
 def _iso(moment: datetime | None) -> str | None:
@@ -152,9 +154,9 @@ def get_member_status(
     db: Session, principal: UserPrincipal, args: MemberArgs, services: Services
 ) -> dict[str, Any]:
     now = datetime.now(UTC)
-    detail = family_service.family_detail(db, principal, view_family_id(db, principal.user_id))
-    if not any(m.id == args.member_id for m in detail.members):
-        raise ApiError("NOT_FOUND_OR_NOT_VISIBLE")
+    # Same visibility rule as get_member_location/history: 404 for another family's, revoked or pending members.
+    member = viewable_member(db, principal, args.member_id)
+    detail = family_service.family_detail(db, principal, member.family_id)
     owned = [
         d for d in detail.devices if d.owner_member_id == args.member_id and d.status != "revoked"
     ]
@@ -164,7 +166,9 @@ def get_member_status(
             {"member_id": str(args.member_id), "has_linked_phone": False},
             "This person has no linked phone, so nothing is reported.",
         )
-    view = services.devices.view(db, principal, owned[0].id)
+    # A child who replaced a phone has two active devices: report the most recently active one.
+    newest = max(owned, key=lambda d: (d.last_seen or d.paired_at, d.paired_at))
+    view = services.devices.view(db, principal, newest.id)
     return _envelope(
         now,
         {

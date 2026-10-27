@@ -2,6 +2,7 @@ import { motion } from 'motion/react'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { CouponBox } from '../components/CouponBox'
+import { config } from '../config'
 import './LandingPage.css'
 
 const MASCOT_URL = '/mascot.webp'
@@ -761,7 +762,9 @@ python -m app.cli restore --file ../.data/backups/piko.gz   # into an EMPTY, mig
             <a href="#hosting-options">Pricing</a>
             <a href="#self-host">Deploy yourself</a>
             <a href="#privacy">Privacy</a>
+            <Link to="/privacy">Privacy notice</Link>
             <a href="#faq">FAQ</a>
+            <a href={`mailto:${config.contactEmail}`}>Contact</a>
             <Link to="/login">Sign in</Link>
           </div>
         </div>

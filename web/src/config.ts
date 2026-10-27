@@ -14,6 +14,11 @@ export const config = {
     const value = import.meta.env.VITE_TILE_URL ?? DEFAULT_TILES
     return value === 'off' || value === '' ? null : value
   })(),
+  /**
+   * The operator's contact address, shown on the landing, signup and privacy pages. PLACEHOLDER: set
+   * VITE_CONTACT_EMAIL at build time (or replace the default) before real families use the service.
+   */
+  contactEmail: (import.meta.env.VITE_CONTACT_EMAIL ?? 'your-email@example.com').trim(),
   /** A location older than this is never presented as current (matches the API's freshness rule). */
   freshSeconds: 5 * 60,
   /** Consecutive location events further apart than this are shown as a gap in the route. */

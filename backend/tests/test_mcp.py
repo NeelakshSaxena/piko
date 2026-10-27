@@ -362,6 +362,91 @@ def test_status_for_a_member_without_a_phone_says_so(world, app, db, settings) -
     assert data["has_linked_phone"] is False
 
 
+def test_status_of_a_revoked_member_is_not_visible(world, db) -> None:  # type: ignore[no-untyped-def]
+    _, _, _, member, adapter = world
+    assert call(adapter, "get_member_status", {"member_id": str(member)})["data"][
+        "has_linked_phone"
+    ]
+    db.execute(
+        update(FamilyMembership).where(FamilyMembership.id == member).values(status="revoked")
+    )
+    db.commit()
+    assert (
+        refused(adapter, "get_member_status", {"member_id": str(member)})
+        == "Not found or not visible to you."
+    )
+
+
+def test_status_reports_the_most_recently_active_phone_of_a_member(world, db) -> None:  # type: ignore[no-untyped-def]
+    _, device_id, _, member, adapter = world
+    old = db.get_one(Device, uuid.UUID(device_id))
+    old.last_activity_at = datetime.now(UTC) - timedelta(days=3)
+    db.add(
+        Device(
+            family_id=old.family_id, owner_member_id=member, name="Replacement phone",
+            last_activity_at=datetime.now(UTC) - timedelta(seconds=20),
+        )
+    )  # fmt: skip
+    db.commit()
+    data = call(adapter, "get_member_status", {"member_id": str(member)})["data"]
+    assert data["device_status"] == "online"  # the replacement phone, not the 3-day-silent one
+
+
+def test_credentials_with_a_dead_session_are_refused(world, app, db, settings) -> None:  # type: ignore[no-untyped-def]
+    fam, *_ = world
+    live = issue_token(db, app.state.tokens, settings, user_id=fam.user_id, ttl_hours=1)
+    adapter = adapter_for(app, settings, live.token)
+    assert call(adapter, "get_my_family_summary")
+    # expired session row
+    db.execute(
+        update(RefreshSession)
+        .where(RefreshSession.id == live.session_id)
+        .values(expires_at=datetime.now(UTC) - timedelta(minutes=1))
+    )
+    db.commit()
+    assert refused(adapter, "get_my_family_summary") == "Not authorized."
+    # token whose stored hash no longer matches (a different token for the same session id)
+    other = issue_token(db, app.state.tokens, settings, user_id=fam.user_id, ttl_hours=1)
+    db.execute(
+        update(RefreshSession)
+        .where(RefreshSession.id == other.session_id)
+        .values(token_hash="0" * 64)
+    )
+    db.commit()
+    assert (
+        refused(adapter_for(app, settings, other.token), "get_my_family_summary")
+        == "Not authorized."
+    )
+    # deactivated user
+    third = issue_token(db, app.state.tokens, settings, user_id=fam.user_id, ttl_hours=1)
+    db.execute(update(User).where(User.id == fam.user_id).values(status="suspended"))
+    db.commit()
+    try:
+        assert (
+            refused(adapter_for(app, settings, third.token), "get_my_family_summary")
+            == "Not authorized."
+        )
+    finally:
+        db.execute(update(User).where(User.id == fam.user_id).values(status="active"))
+        db.commit()
+
+
+def test_member_names_with_hidden_direction_characters_are_not_special(
+    make_family, app, db, settings
+) -> None:  # type: ignore[no-untyped-def]
+    fam: Family = make_family("Home")
+    db.execute(
+        update(User).where(User.id == fam.user_id).values(full_name="Parent\u202e evil\u200b")
+    )
+    db.commit()
+    data = call(
+        adapter_for(app, settings, mcp_token(app, db, settings, fam.user_id)),
+        "get_my_family_summary",
+    )
+    names = [m["name"] for m in data["data"]["members"]]
+    assert all("\u202e" not in (n or "") and "\u200b" not in (n or "") for n in names)
+
+
 def test_recent_events_leave_out_positions(world) -> None:  # type: ignore[no-untyped-def]
     fam, device_id, device_token, member, adapter = world
     send(

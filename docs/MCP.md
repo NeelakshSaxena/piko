@@ -27,5 +27,8 @@ Freshness: fresh = captured within 5 minutes; stale = up to 24 hours; unknown = 
 ## Security properties you can rely on (each has a test)
 Identity comes only from the credential; `family_id`/`user_id` arguments are rejected. Another family's member id looks identical to a nonexistent one. Unknown tools, extra fields and oversized input are refused. Rate limit, timeout and result-size caps apply. Calls are audited without positions or text.
 
+## Where the data goes
+The adapter runs on your machine, but **whatever a tool returns is sent to the AI service your client uses** (for example a model provider). That includes family member names, positions to about 11 m with their age, battery and phone status, and SOS history. Use only a client and provider you trust with that information, and revoke the credential when you stop using it.
+
 ## What it does not do
 No remote/HTTP transport (needs a separately reviewed OAuth design). No mutation of any kind. Treat the client and the model as untrusted for authorization: they only ever see what these five tools return, and names in results are data, never instructions. A process that can read the launcher's environment can use the token.
