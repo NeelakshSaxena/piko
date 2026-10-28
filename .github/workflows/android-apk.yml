@@ -1,13 +1,21 @@
 name: Android APK & CI
 
-# Builds and tests the Android app on EVERY push (any branch) and uploads the debug APK as a workflow artifact
-# named with the commit. Pushes to main/deployment also refresh a rolling "android-latest" pre-release so the
-# newest APK always has one stable download link. Also verifies backend and web on push, PR, or manual trigger.
-# The APK is debug-signed (installable for testing; not a Play Store build).
+# On every push (any branch), pull request and manual run: JVM tests and Android lint must pass, then the debug APK and
+# a minified RELEASE candidate are built from this exact commit and uploaded as ONE artifact (30 days) together with
+# SHA256SUMS.txt, the R8 mapping and build-metadata.json (commit, variant, version code, signed or not).
+# The release APK is UNSIGNED: this workflow holds no production signing key and never creates one. The debug APK is
+# debug-signed (installable for testing; not a Play Store build). No provider API key is read or embedded.
+# Nothing is published automatically: the android-latest pre-release is refreshed only by a manual run that ticks
+# "publish_rolling_debug_apk". Also verifies backend and web on push, PR, or manual trigger.
 # Actions pinned to immutable commit SHAs with comments for provenance.
 
 on:
   workflow_dispatch:
+    inputs:
+      publish_rolling_debug_apk:
+        description: Also refresh the android-latest pre-release with this build's debug APK
+        type: boolean
+        default: false
   push:
     branches: ['**']
     tags: ['v*']
@@ -23,11 +31,9 @@ concurrency:
 
 jobs:
   android-apk:
-    name: Build & Package Android APK
-    permissions:
-      contents: write  # for the "Publish rolling latest APK" step only (creates/updates one release)
+    name: Test, Lint & Build Android APKs
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 40
     defaults:
       run:
         working-directory: android
@@ -49,62 +55,110 @@ jobs:
       - name: Make Gradle Wrapper executable
         run: chmod +x gradlew
 
+      # Tests and lint gate the build: nothing below runs (and no APK is uploaded) if either fails.
       - name: Run JVM Unit Tests
         run: ./gradlew :app:testDebugUnitTest --no-daemon
 
-      - name: Assemble Debug APK
-        # versionCode = run number, so each build installs over the last; the child only types a pairing code.
+      - name: Run Android Lint
+        run: ./gradlew :app:lintDebug --no-daemon
+
+      # versionCode = run number. The CI debug key is generated fresh on every runner, so Android will not install one
+      # build over another: uninstall first. No provider key, signing key or other secret
+      # is read by these steps; live-data keys live only on the server (docs/SELF_HOSTING.md).
+      - name: Assemble Debug APK and minified Release APK
+        env:
+          PIKO_API_URL: ${{ vars.PIKO_API_URL || 'https://piko-api-ten.vercel.app' }}
         run: >-
-          ./gradlew :app:assembleDebug --no-daemon
+          ./gradlew :app:assembleDebug :app:assembleRelease --no-daemon
           -Ppiko.versionCode=${{ github.run_number }}
-          -Ppiko.defaultServer=${{ vars.PIKO_API_URL || 'https://piko-api-ten.vercel.app' }}
+          "-Ppiko.defaultServer=$PIKO_API_URL"
 
-      - name: Verify APK Artifact
+      - name: Collect APKs, checksums and build metadata
+        env:
+          SHA: ${{ github.sha }}
+          RUN: ${{ github.run_number }}
+          REF_NAME: ${{ github.ref_name }}
         run: |
-          APK_FILE="app/build/outputs/apk/debug/app-debug.apk"
-          if [ ! -f "$APK_FILE" ]; then
-            echo "::error::APK file $APK_FILE does not exist!"
-            exit 1
-          fi
-          SIZE=$(stat -c%s "$APK_FILE" 2>/dev/null || stat -f%z "$APK_FILE")
-          if [ "$SIZE" -le 1000000 ]; then
-            echo "::error::APK file $APK_FILE is unexpectedly small ($SIZE bytes)!"
-            exit 1
-          fi
-          echo "Verified APK: $APK_FILE ($SIZE bytes)"
+          set -euo pipefail
+          OUT=dist
+          mkdir -p "$OUT"
+          DEBUG_SRC="app/build/outputs/apk/debug/app-debug.apk"
+          # With no signing configuration the release variant is, by design, unsigned (not installable as-is).
+          REL_SRC="app/build/outputs/apk/release/app-release-unsigned.apk"
+          for f in "$DEBUG_SRC" "$REL_SRC"; do
+            [ -f "$f" ] || { echo "::error::missing $f"; exit 1; }
+            SIZE=$(stat -c%s "$f")
+            [ "$SIZE" -gt 1000000 ] || { echo "::error::$f is unexpectedly small ($SIZE bytes)"; exit 1; }
+          done
+          cp "$DEBUG_SRC" "$OUT/piko-debug-signed-${SHA:0:12}.apk"
+          cp "$REL_SRC" "$OUT/piko-release-UNSIGNED-minified-${SHA:0:12}.apk"
+          cp app/build/outputs/mapping/release/mapping.txt "$OUT/r8-mapping-${SHA:0:12}.txt"
+          (cd "$OUT" && sha256sum *.apk r8-mapping-*.txt > SHA256SUMS.txt)
+          cat > "$OUT/build-metadata.json" <<EOF
+          {
+            "commit": "$SHA",
+            "ref": "$REF_NAME",
+            "run_number": $RUN,
+            "version_code": $RUN,
+            "built_at_utc": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+            "artifacts": {
+              "piko-debug-signed-${SHA:0:12}.apk": {"variant": "debug", "minified": false, "signed": "debug key (testing only)"},
+              "piko-release-UNSIGNED-minified-${SHA:0:12}.apk": {"variant": "release", "minified": true, "signed": false}
+            },
+            "notes": "The release APK is an unsigned release candidate: it cannot be installed until it is signed with a production key, which this workflow never holds. Neither APK contains a provider API key."
+          }
+          EOF
+          cat "$OUT/SHA256SUMS.txt"
 
-      - name: Upload Debug APK Artifact
+      - name: Upload APKs, checksums and metadata
         uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # v4.6.1
         with:
-          name: piko-android-debug-apk-${{ github.sha }}
-          path: android/app/build/outputs/apk/debug/app-debug.apk
+          name: piko-android-${{ github.sha }}
+          path: android/dist/
           if-no-files-found: error
+          retention-days: 30
+
+      - name: Upload Test and Lint Reports
+        if: always()
+        uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # v4.6.1
+        with:
+          name: android-reports-${{ github.sha }}
+          path: |
+            android/app/build/reports/tests/testDebugUnitTest/
+            android/app/build/reports/lint-results-debug.html
+          if-no-files-found: ignore
           retention-days: 14
 
-      - name: Publish rolling latest APK (main and deployment only)
-        if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/deployment')
-        working-directory: .
+  publish-rolling-debug:
+    # Opt-in only: runs when a person starts the workflow by hand and ticks the box; never on a push or pull request.
+    name: Publish rolling debug APK (manual, opt-in)
+    needs: android-apk
+    if: github.event_name == 'workflow_dispatch' && inputs.publish_rolling_debug_apk && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/deployment')
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write  # creates/updates the single android-latest pre-release; nothing else in this workflow can
+    steps:
+      - name: Download the build's artifact
+        uses: actions/download-artifact@cc203385981b70ca67e1cc392babf9cc229d5806 # v4.1.9
+        with:
+          name: piko-android-${{ github.sha }}
+          path: dist
+      - name: Publish
         env:
           GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
           SHA: ${{ github.sha }}
           RUN: ${{ github.run_number }}
         run: |
-          cp android/app/build/outputs/apk/debug/app-debug.apk piko-latest.apk
-          NOTES="Debug-signed build #$RUN of commit ${SHA:0:7} from ${GITHUB_REF_NAME}. For testing; Android will ask you to allow installs from this source."
+          cp "dist/piko-debug-signed-${SHA:0:12}.apk" piko-latest.apk
+          NOTES="Debug-signed build #$RUN of commit ${SHA:0:7} from ${GITHUB_REF_NAME}, published by hand. For testing; Android will ask you to allow installs from this source."
           if gh release view android-latest >/dev/null 2>&1; then
             gh release upload android-latest piko-latest.apk --clobber
             gh release edit android-latest --notes "$NOTES" --target "$SHA"
           else
             gh release create android-latest piko-latest.apk --prerelease --title "Latest Android APK" --notes "$NOTES" --target "$SHA"
           fi
-
-      - name: Upload Test Reports
-        if: always()
-        uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # v4.6.1
-        with:
-          name: android-test-reports
-          path: android/app/build/reports/tests/testDebugUnitTest/
-          retention-days: 7
 
   backend-check:
     name: Backend Tests & Lint
