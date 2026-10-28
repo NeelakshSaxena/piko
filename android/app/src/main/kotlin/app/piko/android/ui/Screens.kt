@@ -201,6 +201,7 @@ fun HomeScreen(
     canSend: Boolean,
     onSos: (String?) -> Unit,
     onMessages: () -> Unit,
+    onJourneys: () -> Unit,
 ) = Page {
     val running = runtime.sharing is SharingState.Running
     Text("Child Home", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
@@ -294,6 +295,16 @@ fun HomeScreen(
                 Text("See exactly what your family can view", style = MaterialTheme.typography.bodySmall)
             }
             TextButton(onClick = onTransparency) { Text("Review") }
+        }
+    }
+
+    ClayCard(tint = Clay.Mint) {
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+            Column(Modifier.weight(1f)) {
+                Text("Journeys", fontWeight = FontWeight.Bold)
+                Text("Plan a trip leg by leg. Saved on this phone only.", style = MaterialTheme.typography.bodySmall)
+            }
+            TextButton(onClick = onJourneys) { Text("Open") }
         }
     }
 }

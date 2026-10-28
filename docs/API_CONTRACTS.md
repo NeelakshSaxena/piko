@@ -740,3 +740,85 @@ All errors return JSON:
 4. Self-hosting: TLS required or optional? (Required for remote, optional for localhost)
 
 These are finalized once security review approves threat mitigations.
+
+
+---
+
+## Journeys (ADR-026, migration 0007)
+
+All journey endpoints require a **device credential** (`pkd_...`). A user token is refused with `401 AUTH_INVALID`
+(wrong credential type); a journey of another device or family is indistinguishable from a missing one
+(`404 NOT_FOUND_OR_NOT_VISIBLE`). Parents get no access through family membership. Rate limit: 60 requests/minute per
+device (30 for event batches). Requests forbid unknown fields; text is plain, at most 80 characters.
+
+The plan's proposed per-leg endpoints (`POST /journeys`, `PATCH`, `/legs`, `/reorder`, `/start`, `/pause`,
+`/complete`, `/refresh`) are **not** implemented (a read-only live lookup, below, replaces `/refresh`). The phone is the source of truth and sends the whole journey, so one
+idempotent upsert replaces them and reordering cannot be half-applied. Tracking state is not synced; it is described by
+events. The live lookup never writes to a journey.
+
+### `PUT /api/v1/journeys/{journey_id}`
+`journey_id` is a UUID chosen by the phone.
+```json
+{
+  "title": "Vellore to Lucknow",
+  "status": "DRAFT | PLANNED",
+  "created_at": "2026-10-28T09:00:00Z",
+  "updated_at": "2026-10-28T10:00:00Z",
+  "legs": [
+    {"id": "<uuid>", "mode": "FLIGHT|TRAIN|TAXI|BIKE_TAXI|METRO|BUS|WALKING|OTHER",
+     "service_number": "6E 123 | null", "origin": "Bengaluru", "destination": "Lucknow",
+     "departure_at": "2026-11-01T07:45:00+05:30 | null", "departure_zone": "Asia/Kolkata | null",
+     "arrival_at": "... | null", "arrival_zone": "... | null"}
+  ]
+}
+```
+At most 20 legs; leg order is the sequence; a time needs its zone and an offset. Response `200`:
+`{"journey": {...as stored, with sequence per leg...}, "applied": true|false}`.
+
+- **Which write wins:** the one with the later `updated_at` (the owner's edit time, capped at the server clock so a fast
+  clock cannot win every later edit). An equal or older `updated_at` is not an error: `applied=false` and the stored
+  journey is returned unchanged. That makes retries after a lost response and out-of-order uploads safe.
+- `409 CONFLICT`: the journey was deleted (it can never come back), a leg id belongs to another journey, the id is in use
+  elsewhere, or the device has 200 journeys.
+
+### `GET /api/v1/journeys` / `GET /api/v1/journeys/{id}`
+Own journeys, newest edit first / one journey. A deleted journey is `404`.
+
+### `GET /api/v1/journeys/live/flight?flight=AI101&day=2026-11-02` and `GET /api/v1/journeys/live/train?number=12919` (ADR-027)
+Device credential only (a parent token is refused). A read-only lookup: nothing is stored and no journey is changed.
+Rate limit: 10 requests/minute per device. `flight` is 2 letters/digits + 1-4 digits (+ optional letter), spaces and case
+ignored; `number` is exactly 5 digits; anything else is `400 VALIDATION_ERROR`. Answers `200` even when no data is
+available, so the phone can show the reason:
+```json
+{"state": "ok | disabled | not_configured | not_found | auth_failed | rate_limited | unavailable | unusable",
+ "provider": "aviationstack | railradar | null", "checked_at": "2026-11-02T14:02:03+05:30",
+ "status": "active | null", "departure_delay_minutes": 10, "arrival_delay_minutes": 25, "running_delay_minutes": null,
+ "departure_gate": "A12", "departure_terminal": "3", "arrival_gate": null, "arrival_terminal": "2",
+ "provider_updated_at": "2026-11-02T14:00:00+05:30 | null", "notices": ["DIVERTED"]}
+```
+Fields other than `state`, `provider` and `checked_at` are present only for `ok`, and a field the provider did not state
+is `null`, never `0`. Flights report `departure_`/`arrival_delay_minutes`; trains report `running_delay_minutes`
+(only when the provider calls the run live; otherwise `notices` contains `NOT_LIVE`). `disabled` = provider is `manual`;
+`not_configured` = a provider is selected but its key is missing. No provider text, URL, key or body is ever returned.
+Results are cached 5 minutes per (provider, number, date); after an auth or quota failure the provider is not called for
+15 minutes, after a network error or 5xx for 60 seconds.
+
+### `DELETE /api/v1/journeys/{journey_id}` -> `204`
+Idempotent. Removes the title, legs and events and leaves a tombstone (id, owner, time). Deleting an id the server never
+saw also leaves a tombstone, so an older upload still in flight cannot create it afterwards.
+
+### `POST /api/v1/journeys/{journey_id}/events` -> `202`
+Same response shape as `POST /telemetry/batches` (`accepted_event_ids`, `duplicate_event_ids`, `rejected_events`).
+```json
+{"batch_id": "<uuid>", "events": [
+  {"event_id": "<uuid>", "event_type": "tracking_started", "occurred_at": "2026-11-01T06:00:00Z",
+   "data": {"location_detection": true}}]}
+```
+1-100 events. Types: `tracking_started`, `tracking_paused`, `tracking_resumed`, `tracking_stopped`, `arrival_detected`
+(noticed by location), `arrival_confirmed` (by the user), `observation`, `network_restored`, `journey_completed`.
+`data` is flat (string, number, boolean or null), at most 12 keys and 1 KiB. A replayed `event_id` is a duplicate;
+an id already used for another journey is rejected. `occurred_at` is capped at server time + 60 s. Events are
+acknowledged only after the commit.
+
+### `GET /api/v1/journeys/{journey_id}/events?limit=&offset=`
+The owner's events in occurrence order (limit <= 200). Delivery time (`received_at`) is separate from `occurred_at`.

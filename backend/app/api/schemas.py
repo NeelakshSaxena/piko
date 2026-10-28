@@ -348,3 +348,132 @@ class OutboxRunResponse(Response):
 class RetentionRunResponse(Response):
     deleted: dict[str, int]
     more_remaining: bool
+
+
+# --- journeys (ADR-026): owned by one device; whole-journey upsert so every write is atomic ---
+JourneyMode = Literal["FLIGHT", "TRAIN", "TAXI", "BIKE_TAXI", "METRO", "BUS", "WALKING", "OTHER"]
+JourneyEventType = Literal[
+    "tracking_started",
+    "tracking_paused",
+    "tracking_resumed",
+    "tracking_stopped",
+    "arrival_detected",
+    "arrival_confirmed",
+    "observation",
+    "network_restored",
+    "journey_completed",
+]
+ZoneName = Annotated[str, Field(min_length=1, max_length=64, pattern=r"^[A-Za-z0-9_+\-/]+$")]
+ShortText = Annotated[PlainText, Field(min_length=1, max_length=80)]
+
+
+class JourneyLegIn(Request):
+    id: uuid.UUID
+    mode: JourneyMode
+    service_number: ShortText | None = None
+    origin: ShortText
+    destination: ShortText
+    departure_at: datetime | None = None
+    departure_zone: ZoneName | None = None
+    arrival_at: datetime | None = None
+    arrival_zone: ZoneName | None = None
+
+
+class JourneyPutRequest(Request):
+    title: ShortText
+    status: Literal["DRAFT", "PLANNED"]
+    created_at: datetime
+    updated_at: datetime
+    legs: list[JourneyLegIn] = Field(max_length=20)
+
+
+class JourneyLegOut(Response):
+    id: uuid.UUID
+    sequence: int
+    mode: JourneyMode
+    service_number: str | None
+    origin: str
+    destination: str
+    departure_at: datetime | None
+    departure_zone: str | None
+    arrival_at: datetime | None
+    arrival_zone: str | None
+
+
+class JourneyOut(Response):
+    id: uuid.UUID
+    title: str
+    status: Literal["DRAFT", "PLANNED"]
+    created_at: datetime
+    updated_at: datetime
+    legs: list[JourneyLegOut]
+
+
+class LiveStatusOut(Response):
+    """What one provider said, right now (ADR-027). Never merged into a journey by the server.
+
+    `state` is always present; the fields below are set only when it is "ok". Nothing here is a schedule:
+    delays are minutes the provider reported, and a missing value means the provider did not say."""
+
+    state: Literal[
+        "ok",
+        "disabled",
+        "not_configured",
+        "not_found",
+        "auth_failed",
+        "rate_limited",
+        "unavailable",
+        "unusable",
+    ]
+    provider: Literal["aviationstack", "railradar"] | None
+    checked_at: datetime
+    status: str | None = None
+    departure_delay_minutes: int | None = None
+    arrival_delay_minutes: int | None = None
+    running_delay_minutes: int | None = None
+    departure_gate: str | None = None
+    departure_terminal: str | None = None
+    arrival_gate: str | None = None
+    arrival_terminal: str | None = None
+    provider_updated_at: datetime | None = None
+    notices: list[str] = []
+
+
+class JourneyPutResponse(Response):
+    journey: JourneyOut
+    # False: the server already held a newer (or identical) version and kept it. Not an error.
+    applied: bool
+
+
+class JourneyListResponse(Response):
+    journeys: list[JourneyOut]
+
+
+EventValue = str | int | Annotated[float, Field(allow_inf_nan=False)] | bool | None
+
+
+class JourneyEventIn(Request):
+    event_id: uuid.UUID
+    event_type: JourneyEventType
+    occurred_at: str = Field(max_length=64)
+    data: dict[Annotated[str, Field(max_length=40)], EventValue] = Field(
+        default_factory=dict, max_length=12
+    )
+
+
+class JourneyEventBatchRequest(Request):
+    batch_id: uuid.UUID
+    events: list[JourneyEventIn] = Field(min_length=1, max_length=100)
+
+
+class JourneyEventOut(Response):
+    event_id: uuid.UUID
+    event_type: JourneyEventType
+    occurred_at: datetime
+    received_at: datetime
+    data: dict[str, EventValue]
+
+
+class JourneyEventListResponse(Response):
+    events: list[JourneyEventOut]
+    has_more: bool

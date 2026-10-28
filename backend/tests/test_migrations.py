@@ -24,7 +24,10 @@ PHASE3_TABLES = {"telemetry_events", "device_latest_state"}
 INVITATION_TABLES = {"member_invitations"}
 SAFETY_TABLES = {"sos_incidents", "messages"}
 PUSH_TABLES = {"device_push_tokens", "web_push_subscriptions", "notification_outbox"}
-HEAD_TABLES = PHASE2_TABLES | PHASE3_TABLES | INVITATION_TABLES | SAFETY_TABLES | PUSH_TABLES
+JOURNEY_TABLES = {"journeys", "journey_legs", "journey_events"}
+HEAD_TABLES = (
+    PHASE2_TABLES | PHASE3_TABLES | INVITATION_TABLES | SAFETY_TABLES | PUSH_TABLES | JOURNEY_TABLES
+)
 
 
 @pytest.fixture
@@ -79,7 +82,7 @@ def test_upgrade_from_previous_schema_preserves_data(scratch: tuple[Settings, En
             conn.execute(text("SELECT count(*) FROM users WHERE id = :i"), {"i": user_id}).scalar()
             == 1
         )
-        assert conn.execute(text("SELECT version_num FROM alembic_version")).scalar() == "0006"
+        assert conn.execute(text("SELECT version_num FROM alembic_version")).scalar() == "0007"
 
 
 def test_0004_applies_to_a_populated_0003_schema_without_touching_existing_rows(  # type: ignore[no-untyped-def]

@@ -8,7 +8,8 @@
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />
-    <!-- Only so a queued SOS/message job survives a reboot (JobScheduler setPersisted). No receiver. -->
+    <!-- So a queued SOS/message job survives a reboot (JobScheduler setPersisted), and so departure reminders
+         of a journey being followed are set again after a reboot (JourneyBootReceiver). -->
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 
     <!--
@@ -37,6 +38,33 @@
         <!-- Delivers the SOS/message outbox when a network exists. Collects nothing. -->
         <service
             android:name=".comms.OutboxJobService"
+            android:exported="false"
+            android:permission="android.permission.BIND_JOB_SERVICE" />
+
+        <!-- Notices arrival by location, only while the user follows a journey and chose it. Visible, with Pause and Stop. -->
+        <service
+            android:name=".journeys.tracking.JourneyTrackingService"
+            android:exported="false"
+            android:foregroundServiceType="location" />
+
+        <receiver android:name=".journeys.tracking.JourneyAlarmReceiver" android:exported="false" />
+
+        <receiver android:name=".journeys.tracking.JourneyBootReceiver" android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+            </intent-filter>
+        </receiver>
+
+        <!-- Takes a small battery/connection reading about every 20 minutes during a followed flight, if backup is on. No location. -->
+        <service
+            android:name=".journeys.tracking.JourneyObservationJobService"
+            android:exported="false"
+            android:permission="android.permission.BIND_JOB_SERVICE" />
+
+        <!-- Uploads journey backups and deletes when a network exists, only if the user turned backup on. -->
+        <service
+            android:name=".journeys.data.JourneySyncJobService"
             android:exported="false"
             android:permission="android.permission.BIND_JOB_SERVICE" />
 

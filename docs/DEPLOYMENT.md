@@ -20,7 +20,7 @@ Cost-risk summary: no paid plan is required for the design. Risks: Hobby fair-us
 
 ## Environment variable inventory (names only)
 
-Backend (`PIKO_` prefix): `ENV`, `DATABASE_URL` (secret), `DB_SCHEMA`, `JWT_PRIVATE_KEY_B64` (secret), `HMAC_KEY_B64` (secret), `FCM_PROJECT_ID`, `FCM_SERVICE_ACCOUNT_B64` (secret), `VAPID_PRIVATE_KEY_B64` (secret), `VAPID_PUBLIC_KEY`, `VAPID_SUBJECT`, `OUTBOX_RUN_TOKEN_B64` (secret), `ALLOWED_ORIGINS` (JSON list; must contain the deployed web origin) and `PUBLIC_BASE_URL`, plus tunables in `app/core/config.py` (retries, TTLs, caps, retention days).
+Backend (`PIKO_` prefix): `ENV`, `DATABASE_URL` (secret), `DB_SCHEMA`, `JWT_PRIVATE_KEY_B64` (secret), `HMAC_KEY_B64` (secret), `FCM_PROJECT_ID`, `FCM_SERVICE_ACCOUNT_B64` (secret), `VAPID_PRIVATE_KEY_B64` (secret), `VAPID_PUBLIC_KEY`, `VAPID_SUBJECT`, `OUTBOX_RUN_TOKEN_B64` (secret), optional live data: `FLIGHT_DATA_PROVIDER`, `AVIATIONSTACK_API_KEY` (secret), `RAIL_DATA_PROVIDER`, `RAILRADAR_API_KEY` (secret) (leave unset for manual-only; see `docs/SELF_HOSTING.md`), `ALLOWED_ORIGINS` (JSON list; must contain the deployed web origin) and `PUBLIC_BASE_URL`, plus tunables in `app/core/config.py` (retries, TTLs, caps, retention days).
 Web build: `VITE_API_BASE`, `VITE_TILE_URL`.
 GitHub: variable `PIKO_API_URL`; secret `PIKO_OUTBOX_RUN_TOKEN`.
 Android build (gitignored `local.properties`): `piko.firebase.projectId|appId|apiKey|senderId`.

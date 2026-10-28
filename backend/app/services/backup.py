@@ -21,6 +21,7 @@ from typing import Any
 
 from sqlalchemy import Engine, Table, insert, select, text
 from sqlalchemy.engine import Connection
+from sqlalchemy.exc import ProgrammingError
 
 from app.db.models import Base
 
@@ -109,6 +110,13 @@ def backup(engine: Engine, destination: Path) -> BackupReport:
                     n += 1
                 counts[table.name] = n
             put({"end": True, "counts": counts})
+    except ProgrammingError as exc:
+        destination.unlink(missing_ok=True)
+        # Typically: this code models tables the schema does not have yet (the code is newer than the schema).
+        raise BackupError(
+            "the schema is missing a table this version of Piko expects; take the backup with the same "
+            "version that is deployed (the one that matches the schema's revision), before upgrading"
+        ) from exc
     except BaseException:
         destination.unlink(missing_ok=True)  # never leave a half-written file that looks real
         raise

@@ -23,6 +23,8 @@ from app.db.session import make_engine, make_session_factory
 from app.services.auth import AuthService
 from app.services.devices import DeviceService
 from app.services.invitations import InvitationService
+from app.services.journeys import JourneyService
+from app.services.live_data import LiveData
 from app.services.messages import MessageService
 from app.services.notifications import NotificationService, PushTransport
 from app.services.push import PushRegistry
@@ -92,6 +94,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.state.retention = RetentionService(settings)
     app.state.sos = SosService(settings, app.state.notifier)
     app.state.messages = MessageService(settings, app.state.notifier)
+    app.state.journeys = JourneyService()
+    app.state.live_data = LiveData(settings)
 
     install_error_handlers(app)
     app.include_router(router)

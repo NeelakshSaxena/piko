@@ -21,6 +21,7 @@ import java.io.ByteArrayOutputStream
 import java.io.IOException
 import java.net.HttpURLConnection
 import java.net.URL
+import java.net.URLEncoder
 import java.util.zip.GZIPOutputStream
 
 data class PairedDevice(val deviceId: String, val familyId: String, val credential: String)
@@ -93,6 +94,33 @@ class ApiClient(
             PairResult.Failed("Could not reach the server (${e.javaClass.simpleName}).")
         }
     }
+
+    // ---- journeys (ADR-026): the caller maps the status ----
+
+    class StatusReply(val status: Int, val retryAfter: Long?)
+
+    fun putJourney(id: String, json: String): StatusReply =
+        reply(call("PUT", "/journeys/$id", json.toByteArray(Charsets.UTF_8), gzip = false, bearer = requireNotNull(credential)))
+
+    fun postJourneyEvents(id: String, json: String): StatusReply =
+        reply(post("/journeys/$id/events", json.toByteArray(Charsets.UTF_8), gzip = false, bearer = requireNotNull(credential)))
+
+    fun deleteJourney(id: String): StatusReply =
+        reply(call("DELETE", "/journeys/$id", null, gzip = false, bearer = requireNotNull(credential)))
+
+    // ---- live flight/train lookup (ADR-027): read-only, the server holds the provider key ----
+
+    class LiveReply(val status: Int, val body: String)
+
+    fun liveFlight(flight: String, day: String): LiveReply =
+        live("/journeys/live/flight?flight=${URLEncoder.encode(flight, "UTF-8")}&day=${URLEncoder.encode(day, "UTF-8")}")
+
+    fun liveTrain(number: String): LiveReply = live("/journeys/live/train?number=${URLEncoder.encode(number, "UTF-8")}")
+
+    private fun live(path: String): LiveReply =
+        call("GET", path, null, gzip = false, bearer = requireNotNull(credential)).let { LiveReply(it.status, it.body) }
+
+    private fun reply(response: Response) = StatusReply(response.status, response.retryAfter)
 
     // ---- push registration (ADR-023) ----
 

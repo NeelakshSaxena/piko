@@ -70,3 +70,23 @@ Implemented and tested: durable notification outbox, FCM + Web Push, Android mes
 - `piko-web` and `piko-api` deployed to production with the Vercel CLI (project-local install in `.tools/vercel`; Vercel is NOT connected to Git, so pushes do not deploy). Live checks: API health/ready 200 with database ok, CORS preflight 200, bad login 401; web serves the new landing, `/signup`, `robots.txt`, `sitemap.xml`, WebP mascot, no console errors. Mobile LCP on the throttled profile is about 4.2 s (needs landing prerender/code splitting).
 - CI on `deployment` (commit b0d4a0e): backend, web, android-jvm and APK build all green. Backend CI had failed twice: MCP SDK missing from `requirements.lock`, then a doctor test that used group-readable key files on Linux (test fixed, code was right).
 - Still open: independent audit of the MCP adapter, physical-device checks, throwaway test schemas in the database (drops need approval), signup/billing and legal pages (see launch review).
+
+## Update 2026-10-28: Journeys phases 0-1 built (gate OPEN, uncommitted)
+- Local-first journey builder added on Android (list, detail, editor; own SQLite file; Home card). ADR-025, `docs/verification/journeys-phase-0-1.md`: JVM 123 pass, SQLite contract + durability 8 pass on the emulator. UI not exercised on screen. No backend, sync, tracking or providers (phases 2+ not started).
+
+## Update 2026-10-28 (later): Journeys phases 2-6 built on the operator's instruction (gates OPEN, uncommitted, nothing deployed)
+- Backend: journeys API (device-owned, idempotent upsert, tombstones, event batches), migration `0007` (**unapplied** to the persistent schema), retention rule for journey events. Android: opt-in backup sync, following with reminders, optional arrival detection by location, expected-time updates, connection-risk checks, flight-mode readings; database v3. ADR-026, `docs/JOURNEYS.md`, `docs/verification/journeys-phases-0-6.md`.
+- Evidence: Android JVM 184 pass; instrumented 93 pass on the emulator (incl. v1->v3 migration and a service lifecycle smoke test); backend journeys/migration/retention pass; the full backend suite showed 6 transient remote-database connection failures under parallel load, all passing on rerun.
+- **Not done:** any flight/rail/routing/taxi provider (no vendor chosen), physical-device battery and detection runs, on-screen UI check and screen-reader pass, Android lint and the minified release build (tool jars not cached offline), independent audit, family dashboard view. No phase of this feature is marked passed.
+
+
+## Update 2026-10-29: optional live flight/train data (ADR-027; gates OPEN, uncommitted, nothing deployed)
+- Server-side Aviationstack and RailRadar lookups, default `manual`, keys from `.env` only; phone "Check live status" in the expected-time dialog shows a labelled reading and never saves or applies it. Migration `0007` still **unapplied**; no verified backup at revision 0006 exists.
+- Evidence (`docs/verification/journeys-providers.md`): backend full serial suite 494 passed, 1 skipped; Android JVM 199 pass; emulator 93 pass; ruff/mypy clean. Provider tests are mocked only (no key available): no live integration is claimed.
+- Not done: live provider calls, physical-device checks, on-screen/TalkBack check, lint and release build (blocked offline), independent audit.
+
+## Update 2026-10-29 (later): verification pass, CI workflow, audit (gates OPEN, nothing deployed)
+- Backend serial full suite 499 passed/1 skipped; Android JVM 199, emulator 93; lint 0 errors; the minified release APK builds (unsigned) and a throwaway-signed copy installs and starts on the AVD. Live provider checks BLOCKED (no keys); all provider tests are mocked. `android-apk.yml` now tests, lints and builds debug + unsigned minified release with checksums and metadata; a Release is published only by an opt-in manual run on main/deployment. No GitHub run has happened yet.
+- Migration `0007`: fresh backup and scratch restore drill passed (`docs/verification/journeys-providers.md`); production still `0006`; scratch schema `piko_drill_c90445` still exists (dropping it needs approval).
+- Independent audit: 0 Critical/High; Mediums M1-M4 and M6 open (`docs/verification/journeys-independent-audit.md`).
+- Incident: the local `.data/keys/hmac.key` was overwritten by my own helper script and is unrecoverable here; see the verification note.

@@ -29,3 +29,12 @@ cd android
 
 ## Known limits
 Not verified on a physical device. The sounds and the new notification channels have been built and packaged but not heard on a device. A debug APK is not a store release.
+
+## Journeys
+
+A "Journeys" card on the Home screen opens a local-first trip planner (list, detail, editor), optional backup to the
+linked server, following a journey with reminders, optional arrival detection by location, expected-time updates and
+connection checks. It adds a database file `piko-journeys.db`, three services/jobs (tracking, observation, backup sync),
+an alarm receiver and a boot receiver (alarms only). Everything is described, with privacy, retention and limits, in
+`docs/JOURNEYS.md`. No provider (flight, rail, routing, taxi) is integrated.
+

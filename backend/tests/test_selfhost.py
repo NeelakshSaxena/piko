@@ -153,6 +153,16 @@ def test_restore_refuses_a_different_migration_revision(  # type: ignore[no-unty
         assert conn.execute(text("SELECT count(*) FROM users")).scalar_one() == 0
 
 
+def test_backup_from_code_newer_than_the_schema_is_refused_clearly_and_leaves_no_file(  # type: ignore[no-untyped-def]
+    tmp_path, scratch_schema
+) -> None:
+    _, older = scratch_schema("0006")  # this code also models the 0007 journeys tables
+    target = tmp_path / "b.gz"
+    with pytest.raises(BackupError, match="same version that is deployed"):
+        backup(older, target)
+    assert not target.exists() and not target.with_name("b.gz.sha256").exists()
+
+
 def test_a_damaged_or_truncated_backup_is_refused_and_changes_nothing(  # type: ignore[no-untyped-def]
     make_family, app, tmp_path, scratch_schema
 ) -> None:

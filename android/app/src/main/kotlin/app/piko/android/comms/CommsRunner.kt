@@ -148,7 +148,7 @@ object CommsRunner {
         }
     }
 
-    private fun revoke(context: Context) {
+    internal fun revoke(context: Context) {
         val graph = context.graph
         graph.vault.credentialRevoked = true
         graph.vault.sharingRequested = false

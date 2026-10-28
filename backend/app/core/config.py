@@ -76,6 +76,19 @@ class Settings(BaseSettings):
     mcp_max_calls_per_minute: int = Field(default=30, ge=1, le=600)
     mcp_call_timeout_seconds: int = Field(default=10, ge=1, le=60)
     mcp_max_token_ttl_hours: int = Field(default=24 * 30, ge=1)
+    # Live flight/train data for Journeys (ADR-027). "manual" (default) calls no provider. Keys are read from
+    # `.env` only, held server-side, and never returned by the API or written to logs.
+    flight_data_provider: Literal["manual", "aviationstack"] = "manual"
+    aviationstack_api_key: SecretStr | None = None
+    rail_data_provider: Literal["manual", "railradar"] = "manual"
+    railradar_api_key: SecretStr | None = None
+    live_data_timeout_seconds: int = Field(default=8, ge=1, le=30)
+    live_data_cache_seconds: int = Field(
+        default=300, ge=0, le=3600
+    )  # protects small provider quotas
+    live_data_cooldown_seconds: int = Field(
+        default=900, ge=0, le=86400
+    )  # pause after 401/403/429/5xx
     # Volume caps and retention (audit F-04, backlog item 11).
     sos_max_unresolved_per_device: int = 50
     messages_max_per_device_per_day: int = 500

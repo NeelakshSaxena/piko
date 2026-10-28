@@ -49,6 +49,31 @@ python -m app.cli restore --file .data\backups\piko-2026-10-27.gz   # into an EM
 - Deleted-data note: a backup keeps what existed when it was taken; deleting a family or letting retention run does not remove it from older backups.
 - `pg_dump`/`pg_restore` also work if you have them; this tool exists because many hosts do not.
 
+## Live flight and train data (optional)
+Journeys work fully without this. Leave both providers at `manual` (the default) and nothing is ever sent to a provider.
+To let the Journeys screen offer "Check live status", set these in `.env` (git-ignored; on a host, as secrets/environment
+variables) and restart the server:
+
+| Variable | Default | Meaning |
+|---|---|---|
+| `PIKO_FLIGHT_DATA_PROVIDER` | `manual` | `manual` or `aviationstack` |
+| `PIKO_AVIATIONSTACK_API_KEY` | unset | secret; from your aviationstack.com dashboard |
+| `PIKO_RAIL_DATA_PROVIDER` | `manual` | `manual` or `railradar` |
+| `PIKO_RAILRADAR_API_KEY` | unset | secret; from railradar.in/developers |
+| `PIKO_LIVE_DATA_TIMEOUT_SECONDS` | `8` | per-request timeout |
+| `PIKO_LIVE_DATA_CACHE_SECONDS` | `300` | reuse an answer this long (protects small quotas) |
+| `PIKO_LIVE_DATA_COOLDOWN_SECONDS` | `900` | pause after a refused key or exhausted quota |
+
+- The key stays on the server. It is never sent to the phone, returned by the API or logged. Rotate it at once if it ever
+  appears in a chat, a log or a commit.
+- Both free plans allow 100 requests a month and are for personal/non-commercial use (Aviationstack: "Non-Commercial Use";
+  RailRadar: "Personal & evaluation use only"). A shared or public deployment needs a paid plan and your own reading of
+  their terms. Aviationstack's key travels in the URL's query string (its only documented method), so avoid any proxy that
+  logs outbound URLs. Never change the provider URL to `http://`: if HTTPS is refused on your plan, upgrade the plan instead (the key
+  would otherwise travel in clear text). Also run the migration backup with the version of Piko that is deployed, not newer code.
+- Check it with the phone: open a planned flight or train leg inside its window, "Update expected time", "Check live
+  status". An unconfigured or failing provider shows its reason and leaves your times unchanged.
+
 ## 7. Retention
 `python -m app.cli retention` is a dry run; `--apply` deletes messages older than 90 days, audit older than 365 days and delivered outbox rows older than 30 days (defaults in `.env.example`). SOS incidents are never auto-deleted. Run it on a schedule you choose.
 

@@ -394,3 +394,78 @@ class NotificationOutbox(Base):
     last_error: Mapped[str | None] = mapped_column(String(48))
     created_at: Mapped[datetime] = mapped_column(TS, server_default=func.now())
     accepted_at: Mapped[datetime | None] = mapped_column(TS)
+
+
+JOURNEY_MODES = ("FLIGHT", "TRAIN", "TAXI", "BIKE_TAXI", "METRO", "BUS", "WALKING", "OTHER")
+JOURNEY_EVENT_TYPES = (
+    "tracking_started",
+    "tracking_paused",
+    "tracking_resumed",
+    "tracking_stopped",
+    "arrival_detected",
+    "arrival_confirmed",
+    "observation",
+    "network_restored",
+    "journey_completed",
+)
+
+
+class Journey(Base):
+    """A trip owned by ONE device (ADR-026). Families get no access through membership. A deleted
+    journey keeps a tombstone (id, owner, deleted_at) so a late, older upload cannot bring it back."""
+
+    __tablename__ = "journeys"
+    __table_args__ = (
+        CheckConstraint(_in("status", ("DRAFT", "PLANNED"))),
+        Index("ix_journeys_device_updated", "device_id", text("updated_at DESC")),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True)  # client-generated
+    family_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("families.id"))
+    device_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("devices.id"))
+    title: Mapped[str] = mapped_column(String(80))
+    status: Mapped[str] = mapped_column(String(16))
+    created_at: Mapped[datetime] = mapped_column(TS)
+    updated_at: Mapped[datetime] = mapped_column(
+        TS
+    )  # the owner's edit time; decides which write wins
+    received_at: Mapped[datetime] = mapped_column(TS)
+    deleted_at: Mapped[datetime | None] = mapped_column(TS)
+
+
+class JourneyLeg(Base):
+    __tablename__ = "journey_legs"
+    __table_args__ = (
+        CheckConstraint(_in("mode", JOURNEY_MODES)),
+        UniqueConstraint("journey_id", "sequence"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True)
+    journey_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("journeys.id", ondelete="CASCADE"))
+    sequence: Mapped[int] = mapped_column(Integer)
+    mode: Mapped[str] = mapped_column(String(16))
+    service_number: Mapped[str | None] = mapped_column(String(80))
+    origin: Mapped[str] = mapped_column(String(80))
+    destination: Mapped[str] = mapped_column(String(80))
+    departure_at: Mapped[datetime | None] = mapped_column(TS)
+    departure_zone: Mapped[str | None] = mapped_column(String(64))
+    arrival_at: Mapped[datetime | None] = mapped_column(TS)
+    arrival_zone: Mapped[str | None] = mapped_column(String(64))
+
+
+class JourneyEvent(Base):
+    """Append-only record of something that happened on the owner's phone. Deduplicated on `id`."""
+
+    __tablename__ = "journey_events"
+    __table_args__ = (
+        CheckConstraint(_in("event_type", JOURNEY_EVENT_TYPES)),
+        Index("ix_journey_events_journey", "journey_id", "occurred_at"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True)  # client-generated
+    journey_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("journeys.id", ondelete="CASCADE"))
+    device_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("devices.id"))
+    event_type: Mapped[str] = mapped_column(String(32))
+    occurred_at: Mapped[datetime] = mapped_column(TS)
+    received_at: Mapped[datetime] = mapped_column(TS)
+    payload: Mapped[dict[str, Any]] = mapped_column(JSONB)

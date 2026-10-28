@@ -3,7 +3,7 @@
 import hmac
 import logging
 import uuid
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, date, datetime, timedelta
 from typing import Annotated, Literal
 
 from fastapi import APIRouter, BackgroundTasks, Depends, Header, Query, Request, Response
@@ -26,6 +26,7 @@ from app.services import families as family_service
 from app.services import history, locations
 from app.services.auth import AuthService
 from app.services.devices import DeviceService, PairRequest
+from app.services.live_data import FLIGHT_RE, TRAIN_RE, LiveResult
 from app.services.principals import UserPrincipal
 from app.services.sos import SosCreate, SosLocation, SosService
 from app.services.telemetry import RawEvent, TelemetryService
@@ -614,3 +615,133 @@ def run_retention(
         request.app.state.session_factory, apply=True, max_batches=10
     )
     return s.RetentionRunResponse(deleted=report.counts, more_remaining=report.more_remaining)
+
+
+# ---- live flight/train status (ADR-027): a read-only lookup for the calling device; stores nothing ----
+def _live_out(result: LiveResult) -> s.LiveStatusOut:
+    st = result.status
+    return s.LiveStatusOut(
+        state=result.state.value,
+        provider=result.provider,
+        checked_at=result.checked_at,
+        status=st.status if st else None,
+        departure_delay_minutes=st.departure_delay_minutes if st else None,
+        arrival_delay_minutes=st.arrival_delay_minutes if st else None,
+        running_delay_minutes=st.running_delay_minutes if st else None,
+        departure_gate=st.departure_gate if st else None,
+        departure_terminal=st.departure_terminal if st else None,
+        arrival_gate=st.arrival_gate if st else None,
+        arrival_terminal=st.arrival_terminal if st else None,
+        provider_updated_at=st.provider_updated_at if st else None,
+        notices=list(st.notices) if st else [],
+    )
+
+
+@router.get("/journeys/live/flight", response_model=s.LiveStatusOut)
+def live_flight(
+    request: Request, response: Response, device: CurrentDevice, flight: str, day: date
+) -> object:
+    rate_limit(request, response, "live", str(device.device_id), 10)
+    code = flight.replace(" ", "").upper()
+    if not FLIGHT_RE.fullmatch(code):
+        raise ApiError("VALIDATION_ERROR", "flight must look like AI101.")
+    # A tiny provider quota must not be spendable on arbitrary dates (the cache key includes the date).
+    if abs((day - datetime.now(UTC).date()).days) > 2:
+        raise ApiError("VALIDATION_ERROR", "day must be within two days of today.")
+    return _live_out(request.app.state.live_data.flight(code, day))
+
+
+@router.get("/journeys/live/train", response_model=s.LiveStatusOut)
+def live_train(request: Request, response: Response, device: CurrentDevice, number: str) -> object:
+    rate_limit(request, response, "live", str(device.device_id), 10)
+    if not TRAIN_RE.fullmatch(number):
+        raise ApiError("VALIDATION_ERROR", "number must be a 5-digit train number.")
+    return _live_out(request.app.state.live_data.train(number))
+
+
+# ---- journeys (ADR-026): device-owned; a user token or another device sees nothing ----
+@router.put("/journeys/{journey_id}", response_model=s.JourneyPutResponse)
+def put_journey(
+    journey_id: uuid.UUID,
+    body: s.JourneyPutRequest,
+    request: Request,
+    response: Response,
+    db: Db,
+    device: CurrentDevice,
+) -> object:
+    rate_limit(request, response, "journeys", str(device.device_id), 60)
+    journey, applied = request.app.state.journeys.put(db, device, journey_id, body)
+    return s.JourneyPutResponse(journey=journey, applied=applied)
+
+
+@router.get("/journeys", response_model=s.JourneyListResponse)
+def list_journeys(request: Request, response: Response, db: Db, device: CurrentDevice) -> object:
+    rate_limit(request, response, "journeys", str(device.device_id), 60)
+    return s.JourneyListResponse(journeys=request.app.state.journeys.list_all(db, device))
+
+
+@router.get("/journeys/{journey_id}", response_model=s.JourneyOut)
+def get_journey(
+    journey_id: uuid.UUID, request: Request, response: Response, db: Db, device: CurrentDevice
+) -> object:
+    rate_limit(request, response, "journeys", str(device.device_id), 60)
+    return request.app.state.journeys.get(db, device, journey_id)
+
+
+@router.delete("/journeys/{journey_id}", status_code=204)
+def delete_journey(
+    journey_id: uuid.UUID, request: Request, response: Response, db: Db, device: CurrentDevice
+) -> Response:
+    rate_limit(request, response, "journeys", str(device.device_id), 60)
+    request.app.state.journeys.delete(db, device, journey_id)
+    return Response(status_code=204)
+
+
+@router.post("/journeys/{journey_id}/events", status_code=202, response_model=s.BatchResponse)
+def add_journey_events(
+    journey_id: uuid.UUID,
+    body: s.JourneyEventBatchRequest,
+    request: Request,
+    response: Response,
+    db: Db,
+    device: CurrentDevice,
+) -> object:
+    rate_limit(request, response, "journey-events", str(device.device_id), 30)
+    result = request.app.state.journeys.add_events(db, device, journey_id, body.events)
+    return s.BatchResponse(
+        batch_id=body.batch_id,
+        status="partial" if result.rejected else "accepted",
+        accepted_event_ids=result.accepted,
+        duplicate_event_ids=result.duplicates,
+        rejected_events=[
+            s.RejectedEventOut(event_id=i, error_code="VALIDATION_ERROR", reason=reason)
+            for i, reason in result.rejected
+        ],
+    )
+
+
+@router.get("/journeys/{journey_id}/events", response_model=s.JourneyEventListResponse)
+def list_journey_events(
+    journey_id: uuid.UUID,
+    request: Request,
+    response: Response,
+    db: Db,
+    device: CurrentDevice,
+    limit: Annotated[int, Query(ge=1, le=200)] = 100,
+    offset: Annotated[int, Query(ge=0, le=100_000)] = 0,
+) -> object:
+    rate_limit(request, response, "journeys", str(device.device_id), 60)
+    rows, more = request.app.state.journeys.list_events(db, device, journey_id, limit, offset)
+    return s.JourneyEventListResponse(
+        events=[
+            s.JourneyEventOut(
+                event_id=r.id,
+                event_type=r.event_type,
+                occurred_at=r.occurred_at,
+                received_at=r.received_at,
+                data=r.payload,
+            )
+            for r in rows
+        ],
+        has_more=more,
+    )

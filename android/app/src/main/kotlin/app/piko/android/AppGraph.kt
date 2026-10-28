@@ -10,6 +10,9 @@ import app.piko.android.core.SyncMode
 import app.piko.android.data.DeviceVault
 import app.piko.android.data.SqliteCommStore
 import app.piko.android.data.SqliteEventStore
+import app.piko.android.journeys.data.JourneyPrefs
+import app.piko.android.journeys.data.SqliteJourneyStore
+import app.piko.android.journeys.tracking.JourneyRuntime
 import app.piko.android.net.PayloadSize
 import app.piko.android.push.PushSupport
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -65,6 +68,8 @@ class AppGraph(context: Context) {
     val store = SqliteEventStore(context)
     val recorder = Recorder(store, clock)
     val comms = SqliteCommStore(context)
+    val journeys = SqliteJourneyStore(context)
+    val journeyPrefs = JourneyPrefs(context)
 
     private val _runtime = MutableStateFlow(RuntimeSnapshot())
     val runtime: StateFlow<RuntimeSnapshot> = _runtime.asStateFlow()
@@ -90,6 +95,7 @@ class PikoApp : Application() {
         super.onCreate()
         graph = AppGraph(this)
         PushSupport.start(this) // no-op unless this build has Firebase settings
+        JourneyRuntime.ensure(this) // watches the network only while a journey is being followed
     }
 }
 

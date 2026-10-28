@@ -38,9 +38,12 @@ import kotlinx.coroutines.withContext
 import app.piko.android.core.CommKind
 import kotlinx.coroutines.launch
 import app.piko.android.graph
+import app.piko.android.journeys.data.JourneySync
+import app.piko.android.journeys.tracking.JourneyNotifier
+import app.piko.android.journeys.ui.JourneysHost
 import app.piko.android.service.SharingService
 
-private enum class Screen { Role, Pair, Home, Transparency, Messages }
+private enum class Screen { Role, Pair, Home, Transparency, Messages, Journeys }
 
 class MainActivity : ComponentActivity() {
     /** Where a tapped notification wants to go ("messages" or "home"); consumed once by [Root]. */
@@ -112,7 +115,11 @@ class MainActivity : ComponentActivity() {
         val requested = openRequest.value
         LaunchedEffect(requested, enrollment) {
             if (requested != null && enrollment != null) {
-                screen = if (requested == CommsNotifier.OPEN_MESSAGES) Screen.Messages else Screen.Home
+                screen = when (requested) {
+                    CommsNotifier.OPEN_MESSAGES -> Screen.Messages
+                    JourneyNotifier.OPEN -> Screen.Journeys
+                    else -> Screen.Home
+                }
                 openRequest.value = null
             }
         }
@@ -158,10 +165,17 @@ class MainActivity : ComponentActivity() {
                         screen = Screen.Home
                     },
                     pair = { base, code, name ->
-                        runPair(base, code, name, BuildConfig.VERSION_NAME, discard = { app.store.clear() + app.comms.clear() }, save = { app.vault.save(it) })
+                        runPair(base, code, name, BuildConfig.VERSION_NAME, discard = { app.journeys.forgetSync(); app.store.clear() + app.comms.clear() }, save = { app.vault.save(it) })
                     },
                 )
                 current == null -> RoleScreen(onChild = { screen = Screen.Pair })
+                screen == Screen.Journeys -> JourneysHost(
+                    store = app.journeys,
+                    prefs = app.journeyPrefs,
+                    nowMs = { app.clock.nowMs() },
+                    onChanged = { JourneySync.request(context) },
+                    onExit = { screen = Screen.Home },
+                )
                 screen == Screen.Messages -> MessagesScreen(
                     items = commItems,
                     parent = parent,
@@ -208,6 +222,7 @@ class MainActivity : ComponentActivity() {
                             withContext(Dispatchers.IO) { PushSupport.unregister(context) }
                             app.store.clear()
                             app.comms.clear()
+                            app.journeys.forgetSync()
                             app.setParentMessages(app.parentMessages.value.copy(messages = emptyList(), loadedAtMs = null))
                             app.vault.clearEnrollment()
                             app.update { it.copy(sharing = SharingState.Stopped) }
@@ -251,6 +266,7 @@ class MainActivity : ComponentActivity() {
                         commItems = app.comms.items()
                     },
                     onMessages = { screen = Screen.Messages },
+                    onJourneys = { screen = Screen.Journeys },
                 )
             }
         }

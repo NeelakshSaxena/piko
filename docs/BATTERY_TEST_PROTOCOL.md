@@ -54,3 +54,22 @@ limitation with the documented fallback; platform restrictions are never evaded.
 
 ## Not claimed
 Battery use on any device, in any mode, until runs exist. No emulator figure is acceptable.
+
+
+## Journeys additions (not yet run on any device)
+
+Run the baseline first (app installed, sharing as in the main protocol), then repeat with each of these for the same
+duration on the same physical phone, charge level and network, and record the difference. No figure is claimed until
+runs exist.
+
+1. A followed journey, location detection **off**: alarms and the 20-minute job only (flight leg current, backup on).
+2. A followed journey with location detection **on**, phone stationary, then phone moving.
+3. Doze: leave the phone idle and unplugged for 2 hours with a flight leg current; count readings actually taken
+   against the ~6 requested, and note how late the reminder alarms were.
+4. OEM battery manager on (the vendor's default saver): does the foreground service survive 30 minutes with the screen off?
+5. Airplane mode for 1 hour while following: readings accumulate locally, are delivered after reconnecting, and no
+   "landed" statement appears.
+6. Force-stop, then open the app: the screen must say location detection is not running; alarms must be rebuilt after
+   a reboot.
+7. Arrival detection while moving into and past the chosen place (a bus or a walk): record whether it fires once, late,
+   early, or not at all; false arrivals while passing the area count as failures.
