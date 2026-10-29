@@ -419,6 +419,12 @@ class Journey(Base):
     __table_args__ = (
         CheckConstraint(_in("status", ("DRAFT", "PLANNED"))),
         Index("ix_journeys_device_updated", "device_id", text("updated_at DESC")),
+        Index(
+            "ix_journeys_device_deleted",
+            "device_id",
+            "deleted_at",
+            postgresql_where=text("deleted_at IS NOT NULL"),
+        ),
     )
 
     id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True)  # client-generated
