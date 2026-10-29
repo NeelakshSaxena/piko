@@ -99,3 +99,8 @@ Implemented and tested: durable notification outbox, FCM + Web Push, Android mes
 - Local `hmac.key` impact assessed (no production data written with the replacement key; run local tools against a non-production schema).
 - Pushed to `origin/deployment` (no force). GitHub runs for `0340cfb`: Android APK & CI https://github.com/NeelakshSaxena/piko/actions/runs/40923511420 and ci https://github.com/NeelakshSaxena/piko/actions/runs/40923511112, both success; artifact `piko-android-0340cfb...` (unsigned release + debug APK, checksums, metadata). Three earlier failing runs exposed three real defects (all fixed); see `journeys-hardening-and-key-impact.md` section 8. Migration `0007` still not applied; nothing deployed.
 
+## Update 2026-10-30: tester build; production migration still pending (gates OPEN)
+- Signed tester APK v1001 built and install-checked on the emulator (`docs/TESTER_BUILDS.md`); the signing key lives only in the git-ignored `.data/signing/` and must be backed up by the owner.
+- Migration `0007` was approved by the user but its apply command was denied by the permission check; **production is still `0006`** and a verified final backup exists. See `docs/verification/journeys-hardening-and-key-impact.md` section 9 for the exact next steps. Backend deploy to Vercel is also still pending (needs the owner).
+- Android parent mode: decided but deferred by the user; not started.
+
