@@ -24,7 +24,7 @@ PHASE3_TABLES = {"telemetry_events", "device_latest_state"}
 INVITATION_TABLES = {"member_invitations"}
 SAFETY_TABLES = {"sos_incidents", "messages"}
 PUSH_TABLES = {"device_push_tokens", "web_push_subscriptions", "notification_outbox"}
-JOURNEY_TABLES = {"journeys", "journey_legs", "journey_events"}
+JOURNEY_TABLES = {"journeys", "journey_legs", "journey_events", "live_data_usage"}
 HEAD_TABLES = (
     PHASE2_TABLES | PHASE3_TABLES | INVITATION_TABLES | SAFETY_TABLES | PUSH_TABLES | JOURNEY_TABLES
 )
