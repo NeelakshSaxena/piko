@@ -16,7 +16,8 @@ Independent re-audit (`journeys-independent-audit.md`): 0 Critical, 0 High, 1 Me
 
 ## 2. Test evidence (exact)
 - Backend, targeted: `test_api_journeys.py` 19 passed; `test_live_data.py` 57 passed (mocked provider HTTP + real test database for the budget). ruff, ruff format and mypy clean.
-- Backend, **full serial suite: NOT completed.** It was stopped at about 28% (144 of 513 tests; one `F` at about test 129, not yet identified) at the user's instruction ("skip it, if it breaks we'll fix later"). An earlier full serial run (before these fixes) passed 499, 1 skipped. **No claim is made that the whole backend passes after these changes.** A separate targeted run of `test_live_data.py` took 2h19m and showed 5 failures and 1 error that passed on immediate rerun: the remote test database pooler drops connections (known; see the environment note).
+- Backend, full suite on GitHub Actions: **passed** at commit `0340cfb` (workflow `ci`, job `backend`; see section 8). The local full serial run below was stopped.
+- Backend, local **full serial suite: NOT completed.** It was stopped at about 28% (144 of 513 tests; one `F` at about test 129, not yet identified) at the user's instruction ("skip it, if it breaks we'll fix later"). An earlier full serial run (before these fixes) passed 499, 1 skipped. The real GitHub run is the full-suite evidence for these changes. A separate targeted run of `test_live_data.py` took 2h19m and showed 5 failures and 1 error that passed on immediate rerun: the remote test database pooler drops connections (known; see the environment note).
 - Android JVM: 211 passed, 0 failed. Emulator (`connectedDebugAndroidTest`, AVD `Piko_Test_Device`): 98 passed, 0 failed. Lint: 0 errors; `assembleRelease` (minified, unsigned) builds, 3.66 MB.
 
 ## 3. Migration `0007` re-drill (changed: adds `journeys.revision`, `live_data_usage`, partial index `ix_journeys_device_deleted`)
@@ -57,4 +58,16 @@ Keys were found in the git-ignored `.env` under the names `AVIATION_STACK` and `
 `piko_backup_0003`, `piko_test_0ea72a0c`, `piko_test_73d473c6`, `piko_test_814638b9`, `piko_test_e2e_9dff60` (leftover test fixtures; the last one is my earlier emulator fixture) and the new `piko_drill_c011fb`. Cleanup needs approval.
 
 ## 7. Still not verified
-Physical-device battery, Doze, OEM behaviour and movement-based arrival; TalkBack and large text on the Journeys screens; the "I've arrived" tap and reminders firing on the emulator; a dependency vulnerability scan; the full backend suite after these changes; a real GitHub Actions run (see STATE.md for its result once pushed).
+Physical-device battery, Doze, OEM behaviour and movement-based arrival; TalkBack and large text on the Journeys screens; the "I've arrived" tap and reminders firing on the emulator; a dependency vulnerability scan; a local full serial backend run after these changes (GitHub's run covers it).
+
+## 8. Real GitHub Actions runs (branch `deployment`, pushed without force; commits `4164f77`, `ac4f2e7`, `16e20e1`, `95f6106`, `dbb93ad`, `0340cfb`)
+Three earlier runs failed and each exposed a real defect that my partial local runs had not reached; all were fixed and pushed:
+1. `test_migrations` expected-table list lacked `live_data_usage` (test fixed).
+2. The `Journey` model did not declare the partial index that `0007` creates, so the models-vs-migrations drift check failed (model fixed).
+3. The backup tool could not JSON-encode a `date` column (`live_data_usage.day`): **a backup taken after `0007` would have failed** once that table had rows (tool fixed, round-trip test added).
+
+Final runs for commit `0340cfb3930f8f19389f411cd22b9e42157966f9`:
+- Workflow "Android APK & CI": https://github.com/NeelakshSaxena/piko/actions/runs/40923511420 - completed **success** (Backend Tests & Lint, Web Dashboard Build & Tests, Test/Lint/Build Android APKs: success; "Publish rolling debug APK" skipped by design).
+- Workflow "ci": https://github.com/NeelakshSaxena/piko/actions/runs/40923511112 - completed **success** (backend, android-jvm, web).
+- Artifact `piko-android-0340cfb3930f8f19389f411cd22b9e42157966f9` (16,721,635 bytes, expires 2026-11-28; zip sha256 `12411c227e411378cd69fb94c594f11abb8bb393723b89672f0a670a3f795d10` as reported by the GitHub API). It contains the debug-signed APK, the **unsigned** minified release APK, `SHA256SUMS.txt`, the R8 mapping and `build-metadata.json`. Downloading the artifact needs a GitHub login; I could not download it here, so the per-APK checksums inside it and installability of the CI-built APK are **not independently verified** (a locally built unsigned release APK signed with a throwaway key was installed on the emulator earlier).
+- No secrets were required by the workflow, nothing was published as a Release, and no backend deploy ran.
