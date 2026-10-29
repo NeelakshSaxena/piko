@@ -2,7 +2,8 @@
 
 - telemetry events older than the family's `retention_days` (history is kept per family, 30 days by default);
 - messages older than `message_retention_days` (90);
-- journey events (observations) older than 90 days; the journeys themselves stay until their owner deletes them;
+- journey events (observations) older than 90 days; journeys stay until their owner deletes them, except that
+  deletion tombstones go after 30 days and the journeys of a device revoked more than 30 days ago go with it;
 - audit events older than `audit_retention_days` (365);
 - finished notification-outbox rows older than `outbox_retention_days` (30);
 - refresh sessions that expired or were revoked more than a week ago, and old used/expired pairing and
@@ -58,6 +59,18 @@ class RetentionService:
                 "journey_events",
                 "t.received_at < :cut",
                 {"cut": now - timedelta(days=90)},
+            ),
+            (
+                "journey_tombstones",
+                "journeys",
+                "t.deleted_at < :cut",
+                {"cut": now - timedelta(days=30)},
+            ),
+            (
+                "journeys_of_revoked_devices",
+                "journeys",
+                "t.device_id IN (SELECT d.id FROM devices d WHERE d.revoked_at < :cut)",
+                {"cut": now - timedelta(days=30)},
             ),
             (
                 "audit_events",

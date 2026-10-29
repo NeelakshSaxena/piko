@@ -2,8 +2,14 @@
 
 Authorization is ownership: only the device that owns a journey can read, change, delete or add events to
 it. A family relationship grants nothing, and a journey of another device is indistinguishable from a
-missing one. Writes are whole-journey upserts decided by the owner's `updated_at`, so a delayed or
-replayed upload never overwrites newer state, and a deleted journey cannot be brought back.
+missing one. Writes are whole-journey upserts decided by the owner's `revision` (a counter the phone adds
+1 to on every saved edit), so a delayed, replayed or clock-skewed upload never overwrites newer state, and
+a deleted journey cannot be brought back.
+
+Tombstones: a deleted journey keeps a bare row so an older upload still on the wire cannot recreate it.
+An HTTP request does not outlive its timeout, so a tombstone is useless after `TOMBSTONE_RETENTION` and is
+purged (here, per device, and by the retention job). A device may hold at most `MAX_TOMBSTONES_PER_DEVICE`;
+past that it can neither create journeys nor leave tombstones for ids the server never saw.
 """
 
 import json
@@ -24,6 +30,8 @@ from app.services.principals import DevicePrincipal
 MAX_JOURNEYS_PER_DEVICE = 200
 MAX_EVENT_PAYLOAD_BYTES = 1024
 MAX_EVENTS_PER_JOURNEY = 5000
+MAX_TOMBSTONES_PER_DEVICE = 1000
+TOMBSTONE_RETENTION = timedelta(days=30)
 CLOCK_SKEW = timedelta(seconds=60)
 
 
@@ -49,6 +57,22 @@ def _check_leg(leg: s.JourneyLegIn) -> None:
 
 
 class JourneyService:
+    def _tombstone_room(self, db: Session, device: DevicePrincipal, now: datetime) -> bool:
+        """Purges this device's expired tombstones, then says whether it may leave another one."""
+        db.execute(
+            delete(Journey).where(
+                Journey.device_id == device.device_id,
+                Journey.deleted_at.is_not(None),
+                Journey.deleted_at < now - TOMBSTONE_RETENTION,
+            )
+        )
+        held = db.scalar(
+            select(func.count())
+            .select_from(Journey)
+            .where(Journey.device_id == device.device_id, Journey.deleted_at.is_not(None))
+        )
+        return (held or 0) < MAX_TOMBSTONES_PER_DEVICE
+
     def _owned(
         self, db: Session, device: DevicePrincipal, journey_id: uuid.UUID, *, lock: bool
     ) -> Journey | None:
@@ -102,6 +126,7 @@ class JourneyService:
                 status=row.status,
                 created_at=row.created_at,
                 updated_at=row.updated_at,
+                revision=row.revision,
                 legs=legs_by_journey[row.id],
             )
             for row in rows
@@ -134,6 +159,8 @@ class JourneyService:
             )
             if (live or 0) >= MAX_JOURNEYS_PER_DEVICE:
                 raise ApiError("CONFLICT", "Too many journeys on this device.")
+            if not self._tombstone_room(db, device, now):
+                raise ApiError("CONFLICT", "Too many recently deleted journeys on this device.")
             created_id = db.scalar(
                 pg_insert(Journey)
                 .values(
@@ -145,6 +172,7 @@ class JourneyService:
                     created_at=created,
                     updated_at=updated,
                     received_at=now,
+                    revision=body.revision,
                 )
                 .on_conflict_do_nothing(index_elements=["id"])
                 .returning(Journey.id)
@@ -158,14 +186,17 @@ class JourneyService:
                 raise ApiError("CONFLICT", "Journey id is already in use.")
         if row.deleted_at is not None:
             raise ApiError("CONFLICT", "This journey was deleted.")
-        if updated <= row.updated_at:
+        if body.revision <= row.revision:
+            # Equal: the same edit again. Lower: an older request that arrived late. Either way the stored
+            # copy stands, and the answer carries its revision so the phone can tell which it was.
             return self._out(db, row), False
-        row.title, row.status, row.updated_at, row.received_at = (
+        row.title, row.status, row.received_at, row.revision = (
             body.title,
             body.status,
-            updated,
             now,
+            body.revision,
         )
+        row.updated_at = max(row.updated_at, updated)  # display order only; never goes backwards
         return self._replace_legs(db, row, body), True
 
     def _replace_legs(self, db: Session, row: Journey, body: s.JourneyPutRequest) -> s.JourneyOut:
@@ -220,6 +251,8 @@ class JourneyService:
         now = datetime.now(UTC)
         row = self._owned(db, device, journey_id, lock=True)
         if row is None:
+            if not self._tombstone_room(db, device, now):
+                return  # over the cap: no bare tombstone for an id this server never saw
             db.execute(
                 pg_insert(Journey)
                 .values(

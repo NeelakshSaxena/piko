@@ -764,6 +764,7 @@ events. The live lookup never writes to a journey.
   "status": "DRAFT | PLANNED",
   "created_at": "2026-10-28T09:00:00Z",
   "updated_at": "2026-10-28T10:00:00Z",
+  "revision": 3,
   "legs": [
     {"id": "<uuid>", "mode": "FLIGHT|TRAIN|TAXI|BIKE_TAXI|METRO|BUS|WALKING|OTHER",
      "service_number": "6E 123 | null", "origin": "Bengaluru", "destination": "Lucknow",
@@ -775,11 +776,14 @@ events. The live lookup never writes to a journey.
 At most 20 legs; leg order is the sequence; a time needs its zone and an offset. Response `200`:
 `{"journey": {...as stored, with sequence per leg...}, "applied": true|false}`.
 
-- **Which write wins:** the one with the later `updated_at` (the owner's edit time, capped at the server clock so a fast
-  clock cannot win every later edit). An equal or older `updated_at` is not an error: `applied=false` and the stored
-  journey is returned unchanged. That makes retries after a lost response and out-of-order uploads safe.
+- **Which write wins:** the higher `revision` (integer >= 1, strict; the phone adds 1 on every saved edit). A write with
+  a revision equal to or below the stored one is not an error: `applied=false` and the stored journey, including its
+  `revision`, is returned unchanged. No clock decides this, so a fast, slow or stepped-back phone clock and a request that
+  arrives late cannot overwrite newer state. `updated_at` is kept only for display order (capped at the server clock and
+  never moved backwards). The phone treats `applied=false` with a *higher* stored revision as "not backed up": it raises
+  its revision above the server's and uploads again, and shows the journey as waiting meanwhile.
 - `409 CONFLICT`: the journey was deleted (it can never come back), a leg id belongs to another journey, the id is in use
-  elsewhere, or the device has 200 journeys.
+  elsewhere, the device has 200 journeys, or it holds 1000 recent deletion tombstones (see DELETE).
 
 ### `GET /api/v1/journeys` / `GET /api/v1/journeys/{id}`
 Own journeys, newest edit first / one journey. A deleted journey is `404`.
@@ -801,11 +805,19 @@ is `null`, never `0`. Flights report `departure_`/`arrival_delay_minutes`; train
 (only when the provider calls the run live; otherwise `notices` contains `NOT_LIVE`). `disabled` = provider is `manual`;
 `not_configured` = a provider is selected but its key is missing. No provider text, URL, key or body is ever returned.
 Results are cached 5 minutes per (provider, number, date); after an auth or quota failure the provider is not called for
-15 minutes, after a network error or 5xx for 60 seconds.
+15 minutes, after a network error or 5xx for 60 seconds. Identical simultaneous lookups share one provider call. The server
+spends at most `PIKO_LIVE_DATA_DAILY_BUDGET` (10) and `PIKO_LIVE_DATA_MONTHLY_BUDGET` (90) provider calls per provider,
+counted in the database so the limit holds across instances; past it the answer is `rate_limited` and nothing is called.
+If the budget cannot be checked, the answer is `unavailable` and nothing is called.
 
 ### `DELETE /api/v1/journeys/{journey_id}` -> `204`
 Idempotent. Removes the title, legs and events and leaves a tombstone (id, owner, time). Deleting an id the server never
 saw also leaves a tombstone, so an older upload still in flight cannot create it afterwards.
+Tombstones are kept 30 days, which is far longer than any request can be in flight, and then purged (opportunistically per
+device, and by the retention job; the journeys of a device revoked more than 30 days ago are purged too). One device holds
+at most 1000: past that, a delete of an id the server never saw leaves no tombstone (still `204`), creating journeys is
+`409`, and deleting a real journey always works. The phone only sends a delete for a journey whose upload was at least
+attempted, and keeps it queued until the server answers.
 
 ### `POST /api/v1/journeys/{journey_id}/events` -> `202`
 Same response shape as `POST /telemetry/batches` (`accepted_event_ids`, `duplicate_event_ids`, `rejected_events`).

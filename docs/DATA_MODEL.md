@@ -568,13 +568,15 @@ These are finalized once architecture review approves scalability and operationa
 
 | Table | Purpose | Notes |
 |---|---|---|
-| `journeys` | one trip owned by one device | `id` is client-generated; `updated_at` is the owner's edit time and decides which write wins; `received_at` is server time; `deleted_at` marks a tombstone (title emptied, legs and events removed). FK to `families` and `devices`; no membership-based access. |
+| `journeys` | one trip owned by one device | `id` is client-generated; `revision` (bigint, +1 per saved edit on the phone) decides which write wins; `updated_at` is display order only; `received_at` is server time; `deleted_at` marks a tombstone (title emptied, legs and events removed). FK to `families` and `devices`; no membership-based access. |
 | `journey_legs` | ordered legs | `UNIQUE(journey_id, sequence)`, `ON DELETE CASCADE`; `mode` is CHECKed; times are UTC instants plus the IANA zone they were entered in. No coordinates, no booking reference. |
 | `journey_events` | append-only things that happened | `id` is client-generated and deduplicated; `event_type` is CHECKed; `payload` is flat JSON <= 1 KiB; deleted after 90 days (retention job) and with the journey. |
 
 Not created (no phase needs them yet): provider snapshots, alerts, consent history, a separate tracking-session table.
 Tracking sessions, arrivals, expected times and destination positions live **only on the phone**.
 
-Android store `piko-journeys.db` (version 3): `journeys` (+ `synced_updated_at`), `journey_legs` (+ destination position,
+`live_data_usage` (`provider`, `day`, `calls`; primary key `(provider, day)`) counts provider calls per UTC day for the budget in ADR-028.
+
+Android store `piko-journeys.db` (version 4): `journeys` (+ `synced_updated_at`, `revision`, `synced_revision`, `upload_attempted`), `journey_legs` (+ destination position,
 expected times), `journey_deletions`, `journey_tracking`, `journey_arrivals`, `journey_events`, `journey_alerts`.
-Migrations 1 -> 2 -> 3 keep existing journeys (tested on a device image).
+Migrations 1 -> 2 -> 3 -> 4 keep existing journeys (tested on a device image).

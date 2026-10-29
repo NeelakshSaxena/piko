@@ -48,7 +48,7 @@ Decisions: ADR-025 (builder, local store) and ADR-026 (backup, tracking, connect
 | Data | Where | Kept |
 |---|---|---|
 | Journey and legs | phone | until the user deletes it |
-| Journey and legs | server (backup) | until the owner deletes it; a deleted journey leaves only an id tombstone (no title, legs or events) |
+| Journey and legs | server (backup) | until the owner deletes it; a deleted journey leaves only an id tombstone (no title, legs or events), purged after 30 days (ADR-028) |
 | Tracking session, arrivals | phone | with the journey |
 | Events | phone | until delivered; undelivered events are dropped after 30 days; all dropped when backup is turned off |
 | Events | server | 90 days (retention job), or when the journey is deleted |

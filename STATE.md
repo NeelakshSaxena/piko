@@ -90,3 +90,11 @@ Implemented and tested: durable notification outbox, FCM + Web Push, Android mes
 - Migration `0007`: fresh backup and scratch restore drill passed (`docs/verification/journeys-providers.md`); production still `0006`; scratch schema `piko_drill_c90445` still exists (dropping it needs approval).
 - Independent audit: 0 Critical/High; Mediums M1-M4 and M6 open (`docs/verification/journeys-independent-audit.md`).
 - Incident: the local `.data/keys/hmac.key` was overwritten by my own helper script and is unrecoverable here; see the verification note.
+
+## Update 2026-10-29 (hardening): audit Mediums closed, migration re-drilled, key impact assessed (gates OPEN, nothing deployed)
+- M1-M4 and M6 fixed (ADR-028): per-journey revision, durable owed deletes, tombstone retention/cap, DB-backed provider budget. Re-audit: 0 Critical/High; its one Medium (N1) fixed. Evidence: `docs/verification/journeys-hardening-and-key-impact.md`, `journeys-independent-audit.md`.
+- Migration `0007` changed (adds `revision`, `live_data_usage`, tombstone index) and re-drilled on a fresh backup (sha256 in the note): restore matched production on all 16 tables, up/down/up passed. **Not applied; production is `0006`.** Scratch schema `piko_drill_c90445` dropped (approved); new `piko_drill_c011fb` still exists.
+- Real provider calls (one each, keys from the local `.env`): Aviationstack and RailRadar both answered `ok`. Server route end to end, error states and the phone button are mocked-only.
+- Tests: targeted backend (journeys 19, live data 57) pass; Android JVM and emulator (98) pass; lint 0 errors. **The full backend suite was NOT completed** (stopped at 28% by the user's decision; one unidentified failure seen). Treat the backend as unverified after these changes until it is run.
+- Local `hmac.key` impact assessed (no production data written with the replacement key; run local tools against a non-production schema).
+

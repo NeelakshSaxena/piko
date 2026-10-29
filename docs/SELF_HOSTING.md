@@ -63,6 +63,8 @@ variables) and restart the server:
 | `PIKO_LIVE_DATA_TIMEOUT_SECONDS` | `8` | per-request timeout |
 | `PIKO_LIVE_DATA_CACHE_SECONDS` | `300` | reuse an answer this long (protects small quotas) |
 | `PIKO_LIVE_DATA_COOLDOWN_SECONDS` | `900` | pause after a refused key or exhausted quota |
+| `PIKO_LIVE_DATA_DAILY_BUDGET` | `10` | provider calls per provider per UTC day, counted in the database (all instances share it); `0` turns lookups off |
+| `PIKO_LIVE_DATA_MONTHLY_BUDGET` | `90` | provider calls per provider per calendar month; keep it under your plan's quota |
 
 - The key stays on the server. It is never sent to the phone, returned by the API or logged. Rotate it at once if it ever
   appears in a chat, a log or a commit.

@@ -97,7 +97,7 @@ class ApiClient(
 
     // ---- journeys (ADR-026): the caller maps the status ----
 
-    class StatusReply(val status: Int, val retryAfter: Long?)
+    class StatusReply(val status: Int, val retryAfter: Long?, val body: String = "")
 
     fun putJourney(id: String, json: String): StatusReply =
         reply(call("PUT", "/journeys/$id", json.toByteArray(Charsets.UTF_8), gzip = false, bearer = requireNotNull(credential)))
@@ -120,7 +120,7 @@ class ApiClient(
     private fun live(path: String): LiveReply =
         call("GET", path, null, gzip = false, bearer = requireNotNull(credential)).let { LiveReply(it.status, it.body) }
 
-    private fun reply(response: Response) = StatusReply(response.status, response.retryAfter)
+    private fun reply(response: Response) = StatusReply(response.status, response.retryAfter, response.body)
 
     // ---- push registration (ADR-023) ----
 

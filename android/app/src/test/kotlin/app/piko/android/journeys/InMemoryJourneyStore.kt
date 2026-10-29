@@ -5,6 +5,7 @@ import app.piko.android.journeys.domain.Estimate
 import app.piko.android.journeys.domain.Journey
 import app.piko.android.journeys.domain.JourneyEvent
 import app.piko.android.journeys.domain.JourneyStore
+import app.piko.android.journeys.domain.PendingUpload
 import app.piko.android.journeys.domain.TrackingSession
 import app.piko.android.journeys.domain.TrackingState
 import app.piko.android.journeys.domain.TrackingStore
@@ -14,6 +15,9 @@ import java.time.Instant
 class InMemoryJourneyStore : JourneyStore, TrackingStore {
     private val rows = LinkedHashMap<String, Journey>()
     private val synced = HashMap<String, Instant>()
+    private val revisions = HashMap<String, Long>()
+    private val syncedRevisions = HashMap<String, Long>()
+    private val attempted = HashSet<String>()
     private val deletions = sortedSetOf<String>()
     private val sessions = HashMap<String, TrackingSession>()
     private val arrivalRows = LinkedHashMap<String, Pair<String, Arrival>>() // leg id -> (journey id, arrival)
@@ -23,6 +27,7 @@ class InMemoryJourneyStore : JourneyStore, TrackingStore {
 
     @Synchronized override fun save(journey: Journey) {
         rows[journey.id] = journey
+        revisions[journey.id] = (revisions[journey.id] ?: 0L) + 1
     }
 
     @Synchronized override fun get(id: String): Journey? = rows[id]
@@ -31,8 +36,11 @@ class InMemoryJourneyStore : JourneyStore, TrackingStore {
         rows.values.sortedWith(compareByDescending<Journey> { it.updatedAt }.thenBy { it.id })
 
     @Synchronized override fun delete(id: String): Boolean {
-        if (id in rows && id in synced) deletions += id
+        if (id in rows && (id in synced || id in attempted)) deletions += id
         synced.remove(id)
+        syncedRevisions.remove(id)
+        attempted.remove(id)
+        revisions.remove(id)
         sessions.remove(id)
         arrivalRows.values.removeAll { it.first == id }
         eventRows.values.removeAll { it.event.journeyId == id }
@@ -44,13 +52,26 @@ class InMemoryJourneyStore : JourneyStore, TrackingStore {
         rows[journeyId] = j.copy(legs = j.legs.map { if (it.id == legId) it.copy(estimate = estimate) else it })
     }
 
-    @Synchronized override fun dirty(): List<Journey> =
-        rows.values.filter { synced[it.id] != it.updatedAt }.sortedWith(compareBy<Journey> { it.updatedAt }.thenBy { it.id })
+    @Synchronized override fun dirtyUploads(): List<PendingUpload> =
+        rows.values.filter { synced[it.id] != it.updatedAt || syncedRevisions[it.id] != revisions[it.id] }
+            .sortedWith(compareBy<Journey> { it.updatedAt }.thenBy { it.id })
+            .map { PendingUpload(it, revisions.getValue(it.id)) }
 
-    @Synchronized override fun markSynced(id: String, updatedAt: Instant): Boolean {
+    @Synchronized override fun markSynced(id: String, updatedAt: Instant, revision: Long?): Boolean {
         if (id !in rows) return false
         synced[id] = updatedAt
+        syncedRevisions[id] = revision ?: revisions.getValue(id)
         return true
+    }
+
+    @Synchronized override fun markUploadAttempted(id: String): Boolean {
+        if (id !in rows) return false
+        attempted += id
+        return true
+    }
+
+    @Synchronized override fun rebase(id: String, serverRevision: Long) {
+        if (id in rows) revisions[id] = maxOf(revisions.getValue(id), serverRevision + 1)
     }
 
     @Synchronized override fun pendingDeletes(): List<String> = deletions.toList()
@@ -65,6 +86,8 @@ class InMemoryJourneyStore : JourneyStore, TrackingStore {
 
     @Synchronized override fun forgetSync() {
         synced.clear()
+        syncedRevisions.clear()
+        attempted.clear()
         deletions.clear()
     }
 

@@ -435,7 +435,7 @@ Status: Proposed by the implementing agent; scope from `prompts/PHASE_TRANSPORT.
 ## ADR-026: Journeys phases 2-6 (backup, following, connections, flight mode) (2026-10-28)
 Status: Proposed by the implementing agent on the operator's instruction to continue past the phase 1 gate; NOT independently audited; migration `0007` is UNAPPLIED to the persistent schema. Supersedes the "no backend" line of ADR-025. Operator guide: `docs/JOURNEYS.md`.
 - **Ownership, not membership**: a journey belongs to one device. Every read and write checks the device principal; other devices, other families and parent accounts get 404 or 401. Family sharing of milestones is deliberately not built (needs its own review).
-- **One idempotent upsert instead of the plan's per-leg endpoints**: `PUT /journeys/{id}` sends the whole journey; the later owner edit time wins, equal or older is a no-op (`applied=false`), deletes leave a tombstone. Deviation from the plan's endpoint list is intentional: reorder and multi-leg edits cannot be half-applied, and a lost acknowledgement is harmless. No `/start`, `/pause`, `/complete` (tracking is local and described by events) and no `/refresh` (no provider).
+- **One idempotent upsert instead of the plan's per-leg endpoints**: `PUT /journeys/{id}` sends the whole journey; the higher per-journey `revision` (a counter the phone adds 1 to on every saved edit, not a clock) wins, equal or lower is a no-op (`applied=false`), deletes leave a tombstone that is kept 30 days and capped at 1000 per device (ADR-028). Deviation from the plan's endpoint list is intentional: reorder and multi-leg edits cannot be half-applied, and a lost acknowledgement is harmless. No `/start`, `/pause`, `/complete` (tracking is local and described by events) and no `/refresh` (no provider).
 - **Backup is opt-in and one-way**: off by default, explained in the switch; the phone is the source of truth and nothing is pulled back. Deletes of journeys the server holds are always delivered. Turning backup off discards undelivered events. Events exist only for backup, so with backup off none are recorded.
 - **Tracking is local state**: sessions, per-leg arrivals, destination positions and expected times never reach the server. Only a small set of event types does, with flat values and no place names or positions.
 - **Arrival is never one reading** (`ArrivalPolicy`): two fresh, accurate readings inside 300 m spanning 2 minutes; otherwise uncertain. Manual confirmation is always available, and the screen shows whether an arrival was confirmed by the user or noticed by location. The location service is user-started, visible with Pause/Stop, `START_NOT_STICKY`, keeps 12 readings in memory only, and reuses the existing location/battery/connectivity collectors (no Play Services dependency, no new permission except `RECEIVE_BOOT_COMPLETED` use via a receiver that only rebuilds alarms).
@@ -458,3 +458,25 @@ Status: Proposed by the implementing agent on the operator's instruction; NOT in
 - **Licensing**: Aviationstack free is non-commercial; RailRadar free is "personal & evaluation use". Any paid or public deployment needs a paid plan and the operator's own reading of both providers' terms. Neither claims to be an official Indian Railways or airline source; RailRadar says its data derives from NTES.
 - **Egress and consent**: a check sends the flight number + date (or train number) to the user's own server and from there to the provider. The dialog says so before the tap. Nothing is sent without the tap.
 - **Not done**: no provider auto-refresh, no push on delay, no station-level platform data, no write of provider data into the journey, no live test (no key). Dependencies: none added (`httpx` was already a runtime dependency).
+
+## ADR-028 - Journey backup integrity: revisions, owed deletes, tombstone retention, provider budget
+Status: accepted (2026-10-29). Closes audit findings M1, M2, M3, M4 and M6 (docs/verification/journeys-independent-audit.md).
+- **Order by a counter, not a clock (M2, M4).** The phone adds 1 to a journey's `revision` on every saved edit and sends it;
+  the server applies a write only if its revision is higher. A request that arrives late, a replay, or a phone clock that is
+  fast, slow or stepped back therefore cannot overwrite newer state. The phone keeps "what the server acknowledged" as a
+  (timestamp, revision) pair read atomically with the journey, so an edit saved while an upload is in flight, even with an
+  identical timestamp, stays dirty. If the server holds a higher revision than the phone sent, the phone does not call it
+  backed up: it raises its revision above the server's, keeps the journey in the "waiting" count and retries.
+- **Deletes are owed from the first attempt (M1).** The phone records an upload attempt before sending, because a reply can be
+  lost after the server stored the journey. A delete of any journey whose upload was ever attempted (or acknowledged) is
+  queued in the phone's database, survives restarts and retries until the server answers. Changing the server identity
+  clears the debt (the new server never had it).
+- **Tombstones expire and are capped (M3).** A tombstone only has to outlive requests still in flight, so it is purged after 30
+  days; a device may hold at most 1000. Past the cap new journeys are refused and deletes of ids the server never saw leave
+  no tombstone, while deleting a real journey always works. Resurrection needs a request older than 30 days: HTTP requests
+  cannot be that old, and the phone never uploads a journey it has deleted.
+- **Bounded provider spend (M6).** Provider calls are counted per provider per UTC day in the database (table
+  `live_data_usage`, advisory-locked so two instances cannot both take the last call): defaults 10 a day and 90 a month,
+  below the free plans' 100. Identical simultaneous lookups share one call. A budget that cannot be read fails closed.
+- Consequence: `0007` adds `journeys.revision`, `live_data_usage` and a partial index for tombstones; the phone database is
+  version 4. Nothing here changes manual mode, device isolation or what a family member can see.

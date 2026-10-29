@@ -14,6 +14,7 @@ import app.piko.android.journeys.domain.JourneyEvent
 import app.piko.android.journeys.domain.JourneyStatus
 import app.piko.android.journeys.domain.JourneyStore
 import app.piko.android.journeys.domain.Leg
+import app.piko.android.journeys.domain.PendingUpload
 import app.piko.android.journeys.domain.TrackingSession
 import app.piko.android.journeys.domain.TrackingState
 import app.piko.android.journeys.domain.TrackingStore
@@ -46,7 +47,10 @@ class SqliteJourneyStore(
                  status TEXT NOT NULL,
                  created_at TEXT NOT NULL,
                  updated_at TEXT NOT NULL,
-                 synced_updated_at TEXT)""",
+                 synced_updated_at TEXT,
+                 revision INTEGER NOT NULL DEFAULT 1,
+                 synced_revision INTEGER,
+                 upload_attempted INTEGER NOT NULL DEFAULT 0)""",
         )
         db.execSQL(
             """CREATE TABLE journey_legs(
@@ -100,7 +104,7 @@ class SqliteJourneyStore(
     }
 
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
-        check(oldVersion in 1..2 && newVersion == 3) { "no migration from $oldVersion to $newVersion" }
+        check(oldVersion in 1..3 && newVersion == 4) { "no migration from $oldVersion to $newVersion" }
         if (oldVersion < 2) {
             // 1 -> 2: backup bookkeeping, destination coordinates and tracking. Existing journeys are kept and are
             // all "not yet backed up", which is true.
@@ -110,10 +114,19 @@ class SqliteJourneyStore(
             db.execSQL("CREATE TABLE journey_deletions(id TEXT PRIMARY KEY)")
             createTrackingTables(db)
         }
-        // 2 -> 3: the user's expected times, beside the schedule.
-        db.execSQL("ALTER TABLE journey_legs ADD COLUMN est_departure_at TEXT")
-        db.execSQL("ALTER TABLE journey_legs ADD COLUMN est_arrival_at TEXT")
-        db.execSQL("ALTER TABLE journey_legs ADD COLUMN est_entered_at TEXT")
+        if (oldVersion < 3) {
+            // 2 -> 3: the user's expected times, beside the schedule.
+            db.execSQL("ALTER TABLE journey_legs ADD COLUMN est_departure_at TEXT")
+            db.execSQL("ALTER TABLE journey_legs ADD COLUMN est_arrival_at TEXT")
+            db.execSQL("ALTER TABLE journey_legs ADD COLUMN est_entered_at TEXT")
+        }
+        // 3 -> 4: a revision per saved edit, and a note of whether an upload was ever attempted. A journey the
+        // server acknowledged was attempted, and is clean if nothing changed since; all others stay dirty.
+        db.execSQL("ALTER TABLE journeys ADD COLUMN revision INTEGER NOT NULL DEFAULT 1")
+        db.execSQL("ALTER TABLE journeys ADD COLUMN synced_revision INTEGER")
+        db.execSQL("ALTER TABLE journeys ADD COLUMN upload_attempted INTEGER NOT NULL DEFAULT 0")
+        db.execSQL("UPDATE journeys SET upload_attempted = 1 WHERE synced_updated_at IS NOT NULL")
+        db.execSQL("UPDATE journeys SET synced_revision = 1 WHERE synced_updated_at = updated_at")
     }
 
     @Synchronized
@@ -125,6 +138,10 @@ class SqliteJourneyStore(
             put("created_at", journey.createdAt.toString())
             put("updated_at", journey.updatedAt.toString())
         }
+        // Every saved edit gets the next revision, whatever the clock says; the server orders writes by it.
+        val previous = db.rawQuery("SELECT revision FROM journeys WHERE id = ?", arrayOf(journey.id))
+            .use { if (it.moveToFirst()) it.getLong(0) else 0L }
+        row.put("revision", previous + 1)
         // Not CONFLICT_REPLACE: that would delete the row first and cascade away the legs of a journey being edited.
         if (db.update("journeys", row, "id = ?", arrayOf(journey.id)) == 0) db.insertOrThrow("journeys", null, row)
         db.delete("journey_legs", "journey_id = ?", arrayOf(journey.id))
@@ -165,8 +182,11 @@ class SqliteJourneyStore(
 
     @Synchronized
     override fun delete(id: String): Boolean = inTransaction { db ->
-        // Only a journey the server acknowledged can be on the server, so only then is a delete owed to it.
-        val onServer = db.rawQuery("SELECT 1 FROM journeys WHERE id = ? AND synced_updated_at IS NOT NULL", arrayOf(id))
+        // A journey the server acknowledged, or one whose upload was at least attempted (the reply may have been
+        // lost after the server stored it), may be on the server, so only then is a delete owed to it.
+        val onServer = db.rawQuery(
+            "SELECT 1 FROM journeys WHERE id = ? AND (synced_updated_at IS NOT NULL OR upload_attempted = 1)", arrayOf(id),
+        )
             .use { it.moveToFirst() }
         if (onServer) db.execSQL("INSERT OR IGNORE INTO journey_deletions(id) VALUES (?)", arrayOf(id))
         db.delete("journeys", "id = ?", arrayOf(id)) > 0
@@ -187,14 +207,31 @@ class SqliteJourneyStore(
     }
 
     @Synchronized
-    override fun dirty(): List<Journey> = readableDatabase.rawQuery(
-        "SELECT * FROM journeys WHERE synced_updated_at IS NULL OR synced_updated_at != updated_at ORDER BY updated_at, id", null,
-    ).use { c -> buildList { while (c.moveToNext()) add(c.toJourney(readableDatabase)) } }
+    override fun dirtyUploads(): List<PendingUpload> = readableDatabase.rawQuery(
+        """SELECT * FROM journeys WHERE synced_updated_at IS NULL OR synced_updated_at != updated_at
+             OR synced_revision IS NULL OR synced_revision != revision ORDER BY updated_at, id""",
+        null,
+    ).use { c -> buildList { while (c.moveToNext()) add(PendingUpload(c.toJourney(readableDatabase), c.getLong(c.getColumnIndexOrThrow("revision")))) } }
 
     @Synchronized
-    override fun markSynced(id: String, updatedAt: Instant): Boolean = inTransaction { db ->
-        db.execSQL("UPDATE journeys SET synced_updated_at = ? WHERE id = ?", arrayOf(updatedAt.toString(), id))
+    override fun markSynced(id: String, updatedAt: Instant, revision: Long?): Boolean = inTransaction { db ->
+        if (revision == null) {
+            db.execSQL("UPDATE journeys SET synced_updated_at = ?, synced_revision = revision WHERE id = ?", arrayOf(updatedAt.toString(), id))
+        } else {
+            db.execSQL("UPDATE journeys SET synced_updated_at = ?, synced_revision = ? WHERE id = ?", arrayOf<Any>(updatedAt.toString(), revision, id))
+        }
         db.rawQuery("SELECT changes()", null).use { it.moveToFirst() && it.getInt(0) > 0 }
+    }
+
+    @Synchronized
+    override fun markUploadAttempted(id: String): Boolean = inTransaction { db ->
+        db.execSQL("UPDATE journeys SET upload_attempted = 1 WHERE id = ?", arrayOf(id))
+        db.rawQuery("SELECT changes()", null).use { it.moveToFirst() && it.getInt(0) > 0 }
+    }
+
+    @Synchronized
+    override fun rebase(id: String, serverRevision: Long) = inTransaction { db ->
+        db.execSQL("UPDATE journeys SET revision = MAX(revision, ?) WHERE id = ?", arrayOf<Any>(serverRevision + 1, id))
     }
 
     @Synchronized
@@ -211,7 +248,7 @@ class SqliteJourneyStore(
 
     @Synchronized
     override fun forgetSync() = inTransaction { db ->
-        db.execSQL("UPDATE journeys SET synced_updated_at = NULL")
+        db.execSQL("UPDATE journeys SET synced_updated_at = NULL, synced_revision = NULL, upload_attempted = 0")
         db.execSQL("DELETE FROM journey_deletions")
     }
 
@@ -382,6 +419,6 @@ class SqliteJourneyStore(
 
     companion object {
         const val DB_NAME = "piko-journeys.db"
-        private const val VERSION = 3
+        private const val VERSION = 4
     }
 }

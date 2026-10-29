@@ -33,8 +33,9 @@ def leg(leg_id: uuid.UUID | None = None, **extra):  # type: ignore[no-untyped-de
     return body
 
 
-def journey(legs=None, age: timedelta = timedelta(minutes=5), **extra):  # type: ignore[no-untyped-def]
+def journey(legs=None, age: timedelta = timedelta(minutes=5), rev: int = 1, **extra):  # type: ignore[no-untyped-def]
     body = {
+        "revision": rev,
         "title": "Vellore to Lucknow",
         "status": "DRAFT",
         "created_at": iso(timedelta(hours=-1)),
@@ -87,15 +88,17 @@ def test_replay_and_older_edits_do_not_overwrite_newer_state(make_family) -> Non
     fam, h = make(make_family)
     jid = uuid.uuid4()
     legs = [leg(), leg(), leg()]
-    newer = journey(legs, age=timedelta(minutes=1), title="Newest")
+    newer = journey(legs, age=timedelta(minutes=1), rev=2, title="Newest")
     assert put(fam, h, jid, newer).json()["applied"] is True
     # The same upload again (lost acknowledgement) and an older offline edit both change nothing.
-    for body in (newer, journey(legs[:1], age=timedelta(minutes=30), title="Stale")):
+    for body in (newer, journey(legs[:1], age=timedelta(minutes=30), rev=1, title="Stale")):
         r = put(fam, h, jid, body)
         assert r.status_code == 200 and r.json()["applied"] is False
         assert r.json()["journey"]["title"] == "Newest" and len(r.json()["journey"]["legs"]) == 3
     # A genuinely newer edit with the legs reordered wins.
-    reordered = journey([legs[2], legs[0], legs[1]], age=timedelta(seconds=5), title="Reordered")
+    reordered = journey(
+        [legs[2], legs[0], legs[1]], age=timedelta(seconds=5), rev=3, title="Reordered"
+    )
     r = put(fam, h, jid, reordered)
     assert r.json()["applied"] is True
     assert [x["id"] for x in r.json()["journey"]["legs"]] == [
@@ -113,7 +116,7 @@ def test_a_clock_in_the_future_cannot_win_every_later_edit(make_family) -> None:
     stored = datetime.fromisoformat(r.json()["journey"]["updated_at"])
     assert stored <= datetime.now(UTC)
     assert (
-        put(fam, h, jid, journey(age=timedelta(seconds=-1), title="Later")).json()["applied"]
+        put(fam, h, jid, journey(age=timedelta(seconds=-1), rev=2, title="Later")).json()["applied"]
         is True
     )
 
@@ -328,3 +331,134 @@ def test_old_journey_events_are_retained_for_ninety_days_only(
     db.expire_all()
     assert db.get(JourneyEvent, old) is None
     assert db.get(JourneyEvent, fresh) is not None
+
+
+# ---- audit M4/M2: ordering by the phone's revision counter, not by anyone's clock ----
+def test_a_late_replay_of_an_older_edit_cannot_overwrite_a_newer_one_even_with_a_fast_clock(
+    make_family,
+) -> None:  # type: ignore[no-untyped-def]
+    fam, h = make(make_family)
+    jid = uuid.uuid4()
+    # Both edits carry timestamps the server clamps to "now", so by time alone the replay would win.
+    first = journey(age=timedelta(minutes=-10), rev=1, title="A")
+    second = journey(age=timedelta(minutes=-12), rev=2, title="B")
+    assert put(fam, h, jid, first).json()["applied"] is True
+    assert put(fam, h, jid, second).json()["applied"] is True
+    r = put(fam, h, jid, first)  # the request that was stuck in a queue
+    assert r.status_code == 200 and r.json()["applied"] is False
+    assert r.json()["journey"]["title"] == "B" and r.json()["journey"]["revision"] == 2
+
+
+def test_a_phone_clock_stepped_backwards_still_backs_up_and_the_answer_shows_staleness(
+    make_family,
+) -> None:  # type: ignore[no-untyped-def]
+    fam, h = make(make_family)
+    jid = uuid.uuid4()
+    assert put(fam, h, jid, journey(age=timedelta(minutes=1), rev=1, title="One")).json()["applied"]
+    # The phone's clock is now an hour behind, but the edit is still revision 2.
+    r = put(fam, h, jid, journey(age=timedelta(hours=1), rev=2, title="Two"))
+    assert r.json()["applied"] is True and r.json()["journey"]["title"] == "Two"
+    stored = datetime.fromisoformat(r.json()["journey"]["updated_at"])
+    assert stored >= datetime.now(UTC) - timedelta(minutes=2)  # display time never goes backwards
+    # A phone that lost its counter is told the server's revision, not silently accepted as backed up.
+    r = put(fam, h, jid, journey(rev=1, title="Reset"))
+    assert r.json()["applied"] is False and r.json()["journey"]["revision"] == 2
+
+
+def test_revision_is_required_and_positive(make_family) -> None:  # type: ignore[no-untyped-def]
+    fam, h = make(make_family)
+    body = journey()
+    del body["revision"]
+    assert put(fam, h, uuid.uuid4(), body).status_code == 400
+    for bad in (0, -1, 2**60, "1", 1.5):
+        assert put(fam, h, uuid.uuid4(), journey(rev=bad)).status_code == 400
+
+
+# ---- audit M3: tombstones are bounded and expire ----
+def test_tombstones_are_capped_per_device_and_never_block_a_real_delete(
+    make_family, monkeypatch
+) -> None:  # type: ignore[no-untyped-def]
+    from app.services import journeys as svc
+
+    monkeypatch.setattr(svc, "MAX_TOMBSTONES_PER_DEVICE", 3)
+    fam, h = make(make_family)
+    real = []
+    for _ in range(3):
+        jid = uuid.uuid4()
+        assert put(fam, h, jid, journey()).status_code == 200
+        real.append(jid)
+    for jid in real:
+        assert fam.client.delete(f"/api/v1/journeys/{jid}", headers=h).status_code == 204
+    # At the cap: no more journeys, and no bare tombstones for ids never seen, but deletes still answer 204.
+    assert put(fam, h, uuid.uuid4(), journey()).status_code == 409
+    ghost = uuid.uuid4()
+    assert fam.client.delete(f"/api/v1/journeys/{ghost}", headers=h).status_code == 204
+    other_fam, other_h = make(make_family)
+    assert (
+        put(other_fam, other_h, uuid.uuid4(), journey()).status_code == 200
+    )  # other devices unaffected
+    for jid in real:  # still tombstoned: a late upload cannot resurrect them
+        assert put(fam, h, jid, journey(rev=9)).status_code == 409
+
+
+def test_expired_tombstones_are_purged_but_recent_ones_keep_blocking_late_uploads(
+    make_family, db: Session, monkeypatch
+) -> None:  # type: ignore[no-untyped-def]
+    from app.db.models import Journey
+    from app.services import journeys as svc
+
+    monkeypatch.setattr(svc, "MAX_TOMBSTONES_PER_DEVICE", 2)
+    fam, h = make(make_family)
+    old, recent = uuid.uuid4(), uuid.uuid4()
+    for jid in (old, recent):
+        put(fam, h, jid, journey())
+        fam.client.delete(f"/api/v1/journeys/{jid}", headers=h)
+    assert put(fam, h, uuid.uuid4(), journey()).status_code == 409  # at the cap
+    db.execute(
+        Journey.__table__.update()
+        .where(Journey.id == old)
+        .values(deleted_at=datetime.now(UTC) - svc.TOMBSTONE_RETENTION - timedelta(days=1))
+    )
+    db.commit()
+    assert (
+        put(fam, h, uuid.uuid4(), journey()).status_code == 200
+    )  # room again: the old tombstone went
+    db.expire_all()
+    assert db.get(Journey, old) is None and db.get(Journey, recent) is not None
+    assert put(fam, h, recent, journey(rev=9)).status_code == 409
+
+
+def test_retention_job_purges_old_tombstones_and_journeys_of_long_revoked_devices(
+    make_family, db: Session, app
+) -> None:  # type: ignore[no-untyped-def]
+    from app.db.models import Device, Journey
+
+    fam, h = make(make_family)
+    gone, keep = uuid.uuid4(), uuid.uuid4()
+    put(fam, h, gone, journey())
+    put(fam, h, keep, journey())
+    fam.client.delete(f"/api/v1/journeys/{gone}", headers=h)
+    dev = db.scalars(select(Device).where(Device.family_id == fam.family_id)).first()
+    assert dev is not None
+    db.execute(
+        Journey.__table__.update()
+        .where(Journey.id == gone)
+        .values(deleted_at=datetime.now(UTC) - timedelta(days=31))
+    )
+    db.commit()
+    report = RetentionService(app.state.settings).run(app.state.session_factory, apply=False)
+    assert report.counts["journey_tombstones"] >= 1
+    RetentionService(app.state.settings).run(app.state.session_factory, apply=True)
+    db.expire_all()
+    assert db.get(Journey, gone) is None and db.get(Journey, keep) is not None
+    # A device revoked 31 days ago takes its journeys with it; a recently revoked one does not.
+    dev.status, dev.revoked_at = "revoked", datetime.now(UTC) - timedelta(days=10)
+    db.commit()
+    RetentionService(app.state.settings).run(app.state.session_factory, apply=True)
+    db.expire_all()
+    assert db.get(Journey, keep) is not None
+    dev.revoked_at = datetime.now(UTC) - timedelta(days=31)
+    db.commit()
+    RetentionService(app.state.settings).run(app.state.session_factory, apply=True)
+    db.expire_all()
+    assert db.get(Journey, keep) is None

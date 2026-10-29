@@ -67,6 +67,23 @@ class JourneyDurabilityTest {
         open().use { assertEquals(listOf("a", "b", "c"), it.get("j")!!.legs.map { l -> l.id }) }
     }
 
+    @Test fun aRevisionAnOwedDeleteAndTheAttemptNoteSurviveARestart() {
+        open().use {
+            it.save(journey("j", listOf(leg("a"))))
+            it.save(journey("j", listOf(leg("a"), leg("b"))))
+            it.markUploadAttempted("j")
+        }
+        open().use {
+            assertEquals(2L, it.dirtyUploads().single().revision)
+            it.delete("j") // never acknowledged, but an upload was attempted before the restart
+        }
+        open().use {
+            assertEquals(listOf("j"), it.pendingDeletes())
+            it.markDeleteSynced("j")
+        }
+        open().use { assertEquals(emptyList<String>(), it.pendingDeletes()) }
+    }
+
     @Test fun aDeleteSurvivesARestart() {
         open().use { it.save(journey("j", listOf(leg("a")))); it.delete("j") }
         open().use { assertEquals(0, it.list().size) }
@@ -104,6 +121,31 @@ class JourneyMigrationTest {
             // The new tables work on the upgraded file.
             assertEquals(null, store.session("old"))
             store.claimAlert("k", java.time.Instant.EPOCH)
+        }
+    }
+
+    @Test fun aVersionThreeDatabaseKeepsItsSyncStateAndGainsRevisions() {
+        context.openOrCreateDatabase(name, Context.MODE_PRIVATE, null).use { db ->
+            db.execSQL("CREATE TABLE journeys(id TEXT PRIMARY KEY, title TEXT NOT NULL, status TEXT NOT NULL, created_at TEXT NOT NULL, updated_at TEXT NOT NULL, synced_updated_at TEXT)")
+            db.execSQL(
+                """CREATE TABLE journey_legs(id TEXT PRIMARY KEY, journey_id TEXT NOT NULL REFERENCES journeys(id) ON DELETE CASCADE,
+                   sequence INTEGER NOT NULL, mode TEXT NOT NULL, service_number TEXT, origin TEXT NOT NULL, destination TEXT NOT NULL,
+                   departure_at TEXT, departure_zone TEXT, arrival_at TEXT, arrival_zone TEXT, dest_lat REAL, dest_lon REAL,
+                   est_departure_at TEXT, est_arrival_at TEXT, est_entered_at TEXT, UNIQUE(journey_id, sequence))""",
+            )
+            db.execSQL("CREATE TABLE journey_deletions(id TEXT PRIMARY KEY)")
+            db.execSQL("INSERT INTO journeys VALUES('clean', 'Clean', 'PLANNED', '2026-10-01T00:00:00Z', '2026-10-02T00:00:00Z', '2026-10-02T00:00:00Z')")
+            db.execSQL("INSERT INTO journeys VALUES('edited', 'Edited', 'PLANNED', '2026-10-01T00:00:00Z', '2026-10-03T00:00:00Z', '2026-10-02T00:00:00Z')")
+            db.execSQL("INSERT INTO journeys VALUES('new', 'New', 'DRAFT', '2026-10-01T00:00:00Z', '2026-10-03T00:00:00Z', NULL)")
+            db.version = 3
+        }
+        SqliteJourneyStore(context, name).use { store ->
+            assertEquals(listOf("edited", "new"), store.dirty().map { it.id }.sorted()) // "clean" stays clean
+            store.delete("edited") // it was acknowledged once, so a delete is owed
+            store.delete("new") // never sent: nothing owed
+            assertEquals(listOf("edited"), store.pendingDeletes())
+            store.save(app.piko.android.journeys.journey("clean", listOf(app.piko.android.journeys.leg("a"))))
+            assertEquals(2L, store.dirtyUploads().single().revision)
         }
     }
 }

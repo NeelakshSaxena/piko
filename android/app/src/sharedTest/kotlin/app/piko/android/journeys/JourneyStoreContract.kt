@@ -119,6 +119,45 @@ abstract class JourneyStoreContract {
         assertTrue(store.dirty().isEmpty())
     }
 
+    @Test fun everySaveRaisesTheRevisionAndAnOldAcknowledgementNeverCoversANewerSave() {
+        val store = newStore()
+        store.save(journey("j", listOf(leg("a")), updated = "2026-10-28T10:00:00Z"))
+        assertEquals(1L, store.dirtyUploads().single().revision)
+        // A save with the SAME timestamp (the clock did not move, or moved back) is still a new revision.
+        store.save(journey("j", listOf(leg("a")), updated = "2026-10-28T10:00:00Z"))
+        assertEquals(2L, store.dirtyUploads().single().revision)
+        assertTrue(store.markSynced("j", stamp("2026-10-28T10:00:00Z"), 1L))
+        assertEquals(listOf("j"), store.dirty().map { it.id }) // revision 2 is still unsent
+        assertTrue(store.markSynced("j", stamp("2026-10-28T10:00:00Z"), 2L))
+        assertTrue(store.dirty().isEmpty())
+        store.save(journey("j", listOf(leg("a")), updated = "2026-10-28T09:00:00Z")) // clock stepped back
+        assertEquals(3L, store.dirtyUploads().single().revision)
+    }
+
+    @Test fun rebasingRaisesTheNextRevisionAboveTheServersAndNeverLowersIt() {
+        val store = newStore()
+        store.save(journey("j", listOf(leg("a"))))
+        store.rebase("j", 9)
+        assertEquals(10L, store.dirtyUploads().single().revision)
+        store.rebase("j", 3)
+        assertEquals(10L, store.dirtyUploads().single().revision)
+        store.save(journey("j", listOf(leg("a"))))
+        assertEquals(11L, store.dirtyUploads().single().revision)
+    }
+
+    @Test fun aJourneyWhoseUploadWasOnlyAttemptedStillOwesTheServerADelete() {
+        val store = newStore()
+        store.save(journey("j", listOf(leg("a"))))
+        store.markUploadAttempted("j") // the request went out; the reply never arrived
+        store.delete("j")
+        assertEquals(listOf("j"), store.pendingDeletes())
+        store.save(journey("k", listOf(leg("b"))))
+        store.markUploadAttempted("k")
+        store.forgetSync() // a different server now: nothing is owed to it
+        store.delete("k")
+        assertEquals(listOf<String>(), store.pendingDeletes())
+    }
+
     @Test fun onlyAJourneyTheServerHoldsOwesTheServerADelete() {
         val store = newStore()
         store.save(journey("never", listOf(leg("a"))))

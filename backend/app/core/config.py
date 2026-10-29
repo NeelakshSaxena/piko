@@ -89,6 +89,10 @@ class Settings(BaseSettings):
     live_data_cooldown_seconds: int = Field(
         default=900, ge=0, le=86400
     )  # pause after 401/403/429/5xx
+    # Provider calls this server may make, per provider, shared by all instances (table live_data_usage).
+    # Defaults sit under Aviationstack's free plan (100 a month); raise them only for a plan that allows it.
+    live_data_daily_budget: int = Field(default=10, ge=0, le=100000)
+    live_data_monthly_budget: int = Field(default=90, ge=0, le=1000000)
     # Volume caps and retention (audit F-04, backlog item 11).
     sos_max_unresolved_per_device: int = 50
     messages_max_per_device_per_day: int = 500

@@ -35,6 +35,7 @@ def upgrade() -> None:
         _ts("updated_at", nullable=False),
         _ts("received_at", nullable=False),
         _ts("deleted_at"),
+        sa.Column("revision", sa.BigInteger(), server_default=sa.text("0"), nullable=False),
         sa.CheckConstraint("status IN ('DRAFT', 'PLANNED')"),
         sa.ForeignKeyConstraint(["family_id"], ["families.id"]),
         sa.ForeignKeyConstraint(["device_id"], ["devices.id"]),
@@ -42,6 +43,20 @@ def upgrade() -> None:
     )
     op.create_index(
         "ix_journeys_device_updated", "journeys", ["device_id", sa.text("updated_at DESC")]
+    )
+    # tombstone retention and the per-device cap read only deleted rows
+    op.create_index(
+        "ix_journeys_device_deleted",
+        "journeys",
+        ["device_id", "deleted_at"],
+        postgresql_where=sa.text("deleted_at IS NOT NULL"),
+    )
+    op.create_table(
+        "live_data_usage",
+        sa.Column("provider", sa.String(length=24), nullable=False),
+        sa.Column("day", sa.Date(), nullable=False),
+        sa.Column("calls", sa.Integer(), nullable=False),
+        sa.PrimaryKeyConstraint("provider", "day"),
     )
     op.create_table(
         "journey_legs",
@@ -79,6 +94,7 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
+    op.drop_table("live_data_usage")
     op.drop_table("journey_events")
     op.drop_table("journey_legs")
     op.drop_table("journeys")

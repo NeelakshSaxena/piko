@@ -384,6 +384,9 @@ class JourneyPutRequest(Request):
     status: Literal["DRAFT", "PLANNED"]
     created_at: datetime
     updated_at: datetime
+    revision: int = Field(
+        strict=True, ge=1, le=2**53
+    )  # +1 per saved edit on the phone; only a higher one applies
     legs: list[JourneyLegIn] = Field(max_length=20)
 
 
@@ -406,6 +409,7 @@ class JourneyOut(Response):
     status: Literal["DRAFT", "PLANNED"]
     created_at: datetime
     updated_at: datetime
+    revision: int
     legs: list[JourneyLegOut]
 
 

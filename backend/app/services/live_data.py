@@ -17,13 +17,17 @@ import threading
 import time
 from collections.abc import Callable
 from dataclasses import dataclass
-from datetime import date, datetime
+from datetime import UTC, date, datetime
 from enum import StrEnum
 from typing import Any
 
 import httpx
+from sqlalchemy import func, select, text
+from sqlalchemy.dialects.postgresql import insert as pg_insert
+from sqlalchemy.orm import Session, sessionmaker
 
 from app.core.config import Settings
+from app.db.models import LiveDataUsage
 
 log = logging.getLogger("piko.live")
 # httpx logs every request URL at INFO, and Aviationstack authenticates with a query parameter.
@@ -206,6 +210,42 @@ def parse_railradar(body: Any, number: str) -> tuple[LiveState, LiveStatus | Non
     )
 
 
+class DatabaseBudget:
+    """Counts provider calls per UTC day in the database, so the limit holds across serverless instances
+    and restarts. One advisory lock per provider makes the day and month checks one atomic decision."""
+
+    def __init__(self, settings: Settings, factory: "sessionmaker[Session]") -> None:
+        self._daily = settings.live_data_daily_budget
+        self._monthly = settings.live_data_monthly_budget
+        self._factory = factory
+
+    def __call__(self, provider: str) -> bool:
+        if self._daily <= 0 or self._monthly <= 0:
+            return False
+        today = datetime.now(UTC).date()
+        with self._factory() as db:
+            db.execute(text("SELECT pg_advisory_xact_lock(hashtext(:p))"), {"p": provider})
+            month = db.scalar(
+                select(func.coalesce(func.sum(LiveDataUsage.calls), 0)).where(
+                    LiveDataUsage.provider == provider, LiveDataUsage.day >= today.replace(day=1)
+                )
+            )
+            if (month or 0) >= self._monthly:
+                return False
+            counted = db.scalar(
+                pg_insert(LiveDataUsage)
+                .values(provider=provider, day=today, calls=1)
+                .on_conflict_do_update(
+                    index_elements=["provider", "day"],
+                    set_={"calls": LiveDataUsage.calls + 1},
+                    where=LiveDataUsage.calls < self._daily,
+                )
+                .returning(LiveDataUsage.calls)
+            )
+            db.commit()
+            return counted is not None
+
+
 class LiveData:
     """Looks up one flight or train. Never raises; every outcome is a `LiveResult`."""
 
@@ -214,13 +254,18 @@ class LiveData:
         settings: Settings,
         client: httpx.Client | None = None,
         clock: Callable[[], float] = time.time,
+        budget: Callable[[str], bool] | None = None,
     ) -> None:
+        """`budget(provider)` spends one provider call from a limit shared by every server instance and says
+        whether it was allowed. None means unlimited (tests only; the app always passes one)."""
         self._s = settings
         self._client = client or httpx.Client(
             timeout=settings.live_data_timeout_seconds, follow_redirects=False
         )
         self._clock = clock
+        self._budget = budget
         self._lock = threading.Lock()
+        self._inflight: dict[tuple[str, str, str], threading.Lock] = {}
         self._cache: dict[tuple[str, str, str], tuple[float, LiveResult]] = {}
         self._cooldown: dict[str, tuple[float, LiveState]] = {}
 
@@ -271,6 +316,29 @@ class LiveData:
         if not secret.strip():
             return LiveResult(LiveState.NOT_CONFIGURED, provider, stamp)
         cache_key = (provider, ident, day)
+        early = self._answer_without_calling(cache_key, provider, now, stamp)
+        if early is not None:
+            return early
+        # Single flight: identical simultaneous lookups share one provider call. The first fetches, the
+        # others wait and then find its answer in the cache (or its cooldown).
+        with self._lock:
+            flight = self._inflight.setdefault(cache_key, threading.Lock())
+        try:
+            with flight:
+                now = self._clock()
+                early = self._answer_without_calling(cache_key, provider, now, stamp)
+                if early is not None:
+                    return early
+                result = self._call(provider, secret, fetch, now, stamp)
+                self._remember(cache_key, provider, result, now)
+                return result
+        finally:
+            with self._lock:
+                self._inflight.pop(cache_key, None)
+
+    def _answer_without_calling(
+        self, cache_key: tuple[str, str, str], provider: str, now: float, stamp: datetime
+    ) -> LiveResult | None:
         with self._lock:
             hit = self._cache.get(cache_key)
             if hit and hit[0] > now:
@@ -278,11 +346,36 @@ class LiveData:
             cooling = self._cooldown.get(provider)
             if cooling and cooling[0] > now:
                 return LiveResult(cooling[1], provider, stamp)
+        return None
+
+    def _call(
+        self,
+        provider: str,
+        secret: str,
+        fetch: Callable[[str], tuple[LiveState, LiveStatus | None]],
+        now: float,
+        stamp: datetime,
+    ) -> LiveResult:
+        if self._budget is not None:
+            try:
+                allowed = self._budget(provider)
+            except Exception:  # noqa: BLE001 - if the budget cannot be checked, no call is made
+                return LiveResult(LiveState.UNAVAILABLE, provider, stamp)
+            if not allowed:
+                log.info("live lookup provider=%s budget exhausted", provider)
+                return LiveResult(
+                    LiveState.RATE_LIMITED, provider, stamp
+                )  # cooldown set by _remember
         try:
             state, status = fetch(secret.strip())
         except Exception:  # noqa: BLE001 - nothing from an exception (it can hold the URL and key) is kept
             state, status = LiveState.UNAVAILABLE, None
-        result = LiveResult(state, provider, stamp, status)
+        return LiveResult(state, provider, stamp, status)
+
+    def _remember(
+        self, cache_key: tuple[str, str, str], provider: str, result: LiveResult, now: float
+    ) -> None:
+        state = result.state
         log.info("live lookup provider=%s state=%s", provider, state.value)
         with self._lock:
             if state in (LiveState.OK, LiveState.NOT_FOUND) and self._s.live_data_cache_seconds:
@@ -294,13 +387,16 @@ class LiveData:
             elif state in (LiveState.AUTH_FAILED, LiveState.RATE_LIMITED):
                 self._cooldown[provider] = (now + self._s.live_data_cooldown_seconds, state)
             elif (
-                state == LiveState.UNAVAILABLE
-            ):  # may be a blip: back off briefly, not for the full cooldown
+                state
+                in (
+                    LiveState.UNAVAILABLE,
+                    LiveState.UNUSABLE,
+                )
+            ):  # may be a blip: back off briefly, not for the full cooldown (and spend no more budget)
                 self._cooldown[provider] = (
                     now + min(60, self._s.live_data_cooldown_seconds),
                     state,
                 )
-        return result
 
     def _get(
         self,

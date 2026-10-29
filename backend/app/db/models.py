@@ -4,13 +4,14 @@ Deviations from docs/DATA_MODEL.md are recorded in docs/DECISIONS.md (ADR-007..A
 """
 
 import uuid
-from datetime import datetime
+from datetime import date, datetime
 from decimal import Decimal
 from typing import Any
 
 from sqlalchemy import (
     BigInteger,
     CheckConstraint,
+    Date,
     DateTime,
     ForeignKey,
     Index,
@@ -431,6 +432,19 @@ class Journey(Base):
     )  # the owner's edit time; decides which write wins
     received_at: Mapped[datetime] = mapped_column(TS)
     deleted_at: Mapped[datetime | None] = mapped_column(TS)
+    # Chosen by the owning phone, +1 per saved edit. A write applies only if it is strictly higher, so an
+    # older request that arrives late can never replace newer state whatever either clock says.
+    revision: Mapped[int] = mapped_column(BigInteger, server_default=text("0"))
+
+
+class LiveDataUsage(Base):
+    """Provider calls made per UTC day, shared by every instance of the server (ADR-027: bounded spend)."""
+
+    __tablename__ = "live_data_usage"
+
+    provider: Mapped[str] = mapped_column(String(24), primary_key=True)
+    day: Mapped[date] = mapped_column(Date, primary_key=True)
+    calls: Mapped[int] = mapped_column(Integer)
 
 
 class JourneyLeg(Base):

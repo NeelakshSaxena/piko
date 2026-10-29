@@ -36,6 +36,8 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import app.piko.android.journeys.data.JourneyPrefs
+import app.piko.android.journeys.data.JourneySync
+import app.piko.android.journeys.domain.JourneySyncOutcome
 import app.piko.android.journeys.data.SqliteJourneyStore
 import app.piko.android.journeys.domain.Arrival
 import app.piko.android.journeys.data.JourneyLive
@@ -89,6 +91,7 @@ fun JourneysHost(store: SqliteJourneyStore, prefs: JourneyPrefs, nowMs: () -> Lo
     var failure by remember { mutableStateOf<String?>(null) }
     var backup by remember { mutableStateOf(prefs.backupEnabled) }
     var waiting by remember { mutableIntStateOf(0) }
+    var refused by remember { mutableIntStateOf(0) }
     val scope = rememberCoroutineScope()
 
     suspend fun reload() {
@@ -97,7 +100,9 @@ fun JourneysHost(store: SqliteJourneyStore, prefs: JourneyPrefs, nowMs: () -> Lo
             journeys = all
             sessions = all.mapNotNull { j -> store.session(j.id) }.associateBy { it.journeyId }
             arrivals = all.associate { it.id to store.arrivals(it.id) }
-            waiting = store.dirty().size
+            // Deletes still owed to the server count too: they are unfinished backup work, not a finished one.
+            waiting = store.dirty().size + store.pendingDeletes().size
+            refused = (JourneySync.lastOutcome as? JourneySyncOutcome.Done)?.refused ?: 0
         }
     }
     LaunchedEffect(Unit) { reload() }
@@ -140,6 +145,7 @@ fun JourneysHost(store: SqliteJourneyStore, prefs: JourneyPrefs, nowMs: () -> Lo
                 onNew = { route = Route.Edit(null) },
                 backup = backup,
                 waiting = waiting,
+                refused = refused,
                 onBackup = { on ->
                     backup = on
                     prefs.backupEnabled = on
@@ -230,6 +236,7 @@ private fun JourneyListScreen(
     onNew: () -> Unit,
     backup: Boolean,
     waiting: Int,
+    refused: Int,
     onBackup: (Boolean) -> Unit,
 ) {
     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
@@ -265,6 +272,13 @@ private fun JourneyListScreen(
                     if (waiting == 0) "Everything is backed up." else "$waiting waiting to be backed up (needs a connection).",
                     style = MaterialTheme.typography.bodySmall, color = Clay.TextSecondary,
                 )
+                if (refused > 0) {
+                    // The server answered but kept a different copy or refused this one: never shown as "backed up".
+                    Text(
+                        "$refused could not be backed up the last time. They stay safe on this phone and will be tried again.",
+                        style = MaterialTheme.typography.bodySmall, color = Clay.Critical,
+                    )
+                }
             }
         }
     }

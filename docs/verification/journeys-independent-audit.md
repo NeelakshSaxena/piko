@@ -12,12 +12,12 @@ provider-key exposure path was found. Everything the reviewer verified as sound 
 ## Findings and disposition
 | ID | Sev | Finding | Disposition |
 |---|---|---|---|
-| M1 | Med | A journey deleted on the phone after a PUT whose reply was lost (never marked synced) queues no server delete, so the server copy stays (`SqliteJourneyStore.kt` delete / `forgetSync`) | **OPEN.** Needs an "upload attempted" flag (Android DB v4). Delete wording in the UI is therefore "when connected and backed up". Fix before relying on backup |
-| M2 | Med | Server `applied=false` (equal/newer copy kept) is treated as success; a phone clock stepped backwards makes later edits silently not back up while the UI says "Everything is backed up" | **OPEN.** Parse `applied`, re-stamp above the server's value, count pending deletes/events in the status line |
-| M3 | Med | Tombstones are never purged and `DELETE` of an unseen id inserts one: about 5k rows/hour/device is reachable; revoked devices' journeys are never purged | **OPEN.** Add a per-device tombstone cap and a retention rule (suggest 30 days); define a purge for revoked devices |
-| M4 | Med | `updated_at` is clamped to server time rather than rejected, so with a fast client clock a late replay of an older edit can overwrite a newer one | **OPEN.** Reject (409) future-dated `updated_at` beyond the allowance, or add a per-journey revision. Low exposure today (the client re-sends its current state) |
+| M1 | Med | A journey deleted on the phone after a PUT whose reply was lost (never marked synced) queued no server delete | **FIXED** (ADR-028): the phone records an upload attempt before sending; a delete of any attempted journey is queued durably (DB v4) and retried until the server answers; a journey deleted after the pending list was read is never sent. Re-audit N1 fixed. Tests: JVM `JourneyBackupRegressionTest`, emulator durability/contract/migration tests |
+| M2 | Med | `applied=false` was treated as success; a phone clock stepped backwards made edits silently not back up | **FIXED**: ordering and "synced" use a per-journey revision, not the clock; a server revision above the one sent is `Stale` (never "backed up"), the phone rebases above it, retries, and the UI shows it as waiting / could not be backed up; owed deletes count as waiting |
+| M3 | Med | Tombstones never purged; deleting an unseen id inserts one | **FIXED**: 30-day retention (per-device purge + retention job, plus journeys of devices revoked > 30 days), cap of 1000 per device, partial index. Documented in ADR-028 / API_CONTRACTS. Deleting a real journey always works |
+| M4 | Med | Server clamped `updated_at` instead of rejecting; a late replay of an older edit could overwrite a newer one | **FIXED**: server applies a write only if its `revision` is strictly higher; `updated_at` is display order and never moves backwards. Tests include a fast-clock replay |
 | M5 | Med | Aviationstack's free plan may not serve HTTPS (unverified); the tempting workaround, `http://`, would send the key in clear | **PARTLY FIXED.** Test now asserts both provider URLs are `https://`; docs say never to switch to `http` and to use a paid plan if HTTPS is refused. An HTTPS-refused answer shows as "unusable" |
-| M6 | Med | Any enrolled device can spend a 100/month provider quota (distinct numbers/dates, shared across families) and trigger a provider-wide cooldown | **PARTLY FIXED.** `day` is now limited to within 2 days of today. **OPEN:** a global per-provider budget and single-flight coalescing |
+| M6 | Med | Any enrolled device could spend the shared provider quota | **FIXED** (bounded, not eliminated): DB-backed daily (10) and monthly (90) budget per provider, advisory-locked, fails closed; single-flight; `UNUSABLE` answers pause the provider 60 s. A paired device can still use up the shared budget (re-audit N3, accepted: it is the point of a budget, and resets daily/monthly) |
 | L1 | Low | `$` in the number regexes accepted a trailing newline (distinct cache key, wasted call) | **FIXED** (`fullmatch`; tested) |
 | L2 | Low | NaN/inf: event values (poison batch blocks a device's sync) and provider delays (`int()` raised, 60 s provider cooldown) | **FIXED** (`allow_inf_nan=False`; finite check; tested) |
 | L3 | Low | `add_events` racing `delete` can leave orphan events until the 90-day rule; 5000-event cap not atomic | **OPEN**, low impact |
@@ -49,3 +49,26 @@ No Critical or High finding remains, so none blocks a release by the stated rule
 abuse-resistance gaps in the optional backup and lookup paths.** Backup is off by default and cannot work in production until
 migration `0007` is applied, so they do not affect existing users today; they should be fixed (or consciously accepted)
 before backup is encouraged or the lookup is exposed beyond a trusted family.
+
+## Re-audit of the M1-M4 and M6 fixes (2026-10-29)
+Reviewer: a second fresh, read-only model-assisted reviewer (not a penetration test; it ran no code, touched no database or
+network and read no `.env`, `.data` or key files). Result: **0 Critical, 0 High, 1 Medium, 4 Low, 4 Info.** No new device-isolation
+or key-exposure path. Verdicts: M2, M3, M4 closed; M6 closed with caveats; M1 partly closed until N1 (below) was fixed.
+
+| ID | Sev | Finding | Disposition |
+|---|---|---|---|
+| N1 | Med (narrow) | `drain` read the pending list once; a journey deleted before its turn was still sent (and, if the reply was lost, orphaned on the server) | **FIXED** (`markUploadAttempted` returns false for a missing row and the engine skips it; test added) |
+| N2 | Low | `UNUSABLE` answers were neither cached nor cooled down, so a broken provider response could drain the budget | **FIXED** (60 s pause; test added) |
+| N3 | Low | One paired device can spend the day's shared budget with made-up flight numbers | Accepted trade-off: bounded by 10/day and 90/month; each device is limited to 10 requests/minute. A per-family sub-budget is possible later |
+| N4 | Low | Single-flight lock is dropped after each call, so a late arrival can start a second identical fetch for uncached results | Accepted: the budget still bounds the calls |
+| N5 | Low | A delete of an unseen id while a device is at the 1000-tombstone cap leaves no tombstone | Accepted: needs > 1000 deletions in 30 days plus a lost reply |
+| N6 | Low/Info | Re-pairing the same server: an id still owned by the old revoked device answers 404, shown as "could not be backed up" until the 30-day revoked-device purge | Accepted and honest in the UI. Note: backups of a revoked device are deleted 30 days after revocation (documented in the retention rules) |
+| N7 | Info | `0007` was edited in place | Safe: no persistent database applied the old 0007 (production is at `0006`; only throwaway test/scratch schemas did) |
+| N8/N9 | Info | Count-then-insert caps can overshoot by a few under concurrency; rows upgraded from DB v3 with a lost reply before upgrade have no attempt note | Accepted |
+
+Not verified by the reviewer: `hashtext(:p)` through the psycopg driver and the Supabase pooler (**verified by tests that ran
+the budget against the real database**, see the verification note), the SQLite upgrade at runtime (**verified by the emulator
+migration test**), and whether two sync runs can overlap.
+
+Still open from the first review (unchanged, Low): L3 (`add_events` racing `delete`), L5 (arrival-detection buffer and mock
+locations), L6 (main-thread SQLite in the alarm receiver). M5 remains partly fixed (HTTPS asserted; plan support unverified).

@@ -1,5 +1,6 @@
 package app.piko.android.journeys
 
+import app.piko.android.journeys.data.ApiJourneyTransport
 import app.piko.android.journeys.data.JourneyCodec
 import app.piko.android.journeys.domain.Journey
 import app.piko.android.journeys.domain.JourneyEvent
@@ -23,7 +24,9 @@ private class FakeTransport(
     val puts = ArrayList<String>()
     val deletes = ArrayList<String>()
     val batches = ArrayList<Pair<String, List<String>>>()
-    override fun put(journey: Journey): SyncCall = put.invoke(journey).also { puts += journey.id }
+    val revisions = ArrayList<Long>()
+    override fun put(journey: Journey, revision: Long): SyncCall =
+        put.invoke(journey).also { puts += journey.id; revisions += revision }
     override fun delete(id: String): SyncCall = delete.invoke(id).also { deletes += id }
     override fun events(journeyId: String, events: List<JourneyEvent>): SyncCall =
         this.events.invoke(journeyId, events).also { batches += journeyId to events.map { it.id } }
@@ -112,6 +115,105 @@ class JourneySyncEngineTest {
     }
 }
 
+class JourneyBackupRegressionTest {
+    private val store = InMemoryJourneyStore()
+
+    private fun engine(t: FakeTransport) = JourneySyncEngine(store, store, t) { true }
+
+    // ---- M1: a lost upload reply followed by a delete ----
+    @Test fun aDeleteAfterALostUploadReplyIsStillOwedToTheServerAndSurvivesRetries() {
+        store.save(journey("j", listOf(leg("a"))))
+        // The request reached the server but the answer never came back: the phone saw a network failure.
+        assertEquals(JourneySyncOutcome.RetryLater, engine(FakeTransport(put = { SyncCall.Retry() })).drain())
+        assertTrue(store.pendingDeletes().isEmpty())
+        store.delete("j")
+        assertEquals(listOf("j"), store.pendingDeletes()) // owed, although the journey was never acknowledged
+        // Offline for a while: the debt stays, run after run.
+        val down = FakeTransport(delete = { SyncCall.Retry() })
+        repeat(3) { assertEquals(JourneySyncOutcome.RetryLater, engine(down).drain()) }
+        assertEquals(listOf("j"), store.pendingDeletes())
+        // Back online (a fresh engine over the same store, as after a restart): delivered exactly once.
+        val up = FakeTransport()
+        assertEquals(JourneySyncOutcome.Done(0, 1, 0), engine(up).drain())
+        assertEquals(listOf("j"), up.deletes)
+        assertTrue(store.pendingDeletes().isEmpty())
+        assertEquals(JourneySyncOutcome.Done(0, 0, 0), engine(up).drain())
+        assertEquals(1, up.deletes.size)
+    }
+
+    @Test fun aJourneyThatWasNeverSentOwesNoDelete() {
+        store.save(journey("never", listOf(leg("a"))))
+        store.delete("never")
+        assertTrue(store.pendingDeletes().isEmpty())
+    }
+
+    @Test fun forgettingTheServerClearsWhatWasOwedToIt() {
+        store.save(journey("j", listOf(leg("a"))))
+        engine(FakeTransport(put = { SyncCall.Retry() })).drain()
+        store.forgetSync() // the phone now talks to a different server
+        store.delete("j")
+        assertTrue(store.pendingDeletes().isEmpty())
+    }
+
+    @Test fun aJourneyDeletedAfterThePendingListWasReadIsNeverSent() {
+        store.save(journey("a", listOf(leg("la")), updated = "2026-10-28T10:00:00Z"))
+        store.save(journey("b", listOf(leg("lb")), updated = "2026-10-28T10:01:00Z"))
+        val t = FakeTransport()
+        t.put = { if (it.id == "a") store.delete("b"); SyncCall.Ok } // the user deletes b while a is in flight
+        engine(t).drain()
+        assertEquals(listOf("a"), t.puts) // b was gone before its turn: nothing is sent, and nothing is owed
+        assertTrue(store.pendingDeletes().isEmpty())
+    }
+
+    // ---- M2/M4: revisions, not clocks, decide what the server keeps ----
+    @Test fun everySavedEditGetsTheNextRevisionEvenWithTheSameOrAnEarlierTimestamp() {
+        store.save(journey("j", listOf(leg("a")), updated = "2026-10-28T10:00:00Z"))
+        store.save(journey("j", listOf(leg("a")), updated = "2026-10-28T10:00:00Z")) // same instant
+        store.save(journey("j", listOf(leg("a")), updated = "2026-10-28T09:00:00Z")) // clock stepped back
+        assertEquals(3L, store.dirtyUploads().single().revision)
+    }
+
+    @Test fun anEditWithTheSameTimestampAsTheSyncedOneIsStillUploaded() {
+        store.save(journey("j", listOf(leg("a")), updated = "2026-10-28T10:00:00Z"))
+        val t = FakeTransport()
+        engine(t).drain()
+        store.save(journey("j", listOf(leg("a"), leg("b")), updated = "2026-10-28T10:00:00Z")) // clock did not move
+        assertEquals(1, store.dirty().size)
+        assertEquals(JourneySyncOutcome.Done(1, 0, 0), engine(t).drain())
+        assertEquals(listOf(1L, 2L), t.revisions)
+    }
+
+    @Test fun aSaveDuringTheUploadLeavesTheJourneyDirtyEvenWithTheSameTimestamp() {
+        store.save(journey("j", listOf(leg("a")), updated = "2026-10-28T10:00:00Z"))
+        val t = FakeTransport()
+        t.put = { store.save(journey("j", listOf(leg("a"), leg("b")), updated = "2026-10-28T10:00:00Z")); SyncCall.Ok }
+        engine(t).drain()
+        assertEquals(1, store.dirty().size) // revision 2 was never sent
+    }
+
+    @Test fun aServerThatKeepsANewerRevisionIsNeverReportedAsBackedUp() {
+        store.save(journey("j", listOf(leg("a"))))
+        val t = FakeTransport(put = { SyncCall.Stale(serverRevision = 9) })
+        assertEquals(JourneySyncOutcome.RetryLater, engine(t).drain())
+        assertEquals(1, store.dirty().size) // visible as waiting in the UI
+        // The next run uses a revision above the server's, so it applies.
+        val fixed = FakeTransport()
+        assertEquals(JourneySyncOutcome.Done(1, 0, 0), engine(fixed).drain())
+        assertEquals(listOf(10L), fixed.revisions)
+        assertTrue(store.dirty().isEmpty())
+    }
+
+    @Test fun theAnswerToAPutIsInterpretedByRevisionNotByTheFlagAlone() {
+        fun answer(applied: Boolean, held: Long) = """{"applied":$applied,"journey":{"revision":$held}}"""
+        assertEquals(SyncCall.Ok, ApiJourneyTransport.answerToPut(answer(true, 3), 3))
+        assertEquals(SyncCall.Ok, ApiJourneyTransport.answerToPut(answer(false, 3), 3)) // the same edit again
+        assertEquals(SyncCall.Stale(5), ApiJourneyTransport.answerToPut(answer(false, 5), 3))
+        assertEquals(SyncCall.Refused(200), ApiJourneyTransport.answerToPut(answer(false, 1), 3))
+        assertEquals(SyncCall.Refused(200), ApiJourneyTransport.answerToPut("not json", 3))
+        assertEquals(SyncCall.Refused(200), ApiJourneyTransport.answerToPut("""{"applied":true}""", 3))
+    }
+}
+
 class JourneyCodecTest {
     @Test fun theWireFormMatchesTheServerContract() {
         val json = JSONObject(
@@ -123,8 +225,10 @@ class JourneyCodecTest {
                         leg("b", TransportMode.TAXI, departure = null, arrival = null),
                     ),
                 ),
+                7,
             ),
         )
+        assertEquals(7, json.getLong("revision"))
         assertEquals("Trip j", json.getString("title"))
         assertEquals("DRAFT", json.getString("status"))
         assertEquals("2026-10-28T10:00:00Z", json.getString("updated_at"))
@@ -138,7 +242,7 @@ class JourneyCodecTest {
         assertTrue(legs.getJSONObject(1).isNull("departure_zone"))
         assertTrue(legs.getJSONObject(1).isNull("service_number"))
         // The server rejects unknown fields, so the top level must be exactly this.
-        assertEquals(setOf("title", "status", "created_at", "updated_at", "legs"), json.keys().asSequence().toSet())
+        assertEquals(setOf("title", "status", "created_at", "updated_at", "revision", "legs"), json.keys().asSequence().toSet())
     }
 }
 

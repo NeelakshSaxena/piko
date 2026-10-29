@@ -377,6 +377,23 @@ def test_a_transient_failure_backs_off_briefly_only(tmp_path: Path) -> None:
     assert svc.flight("AI101", DAY).state is LiveState.OK
 
 
+def test_an_unusable_answer_pauses_the_provider_briefly_so_it_cannot_drain_the_budget(
+    tmp_path: Path,
+) -> None:
+    now = [1_000_000.0]
+    net = Net(httpx.Response(200, text="not json at all"), avs(flight_row()))
+    spent: list[str] = []
+    svc = LiveData(
+        cfg(tmp_path), client=net.client(), clock=lambda: now[0],
+        budget=lambda p: spent.append(p) or True,
+    )  # fmt: skip
+    assert svc.flight("AI101", DAY).state is LiveState.UNUSABLE
+    assert svc.flight("AI101", DAY).state is LiveState.UNUSABLE  # paused: no call, no budget
+    assert len(net.requests) == 1 and len(spent) == 1
+    now[0] += 61
+    assert svc.flight("AI101", DAY).state is LiveState.OK
+
+
 def test_the_key_never_reaches_a_log_even_at_info(
     tmp_path: Path, caplog: pytest.LogCaptureFixture
 ) -> None:
@@ -566,3 +583,156 @@ def test_api_rejects_a_trailing_newline_and_far_dates(make_family, client, setti
     far = (datetime.now(UTC).date() + timedelta(days=3)).isoformat()
     assert client.get(url, params={"flight": "AI101", "day": far}, headers=h).status_code == 400
     assert net.requests == []  # none of those reached the provider
+
+
+# ---- audit M6: a bounded provider budget and single-flight lookups ----
+def test_an_exhausted_budget_makes_no_provider_call_and_reports_rate_limited(
+    tmp_path: Path,
+) -> None:
+    net = Net(avs(flight_row()))
+    spent: list[str] = []
+
+    def budget(provider: str) -> bool:
+        spent.append(provider)
+        return len(spent) <= 1
+
+    svc = LiveData(cfg(tmp_path), client=net.client(), clock=lambda: 1_000_000.0, budget=budget)
+    assert svc.flight("AI101", DAY).state == LiveState.OK
+    second = svc.flight("AI102", DAY)  # a different flight: not cached, so it needs budget
+    assert second.state == LiveState.RATE_LIMITED
+    assert len(net.requests) == 1
+    # And the provider is now paused: no further budget checks or calls until the cooldown ends.
+    assert svc.flight("AI103", DAY).state == LiveState.RATE_LIMITED
+    assert len(spent) == 2 and len(net.requests) == 1
+
+
+def test_cached_answers_and_manual_mode_spend_no_budget(tmp_path: Path) -> None:
+    net = Net(avs(flight_row()))
+    spent: list[str] = []
+    svc = LiveData(
+        cfg(tmp_path), client=net.client(), clock=lambda: 1_000_000.0,
+        budget=lambda p: spent.append(p) or True,
+    )  # fmt: skip
+    svc.flight("AI101", DAY)
+    svc.flight("AI101", DAY)  # cache hit
+    assert spent == ["aviationstack"]
+    manual = LiveData(
+        cfg(tmp_path, flight_data_provider="manual"), client=net.client(),
+        budget=lambda p: spent.append(p) or True,
+    )  # fmt: skip
+    assert manual.flight("AI101", DAY).state == LiveState.DISABLED
+    assert spent == ["aviationstack"]
+
+
+def test_a_budget_that_cannot_be_checked_fails_closed(tmp_path: Path) -> None:
+    net = Net(avs(flight_row()))
+
+    def broken(provider: str) -> bool:
+        raise RuntimeError("database down")
+
+    svc = LiveData(cfg(tmp_path), client=net.client(), budget=broken)
+    assert svc.flight("AI101", DAY).state == LiveState.UNAVAILABLE
+    assert net.requests == []
+
+
+def test_simultaneous_identical_lookups_share_one_provider_call(tmp_path: Path) -> None:
+    import threading
+
+    release = threading.Event()
+    calls: list[int] = []
+
+    def slow(request: httpx.Request) -> httpx.Response:
+        calls.append(1)
+        release.wait(5)
+        return avs(flight_row())
+
+    spent: list[str] = []
+    svc = LiveData(
+        cfg(tmp_path), client=httpx.Client(transport=httpx.MockTransport(slow)),
+        budget=lambda p: spent.append(p) or True,
+    )  # fmt: skip
+    results: list[LiveState] = []
+    threads = [
+        threading.Thread(target=lambda: results.append(svc.flight("AI101", DAY).state))
+        for _ in range(6)
+    ]
+    for t in threads:
+        t.start()
+    release.set()
+    for t in threads:
+        t.join(10)
+    assert results == [LiveState.OK] * 6
+    assert len(calls) == 1 and len(spent) == 1
+
+
+def test_database_budget_enforces_daily_and_monthly_limits_across_instances(
+    client, settings
+) -> None:  # type: ignore[no-untyped-def]
+    import secrets
+
+    from app.db.models import LiveDataUsage
+    from app.services.live_data import DatabaseBudget
+
+    factory = client.app.state.session_factory
+    daily = DatabaseBudget(settings.model_copy(update={"live_data_daily_budget": 2}), factory)
+    other_instance = DatabaseBudget(
+        settings.model_copy(update={"live_data_daily_budget": 2}), factory
+    )
+    provider = "t" + secrets.token_hex(6)
+    assert [daily(provider), other_instance(provider), daily(provider), other_instance(provider)] == [
+        True, True, False, False,
+    ]  # fmt: skip
+    # Another provider has its own count.
+    assert daily("t" + secrets.token_hex(6)) is True
+    # The monthly limit counts earlier days of the month too.
+    month_provider = "t" + secrets.token_hex(6)
+    today = datetime.now(UTC).date()
+    with factory() as db:
+        db.add(LiveDataUsage(provider=month_provider, day=today.replace(day=1), calls=3))
+        db.commit()
+    monthly = DatabaseBudget(
+        settings.model_copy(update={"live_data_daily_budget": 50, "live_data_monthly_budget": 3}),
+        factory,
+    )
+    assert monthly(month_provider) is False
+    # Zero disables live lookups outright.
+    assert (
+        DatabaseBudget(settings.model_copy(update={"live_data_daily_budget": 0}), factory)(
+            "t" + secrets.token_hex(6)
+        )
+        is False
+    )
+    assert settings.live_data_daily_budget == 10 and settings.live_data_monthly_budget == 90
+
+
+def test_api_lookups_stop_at_the_server_wide_budget(make_family, client, settings) -> None:  # type: ignore[no-untyped-def]
+    from app.services.live_data import DatabaseBudget
+
+    fam = make_family()
+    _id, token, _ = fam.pair_device()
+    h = device_headers(token)
+    net = Net(avs(flight_row(date_=TODAY)))
+    custom = settings.model_copy(
+        update={
+            "flight_data_provider": "aviationstack",
+            "aviationstack_api_key": SecretStr(KEY),
+            "live_data_daily_budget": 2,
+            "live_data_monthly_budget": 1000,
+        }
+    )
+    # Isolate this test's count from the shared schema by using a provider-scoped budget wrapper.
+    inner = DatabaseBudget(custom, client.app.state.session_factory)
+    tag = "t" + __import__("secrets").token_hex(6)
+    client.app.state.live_data = LiveData(
+        custom, client=net.client(), budget=lambda provider: inner(tag)
+    )
+    states = [
+        client.get(
+            "/api/v1/journeys/live/flight",
+            params={"flight": f"AI{100 + n}", "day": TODAY},
+            headers=h,
+        ).json()["state"]
+        for n in range(4)
+    ]
+    assert set(states[:2]) <= {"ok", "not_found"} and states[2:] == ["rate_limited", "rate_limited"]
+    assert len(net.requests) == 2

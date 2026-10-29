@@ -9,7 +9,7 @@ import java.time.format.DateTimeFormatter
 
 /** The wire form of a journey for `PUT /api/v1/journeys/{id}` (see docs/API_CONTRACTS.md). */
 object JourneyCodec {
-    fun put(journey: Journey): String {
+    fun put(journey: Journey, revision: Long): String {
         val legs = JSONArray()
         journey.legs.forEach { leg ->
             legs.put(
@@ -30,8 +30,17 @@ object JourneyCodec {
             .put("status", journey.status.name)
             .put("created_at", journey.createdAt.toString())
             .put("updated_at", journey.updatedAt.toString())
+            .put("revision", revision)
             .put("legs", legs)
             .toString()
+    }
+
+    /** What the server said about a PUT: whether it applied the upload and the revision it now holds. Null if unreadable. */
+    fun putAnswer(body: String): Pair<Boolean, Long>? = try {
+        val json = JSONObject(body)
+        json.getBoolean("applied") to json.getJSONObject("journey").getLong("revision")
+    } catch (_: org.json.JSONException) {
+        null
     }
 
     /** The body of `POST /api/v1/journeys/{id}/events`. [batchId] only labels the request; event ids make it idempotent. */
