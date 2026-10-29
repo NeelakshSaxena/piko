@@ -14,7 +14,7 @@ import json
 import os
 import uuid
 from dataclasses import dataclass
-from datetime import UTC, datetime
+from datetime import UTC, date, datetime
 from decimal import Decimal
 from pathlib import Path
 from typing import Any
@@ -57,6 +57,8 @@ def _encode(value: Any) -> Any:
         return str(value)
     if isinstance(value, datetime):
         return value.astimezone(UTC).isoformat()
+    if isinstance(value, date):  # after datetime, which is a date too (live_data_usage.day)
+        return value.isoformat()
     if isinstance(value, Decimal):
         return str(value)
     return value
@@ -70,6 +72,8 @@ def _decode(table: Table, name: str, value: Any) -> Any:
         return uuid.UUID(value)
     if python_type is datetime:
         return datetime.fromisoformat(value)
+    if python_type is date:
+        return date.fromisoformat(value)
     if python_type is Decimal:
         return Decimal(value)
     return value

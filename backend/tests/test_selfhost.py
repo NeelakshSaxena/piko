@@ -320,3 +320,16 @@ def test_users_table_is_untouched_by_reading_the_schema(settings: Settings, db: 
     before = db.scalar(select(func.count()).select_from(User))
     run_checks(settings)
     assert db.scalar(select(func.count()).select_from(User)) == before
+
+
+def test_date_columns_survive_a_backup_round_trip() -> None:
+    """live_data_usage.day is a plain date (0007): the backup file is JSON, so it must encode and decode it."""
+    from datetime import date
+
+    from app.db.models import LiveDataUsage
+    from app.services.backup import _decode, _encode
+
+    table = LiveDataUsage.__table__
+    day = date(2026, 10, 29)
+    assert _encode(day) == "2026-10-29"
+    assert _decode(table, "day", _encode(day)) == day  # type: ignore[arg-type]
